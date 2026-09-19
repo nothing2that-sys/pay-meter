@@ -384,34 +384,44 @@ button:disabled {
   width: calc(100% - 12px);
   min-height: calc(100dvh - 12px);
   margin: 6px;
-  padding: 25px 24px 22px;
+  padding: 20px 22px 16px;
   border-radius: 28px;
 }
 .pip-body .progress-value {
-  font-size: 46px;
+  margin-top: 6px;
+  font-size: 44px;
 }
 .pip-body .money-block {
-  margin-top: 26px;
+  margin-top: 18px;
 }
 .pip-body .money-block strong {
   font-size: 27px;
 }
 .pip-body .secondary-money {
-  margin-top: 15px;
+  margin-top: 10px;
 }
 .pip-body .secondary-money strong {
   font-size: 19px;
 }
 .pip-body .loaf-button {
-  margin-top: 24px;
-  min-height: 48px;
+  margin-top: 14px;
+  min-height: 44px;
 }
 .pip-body .freework-wallet {
-  margin-top: 20px;
-  padding: 18px;
+  margin-top: 12px;
+  padding: 14px 16px;
 }
 .pip-body .wallet-money {
-  font-size: 38px;
+  margin-top: 8px;
+  font-size: 34px;
+}
+.pip-body .wallet-copy {
+  min-height: 0;
+  margin: 12px 0 10px;
+  font-size: 13px;
+}
+.pip-body .clockout-button {
+  min-height: 44px;
 }
 
 @keyframes pulse {
