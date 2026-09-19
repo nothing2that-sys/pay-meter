@@ -32,15 +32,21 @@
 html,
 body,
 #root {
+  width: 100%;
+  height: 100%;
   min-width: 280px;
-  min-height: 100%;
   margin: 0;
+  overflow: hidden;
+}
+body,
+#root {
+  position: fixed;
+  inset: 0;
 }
 body {
-  min-height: 100vh;
-  min-height: 100dvh;
   background:
     radial-gradient(circle at 50% 0%, rgba(53, 183, 170, 0.07), transparent 34rem), #0d1117;
+  overscroll-behavior: none;
 }
 button,
 input {
@@ -58,116 +64,130 @@ button:disabled {
   --active-state: #7f8a96;
   --active-soft: #313942;
   position: relative;
-  width: min(calc(100% - 16px), 580px);
-  height: min(720px, calc(100dvh - 16px));
-  min-height: min(540px, calc(100dvh - 16px));
-  margin: 8px auto;
-  padding: 24px 34px 22px;
+  width: min(100dvw, 720px);
+  height: 100dvh;
+  margin: 0 auto;
+  padding: max(18px, env(safe-area-inset-top)) 28px max(18px, env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border-radius: 38px;
+  border-radius: 0;
   background:
-    radial-gradient(circle at 50% 35%, rgba(127, 138, 150, 0.08), transparent 40%),
-    linear-gradient(180deg, #151b22 0%, #0d1117 78%);
-  box-shadow: 0 26px 80px rgba(0, 0, 0, 0.34);
+    radial-gradient(circle at 50% 32%, rgba(127, 138, 150, 0.07), transparent 44%),
+    linear-gradient(180deg, #151b22 0%, #0d1117 80%);
 }
 .money-timer-frame.state-working {
   --active-state: var(--state-working);
   --active-soft: var(--state-working-soft);
   background:
-    radial-gradient(circle at 50% 34%, rgba(53, 183, 170, 0.11), transparent 42%),
-    linear-gradient(180deg, #121c20 0%, #0d1117 78%);
+    radial-gradient(circle at 50% 32%, rgba(53, 183, 170, 0.1), transparent 44%),
+    linear-gradient(180deg, #121c20 0%, #0d1117 80%);
 }
 .money-timer-frame.state-loafing {
   --active-state: var(--state-loafing);
   --active-soft: var(--state-loafing-soft);
   background:
-    radial-gradient(circle at 50% 34%, rgba(216, 147, 53, 0.12), transparent 42%),
-    linear-gradient(180deg, #211911 0%, #0d1117 78%);
+    radial-gradient(circle at 50% 32%, rgba(216, 147, 53, 0.1), transparent 44%),
+    linear-gradient(180deg, #211911 0%, #0d1117 80%);
 }
 .money-timer-frame.state-freework {
   --active-state: var(--state-freework-strong);
   --active-soft: var(--state-freework-soft);
   background:
-    radial-gradient(circle at 50% 34%, rgba(240, 90, 103, 0.13), transparent 43%),
-    linear-gradient(180deg, #211216 0%, #0d1117 78%);
+    radial-gradient(circle at 50% 32%, rgba(240, 90, 103, 0.12), transparent 44%),
+    linear-gradient(180deg, #211216 0%, #0d1117 80%);
 }
 
 .perimeter {
   position: absolute;
   inset: 0;
+  z-index: 1;
   width: 100%;
   height: 100%;
-  pointer-events: none;
   overflow: visible;
-  z-index: 1;
+  pointer-events: none;
 }
 .perimeter path {
   fill: none;
   vector-effect: non-scaling-stroke;
   stroke-linecap: butt;
-  stroke-width: 10px;
 }
 .perimeter-base {
-  stroke: var(--timeline-inactive);
-}
-.perimeter-working {
-  stroke: var(--timeline-working);
+  stroke: #26313a;
   stroke-width: 12px;
 }
-.perimeter-loafing {
-  stroke: var(--timeline-loafing);
-  stroke-width: 12px;
-}
-.perimeter-current {
-  stroke: #f2f5f7;
-  stroke-width: 14px;
-  stroke-linecap: round;
-  filter: drop-shadow(0 0 3px rgba(242, 245, 247, 0.38));
-}
-.state-freework .perimeter-working,
-.state-freework .perimeter-loafing {
-  stroke: var(--state-freework-strong);
+.perimeter-progress {
+  stroke: var(--active-state);
+  stroke-width: 15px;
+  filter: drop-shadow(0 0 3px color-mix(in srgb, var(--active-state) 45%, transparent));
 }
 .state-freework .perimeter-base {
-  stroke: #4a242b;
+  stroke: #48252b;
+}
+.perimeter-current-dot {
+  display: none;
 }
 
 .app-header {
   position: relative;
   z-index: 3;
-  min-height: 56px;
+  min-height: 92px;
   display: flex;
-  align-items: center;
   justify-content: flex-end;
+  align-items: flex-start;
 }
-.brand {
+.brand-block {
   position: absolute;
+  top: 3px;
   left: 50%;
   transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+.brand {
   color: #f2f5f7;
-  font-size: 27px;
+  font-size: clamp(25px, 6vw, 32px);
   line-height: 1;
   font-weight: 850;
-  letter-spacing: -0.035em;
-  white-space: nowrap;
+  letter-spacing: -0.04em;
 }
 .brand span {
   color: var(--active-state);
 }
+.header-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 29px;
+  padding: 0 12px;
+  border: 1px solid color-mix(in srgb, var(--active-state) 62%, #303841);
+  border-radius: 999px;
+  background: rgba(16, 22, 28, 0.76);
+  color: #eef2f5;
+  font-size: 13px;
+  font-weight: 800;
+}
+.state-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--active-state);
+}
 .header-actions {
   display: flex;
-  gap: 9px;
+  gap: 8px;
 }
 .round-icon-button {
-  width: 43px;
-  height: 43px;
+  width: 40px;
+  height: 40px;
   display: grid;
   place-items: center;
-  border: 1px solid #39434d;
+  border: 1px solid #36404a;
   border-radius: 50%;
-  background: rgba(27, 34, 43, 0.74);
+  background: rgba(27, 34, 43, 0.72);
   color: #c7d0d8;
 }
 .round-icon-button svg,
@@ -175,10 +195,9 @@ button:disabled {
 .detail-button svg,
 .clockout-button svg,
 .secondary-amount-card > svg,
-.mini-card-icon svg,
-.support-chip svg {
-  width: 22px;
-  height: 22px;
+.mini-card-icon svg {
+  width: 21px;
+  height: 21px;
   fill: none;
   stroke: currentColor;
   stroke-width: 1.9;
@@ -194,143 +213,98 @@ button:disabled {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: minmax(0, 1fr) auto;
-  gap: 12px;
+  gap: 16px;
 }
 .timer-main-zone,
 .freework-main-zone {
   min-width: 0;
   min-height: 0;
-  display: grid;
-  place-items: center;
-}
-
-.meter-orb {
-  position: relative;
-  width: min(78vw, 392px);
-  max-height: 100%;
-  aspect-ratio: 1;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 48px 34px 34px;
-  border: 2px solid var(--active-state);
-  border-radius: 50%;
-  background:
-    radial-gradient(circle at 50% 45%, rgba(255, 255, 255, 0.025), transparent 58%),
-    rgba(10, 15, 20, 0.36);
-  box-shadow:
-    inset 0 0 0 11px rgba(255, 255, 255, 0.015),
-    inset 0 0 42px rgba(0, 0, 0, 0.28),
-    0 0 36px rgba(0, 0, 0, 0.2);
 }
-.state-working .meter-orb {
-  box-shadow:
-    inset 0 0 0 11px rgba(53, 183, 170, 0.045),
-    inset 0 0 46px rgba(53, 183, 170, 0.06);
-}
-.state-loafing .meter-orb {
-  box-shadow:
-    inset 0 0 0 11px rgba(216, 147, 53, 0.05),
-    inset 0 0 46px rgba(216, 147, 53, 0.07);
-}
-.state-freework .meter-orb {
-  box-shadow:
-    inset 0 0 0 11px rgba(240, 90, 103, 0.055),
-    inset 0 0 46px rgba(240, 90, 103, 0.08);
-}
-
-.state-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  min-height: 44px;
-  padding: 0 19px;
-  border: 1px solid var(--active-state);
-  border-radius: 999px;
-  background: rgba(20, 27, 33, 0.7);
-  color: #edf2f5;
-  font-size: 16px;
-  font-weight: 800;
-}
-.state-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--active-state);
-  box-shadow: 0 0 10px var(--active-state);
-}
-
-.main-money {
-  margin-top: 26px;
+.amount-stage,
+.freework-amount-stage {
+  width: 100%;
   min-width: 0;
+  text-align: center;
+}
+.main-money strong,
+.wallet-money {
+  display: block;
+  line-height: 0.92;
+  font-weight: 900;
+  letter-spacing: -0.065em;
+  white-space: nowrap;
 }
 .main-money strong {
-  display: block;
-  color: #f4f7f8;
-  font-size: clamp(47px, 13vw, 74px);
-  line-height: 0.98;
-  font-weight: 900;
-  letter-spacing: -0.058em;
-  white-space: nowrap;
-  text-shadow: 0 0 20px rgba(255, 255, 255, 0.08);
+  color: #f5f7f8;
+  font-size: clamp(70px, 18vw, 116px);
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.07);
 }
-.support-chip {
-  margin-top: 22px;
-  min-height: 40px;
-  padding: 0 15px;
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-  border: 1px solid #303a44;
-  border-radius: 999px;
-  background: rgba(27, 34, 43, 0.75);
-  color: var(--text-secondary);
-  font-size: 13px;
-  font-weight: 700;
-}
-.support-chip svg {
-  color: var(--active-state);
+.wallet-money {
+  color: var(--state-freework-strong);
+  font-size: clamp(72px, 19vw, 120px);
+  text-shadow: 0 0 22px rgba(240, 90, 103, 0.17);
 }
 
 .loafing-inline-card {
-  width: min(100%, 250px);
-  margin-top: 14px;
-  padding: 10px 15px;
+  width: min(80%, 300px);
+  margin: 30px auto 0;
+  padding: 13px 17px;
   display: grid;
-  grid-template-columns: 34px minmax(0, 1fr);
-  gap: 11px;
+  grid-template-columns: 36px minmax(0, 1fr);
+  gap: 12px;
   align-items: center;
-  border: 1px solid rgba(216, 147, 53, 0.4);
-  border-radius: 16px;
-  background: rgba(34, 27, 20, 0.7);
+  border: 1px solid rgba(216, 147, 53, 0.38);
+  border-radius: 17px;
+  background: rgba(35, 28, 21, 0.66);
   text-align: left;
 }
 .loafing-inline-card span {
   display: block;
-  color: #aa9a84;
+  color: #a99a87;
   font-size: 11px;
   font-weight: 700;
 }
 .loafing-inline-card strong {
   display: block;
-  margin-top: 2px;
+  margin-top: 3px;
   color: #e5ad5e;
-  font-size: 20px;
-  line-height: 1.1;
+  font-size: clamp(21px, 5.5vw, 28px);
+  line-height: 1;
   white-space: nowrap;
 }
 .state-loafing .loafing-inline-card {
   border-color: var(--state-loafing);
-  background: rgba(66, 43, 20, 0.72);
+  background: rgba(64, 43, 21, 0.7);
 }
 .state-loafing .loafing-inline-card strong {
-  color: #f1ad4d;
+  color: #f0ac4d;
 }
 .mini-card-icon {
-  color: var(--active-state);
   display: grid;
   place-items: center;
+  color: var(--active-state);
+}
+
+.wallet-duration-row {
+  width: min(80%, 300px);
+  margin: 34px auto 0;
+  padding-top: 15px;
+  border-top: 1px solid rgba(240, 90, 103, 0.2);
+  display: grid;
+  gap: 5px;
+}
+.wallet-duration-row span {
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 700;
+}
+.wallet-duration-row strong {
+  color: #ef7180;
+  font-size: clamp(22px, 5vw, 30px);
+  font-weight: 820;
 }
 
 .timer-action-zone,
@@ -340,48 +314,24 @@ button:disabled {
   flex-direction: column;
   gap: 10px;
 }
-.ambient-waves {
-  position: relative;
-  height: 34px;
-  overflow: hidden;
-  opacity: 0.38;
-  pointer-events: none;
-}
-.ambient-waves span {
-  position: absolute;
-  width: 72%;
-  height: 56px;
-  left: -4%;
-  top: 17px;
-  border: 1px solid var(--active-state);
-  border-radius: 50%;
-}
-.ambient-waves span + span {
-  width: 76%;
-  left: 38%;
-  top: 22px;
-  opacity: 0.7;
-}
-
 .loaf-button,
 .clockout-button,
 .detail-button {
   width: 100%;
-  min-height: 54px;
+  min-height: 56px;
   display: grid;
-  grid-template-columns: 34px 1fr 26px;
+  grid-template-columns: 34px 1fr 24px;
   align-items: center;
   gap: 10px;
-  padding: 0 18px;
+  padding: 0 19px;
   border-radius: 18px;
-  font-weight: 800;
+  font-weight: 820;
 }
 .loaf-button,
 .clockout-button {
   border: 1px solid var(--active-state);
   background: linear-gradient(180deg, var(--active-state), var(--active-soft));
   color: #f7f8f9;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
 }
 .state-working .loaf-button {
   color: #061715;
@@ -394,7 +344,7 @@ button:disabled {
 }
 .detail-button {
   border: 1px solid #34404b;
-  background: rgba(24, 31, 38, 0.88);
+  background: rgba(24, 31, 38, 0.9);
   color: #d7dde3;
 }
 .loaf-button svg:last-child,
@@ -423,46 +373,8 @@ button:disabled {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: minmax(0, 1fr) auto;
-  gap: 12px;
+  gap: 16px;
 }
-.wallet-label {
-  margin-top: 20px;
-  color: #c9929a;
-  font-size: 13px;
-  font-weight: 850;
-  letter-spacing: 0.12em;
-}
-.wallet-money {
-  margin-top: 9px;
-  color: var(--state-freework-strong);
-  font-size: clamp(52px, 14vw, 82px);
-  line-height: 0.98;
-  font-weight: 900;
-  letter-spacing: -0.06em;
-  white-space: nowrap;
-  text-shadow: 0 0 22px rgba(240, 90, 103, 0.18);
-}
-.wallet-duration-row {
-  width: min(100%, 250px);
-  margin-top: 22px;
-  padding-top: 14px;
-  border-top: 1px solid rgba(240, 90, 103, 0.18);
-  display: grid;
-  gap: 4px;
-  text-align: center;
-}
-.wallet-duration-row span {
-  color: var(--text-secondary);
-  font-size: 12px;
-  font-weight: 700;
-}
-.wallet-duration-row strong {
-  color: #f06a77;
-  font-size: 24px;
-  font-weight: 800;
-  letter-spacing: 0.03em;
-}
-
 .secondary-amount-card {
   min-width: 0;
   padding: 13px 16px;
@@ -485,20 +397,21 @@ button:disabled {
   display: block;
   margin-top: 2px;
   color: #f2f5f7;
-  font-size: clamp(20px, 6vw, 28px);
+  font-size: clamp(20px, 5vw, 28px);
   line-height: 1.05;
-  letter-spacing: -0.035em;
   white-space: nowrap;
 }
 .regular-earned-card > svg {
-  color: #77818b;
   width: 17px;
   height: 17px;
+  color: #77818b;
 }
 
 .milestone-ring {
   position: absolute;
   top: 48%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   padding: 6px 10px;
   border-radius: 999px;
   background: #d7f5f1;
@@ -510,144 +423,23 @@ button:disabled {
   animation: pulse 420ms ease-out;
 }
 
-@media (max-width: 419px), (max-height: 559px) {
+@media (max-width: 480px) {
   .money-timer-frame {
-    width: calc(100% - 10px);
-    height: calc(100dvh - 10px);
-    min-height: 0;
-    margin: 5px;
-    padding: 17px 20px 14px;
-    border-radius: 27px;
+    width: 100dvw;
+    height: 100dvh;
+    padding:
+      max(14px, env(safe-area-inset-top))
+      20px
+      max(14px, env(safe-area-inset-bottom));
   }
-  .perimeter path {
-    stroke-width: 7px;
+  .perimeter-base {
+    stroke-width: 10px;
   }
-  .perimeter-working,
-  .perimeter-loafing {
-    stroke-width: 9px;
-  }
-  .perimeter-current {
-    stroke-width: 11px;
+  .perimeter-progress {
+    stroke-width: 13px;
   }
   .app-header {
-    min-height: 46px;
-  }
-  .brand {
-    font-size: 22px;
-  }
-  .round-icon-button {
-    width: 36px;
-    height: 36px;
-  }
-  .round-icon-button svg {
-    width: 18px;
-    height: 18px;
-  }
-  .timer-layout,
-  .freework-wallet {
-    gap: 8px;
-  }
-  .meter-orb {
-    width: min(68vw, 260px);
-    padding: 34px 24px 22px;
-  }
-  .state-pill {
-    min-height: 34px;
-    padding: 0 14px;
-    font-size: 13px;
-  }
-  .main-money {
-    margin-top: 14px;
-  }
-  .main-money strong {
-    font-size: clamp(39px, 12vw, 52px);
-  }
-  .support-chip {
-    margin-top: 12px;
-    min-height: 31px;
-    font-size: 11px;
-  }
-  .loafing-inline-card {
-    margin-top: 8px;
-    padding: 7px 11px;
-  }
-  .loafing-inline-card strong {
-    font-size: 17px;
-  }
-  .ambient-waves {
-    display: none;
-  }
-  .loaf-button,
-  .clockout-button,
-  .detail-button {
-    min-height: 43px;
-    border-radius: 14px;
-  }
-  .wallet-label {
-    margin-top: 12px;
-  }
-  .wallet-money {
-    margin-top: 6px;
-    font-size: clamp(43px, 13vw, 58px);
-  }
-  .wallet-duration-row {
-    margin-top: 11px;
-    padding-top: 9px;
-  }
-  .wallet-duration-row strong {
-    font-size: 18px;
-  }
-  .secondary-amount-card {
-    padding: 9px 12px;
-  }
-}
-
-@media (orientation: landscape) and (min-width: 520px) {
-  .money-timer-frame {
-    width: min(calc(100% - 14px), 940px);
-    height: min(540px, calc(100dvh - 14px));
-    min-height: 0;
-    margin: 7px auto;
-    padding: 18px 28px 18px;
-  }
-  .app-header {
-    min-height: 48px;
-  }
-  .timer-layout,
-  .freework-wallet {
-    grid-template-columns: minmax(0, 1.12fr) minmax(250px, 0.88fr);
-    grid-template-rows: minmax(0, 1fr);
-    align-items: stretch;
-    gap: 34px;
-  }
-  .meter-orb {
-    width: min(42vw, 350px);
-  }
-  .timer-main-zone,
-  .freework-main-zone {
-    place-items: center;
-  }
-  .timer-action-zone,
-  .freework-action-zone {
-    justify-content: center;
-  }
-  .main-money strong {
-    font-size: clamp(48px, 8vw, 82px);
-  }
-  .wallet-money {
-    font-size: clamp(52px, 8vw, 86px);
-  }
-  .ambient-waves {
-    height: 56px;
-  }
-}
-
-@media (orientation: landscape) and (min-width: 520px) and (max-height: 460px) {
-  .money-timer-frame {
-    padding: 12px 26px 12px;
-  }
-  .app-header {
-    min-height: 42px;
+    min-height: 82px;
   }
   .brand {
     font-size: 24px;
@@ -656,46 +448,85 @@ button:disabled {
     width: 36px;
     height: 36px;
   }
-  .meter-orb {
-    width: min(38vw, 300px);
-    padding: 34px 28px 25px;
-  }
-  .state-pill {
-    min-height: 35px;
-    font-size: 13px;
-  }
-  .main-money {
-    margin-top: 15px;
-  }
   .main-money strong {
-    font-size: clamp(43px, 7vw, 65px);
+    font-size: clamp(62px, 19vw, 92px);
   }
-  .support-chip {
-    margin-top: 12px;
+  .wallet-money {
+    font-size: clamp(64px, 20vw, 96px);
   }
-  .loafing-inline-card {
-    margin-top: 8px;
-  }
-  .ambient-waves {
-    display: none;
+  .loafing-inline-card,
+  .wallet-duration-row {
+    margin-top: 22px;
   }
   .loaf-button,
   .clockout-button,
   .detail-button {
-    min-height: 45px;
-  }
-  .wallet-label {
-    margin-top: 12px;
-  }
-  .wallet-money {
-    font-size: clamp(46px, 7vw, 68px);
+    min-height: 50px;
   }
 }
 
-@media (max-width: 480px) {
+@media (orientation: landscape) and (min-width: 520px) {
   .money-timer-frame {
-    height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 10px);
-    padding-bottom: calc(14px + env(safe-area-inset-bottom));
+    width: min(100dvw, 980px);
+    height: 100dvh;
+    padding:
+      max(12px, env(safe-area-inset-top))
+      30px
+      max(12px, env(safe-area-inset-bottom));
+  }
+  .app-header {
+    min-height: 72px;
+  }
+  .timer-layout,
+  .freework-wallet {
+    grid-template-columns: minmax(0, 1.25fr) minmax(230px, 0.75fr);
+    grid-template-rows: minmax(0, 1fr);
+    gap: 30px;
+  }
+  .timer-action-zone,
+  .freework-action-zone {
+    justify-content: center;
+  }
+  .main-money strong {
+    font-size: clamp(70px, 10vw, 122px);
+  }
+  .wallet-money {
+    font-size: clamp(72px, 10.5vw, 126px);
+  }
+  .loafing-inline-card {
+    width: min(72%, 330px);
+  }
+}
+
+@media (orientation: landscape) and (min-width: 520px) and (max-height: 460px) {
+  .app-header {
+    min-height: 62px;
+  }
+  .brand {
+    font-size: 24px;
+  }
+  .header-state {
+    min-height: 25px;
+    font-size: 12px;
+  }
+  .round-icon-button {
+    width: 34px;
+    height: 34px;
+  }
+  .main-money strong {
+    font-size: clamp(62px, 9vw, 96px);
+  }
+  .wallet-money {
+    font-size: clamp(64px, 9.5vw, 100px);
+  }
+  .loafing-inline-card,
+  .wallet-duration-row {
+    margin-top: 18px;
+  }
+  .loaf-button,
+  .clockout-button,
+  .detail-button {
+    min-height: 44px;
   }
 }
 
@@ -704,58 +535,46 @@ button:disabled {
   background: #0d1117;
 }
 .pip-body .money-timer-frame {
-  width: calc(100% - 10px);
-  height: calc(100dvh - 10px);
-  min-height: 0;
-  margin: 5px;
-  padding: 14px 18px 13px;
-  border-radius: 25px;
+  width: 100dvw;
+  height: 100dvh;
+  padding: 12px 16px;
 }
 .pip-body .app-header {
-  min-height: 40px;
+  min-height: 66px;
 }
 .pip-body .brand {
-  font-size: 20px;
+  font-size: 21px;
+}
+.pip-body .header-state {
+  min-height: 24px;
+  font-size: 11px;
 }
 .pip-body .round-icon-button {
-  width: 34px;
-  height: 34px;
-}
-.pip-body .meter-orb {
-  width: min(66vw, 250px);
-  padding: 31px 22px 20px;
-}
-.pip-body .state-pill {
-  min-height: 32px;
-  font-size: 12px;
-}
-.pip-body .main-money {
-  margin-top: 12px;
+  width: 33px;
+  height: 33px;
 }
 .pip-body .main-money strong {
-  font-size: 40px;
+  font-size: clamp(48px, 16vw, 68px);
 }
-.pip-body .support-chip {
-  margin-top: 10px;
+.pip-body .wallet-money {
+  font-size: clamp(50px, 17vw, 72px);
 }
 .pip-body .loafing-inline-card {
-  margin-top: 7px;
+  margin-top: 16px;
 }
 .pip-body .loaf-button,
 .pip-body .clockout-button {
-  min-height: 42px;
-}
-.pip-body .wallet-money {
-  font-size: 42px;
-}
-.pip-body .wallet-duration-row {
-  margin-top: 8px;
+  min-height: 44px;
 }
 
 .panel-screen {
-  width: min(100% - 28px, 720px);
+  width: min(100%, 760px);
+  height: 100dvh;
   margin: 0 auto;
-  padding: 24px 0 48px;
+  padding: 24px 18px 48px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 .panel-screen > header {
   display: flex;
@@ -790,6 +609,92 @@ button:disabled {
 .metrics span {
   color: #94a3b8;
 }
+.period-summary-grid {
+  margin-top: 26px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.period-summary-grid button {
+  min-width: 0;
+  padding: 14px 10px;
+  display: grid;
+  gap: 6px;
+  border: 1px solid #2c3640;
+  border-radius: 15px;
+  background: #151b22;
+  color: #f2f5f7;
+  text-align: left;
+}
+.period-summary-grid button.active {
+  border-color: var(--state-working);
+  background: rgba(53, 183, 170, 0.1);
+}
+.period-summary-grid span {
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 700;
+}
+.period-summary-grid strong {
+  overflow: hidden;
+  font-size: clamp(16px, 4vw, 23px);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cumulative-chart {
+  margin-top: 16px;
+  padding: 16px 14px 8px;
+  border: 1px solid #2b3540;
+  border-radius: 18px;
+  background: #121820;
+}
+.chart-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.chart-header strong {
+  font-size: 15px;
+}
+.chart-header span {
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+.cumulative-chart svg {
+  width: 100%;
+  height: auto;
+  margin-top: 8px;
+  overflow: visible;
+}
+.chart-baseline {
+  stroke: #2b3540;
+  stroke-width: 1;
+}
+.chart-area {
+  fill: rgba(53, 183, 170, 0.09);
+}
+.chart-line {
+  fill: none;
+  stroke: var(--state-working);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.chart-point {
+  fill: #0d1117;
+  stroke: var(--state-working);
+  stroke-width: 3;
+}
+.chart-label {
+  fill: #7f8994;
+  font-size: 11px;
+  text-anchor: middle;
+}
+.dashboard-screen .metrics {
+  margin-top: 18px;
+}
+
 .settings > section {
   margin-top: 30px;
   padding-top: 22px;
