@@ -108,8 +108,14 @@ export function MoneyTimer({
       />
 
       <header className="app-header">
-        <div className="brand">
-          Pay<span>Meter</span>
+        <div className="brand-block">
+          <div className="brand">
+            Pay<span>Meter</span>
+          </div>
+          <div className="header-state state-line">
+            <span className="state-dot" />
+            <span>{vm.stateLabel}</span>
+          </div>
         </div>
         <div className="header-actions">
           <button
@@ -139,24 +145,12 @@ export function MoneyTimer({
         ) : (
           <>
             <section className="timer-main-zone">
-              <div className="meter-orb">
-                <div className="state-pill state-line">
-                  <span className="state-dot" />
-                  <span>{vm.stateLabel}</span>
-                </div>
-
+              <div className="amount-stage">
                 <div className={`main-money ${milestoneKrw && !isPiP ? 'milestone-pulse' : ''}`}>
                   <strong data-testid="current-money">
                     {money(snapshot.todayEarnedMicroKrw, settings.display.privacy)}
                   </strong>
                 </div>
-
-                {vm.mainSupportLabel ? (
-                  <div className="support-chip">
-                    <ChartIcon />
-                    <span>{vm.mainSupportLabel}</span>
-                  </div>
-                ) : null}
 
                 <div className="loafing-inline-card">
                   <div className="mini-card-icon">
@@ -179,11 +173,6 @@ export function MoneyTimer({
             </section>
 
             <aside className="timer-action-zone">
-              <div className="ambient-waves" aria-hidden="true">
-                <span />
-                <span />
-              </div>
-
               {vm.clockedOut && snapshot.freeWorkDurationMs > 0 ? (
                 <div className="secondary-amount-card clocked-freework-card">
                   <div>
@@ -205,7 +194,7 @@ export function MoneyTimer({
                   <MaskIcon />
                   <span>
                     {snapshot.payState === 'UNPAID_BREAK'
-                      ? '휴게 중'
+                      ? '휴게중'
                       : snapshot.activityState === 'LOAFING'
                         ? '업무 복귀'
                         : '루팡 모드'}
