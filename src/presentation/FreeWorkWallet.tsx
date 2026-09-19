@@ -39,6 +39,12 @@ function ChevronIcon() {
 }
 
 export function FreeWorkWallet({ snapshot, privacy, onClockOut }: Props) {
+  const ratioPercent =
+    snapshot.dailyTargetMicroKrw > 0n
+      ? Number((snapshot.freeWorkReferenceValueMicroKrw * 10_000n) / snapshot.dailyTargetMicroKrw) /
+        100
+      : 0;
+
   return (
     <section className="freework-wallet" data-testid="freework-wallet">
       <div className="freework-main-zone">
@@ -65,12 +71,17 @@ export function FreeWorkWallet({ snapshot, privacy, onClockOut }: Props) {
             <ChartIcon />
           </div>
           <div>
-            <span>정상 적립 금액</span>
+            <span>일당</span>
             <strong data-testid="normal-earned-money">
               {money(snapshot.todayEarnedMicroKrw, privacy)}
             </strong>
           </div>
           <ChevronIcon />
+        </div>
+
+        <div className="freework-ratio" data-testid="freework-ratio">
+          <span>봉사 비중</span>
+          <strong>일당의 {ratioPercent.toFixed(1)}%</strong>
         </div>
 
         <button className="clockout-button" onClick={onClockOut} data-testid="clock-out">
