@@ -41,8 +41,10 @@ function ChevronIcon() {
 export function FreeWorkWallet({ snapshot, privacy, onClockOut }: Props) {
   const ratioPercent =
     snapshot.dailyTargetMicroKrw > 0n
-      ? Number((snapshot.freeWorkReferenceValueMicroKrw * 10_000n) / snapshot.dailyTargetMicroKrw) /
-        100
+      ? Number(
+          (snapshot.freeWorkReferenceValueMicroKrw * 10_000n + snapshot.dailyTargetMicroKrw / 2n) /
+            snapshot.dailyTargetMicroKrw,
+        ) / 100
       : 0;
 
   return (
