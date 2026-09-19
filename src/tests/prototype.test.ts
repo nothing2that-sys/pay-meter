@@ -211,16 +211,16 @@ describe('P1R final timer view model and free-work copy', () => {
 
 describe('P1R perimeter presentation contract', () => {
   it('starts the normalized rounded path at top center and proceeds clockwise toward the right edge', () => {
-    expect(PERIMETER_PATH_D.startsWith('M 50 1.5 H 91.5')).toBe(true);
+    expect(PERIMETER_PATH_D.startsWith('M 50 0.7 H 94')).toBe(true);
   });
 
   it('maps one progress ratio to one continuous perimeter loop', () => {
     expect(perimeterProgressStyle(0.25)).toEqual({
-      strokeDasharray: '0.25 0.75',
+      strokeDasharray: '25 100',
       strokeDashoffset: 0,
     });
     expect(perimeterProgressStyle(1)).toEqual({
-      strokeDasharray: '1 0',
+      strokeDasharray: '100 100',
       strokeDashoffset: 0,
     });
   });
