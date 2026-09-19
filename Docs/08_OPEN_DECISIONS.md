@@ -58,6 +58,31 @@ FIXED_PERIOD의 Week, Month, Year 누적은 완료된 날짜의 Finalized Pay를
 
 ---
 
+## D2. 정규 근무 종료 후 전환 방식
+
+상태: DECIDED
+
+사용자 설정으로 두 방식을 지원한다.
+
+- MANUAL_OVERTIME: 정규 종료 즉시 무료봉사 상태로 자동 전환. 유급 추가근무는 사용자가 직접 시작.
+- AUTO_OVERTIME: 정규 종료 즉시 지정된 기본 Overtime Policy로 유급 추가근무 시작.
+
+설정이 없거나 AUTO_OVERTIME Policy가 invalid하면 MANUAL_OVERTIME처럼 무료봉사로 Fail Safe한다.
+
+---
+
+## D13. 현재 시각 기준
+
+상태: DECIDED
+
+PayMeter의 현재 시각 SSOT는 사용자 디바이스 Wall Clock이다.
+
+페이지 실행시간이나 setInterval Tick 수를 시간의 SSOT로 사용하지 않는다.
+
+앱 진입 및 foreground 복귀 시 디바이스 현재 시각으로 전체 Snapshot을 재계산한다.
+
+---
+
 # Open
 
 ## D1. 급여 배분 방식 세부
@@ -69,20 +94,6 @@ FIXED_PERIOD의 기본은 기간 급여를 예정 근무일과 예정 유급시�
 - 월 중간 Salary Revision의 분모
 - 일급의 기본 AccrualMode
 - Manual Hourly Override
-
----
-
-## D2. 무료봉사 자동 시작 기준
-
-현재:
-
-정규 근무 종료 이후 유급 추가근무가 없고 퇴근 처리 전이면 자동 시작.
-
-검토:
-
-- 앱을 안 보고 이미 퇴근한 경우
-- 일정 시간 후 확인 알림
-- 다음 실행 시 퇴근 시각 보정 UX
 
 ---
 
