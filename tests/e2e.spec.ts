@@ -189,7 +189,12 @@ test('scheduled end shows the final Free Work hierarchy and a completed full-loo
   await expect(page.getByText('봉사중')).toBeVisible();
   await expect(page.getByText('무료봉사 WALLET')).toHaveCount(0);
   await expect(page.getByText('무료봉사 시간')).toBeVisible();
-  await expect(page.getByText('정상 적립 금액')).toBeVisible();
+  await expect(page.getByText('일당')).toBeVisible();
+  await expect(page.getByTestId('freework-ratio')).toContainText('일당의 6.3%');
+  const freeWorkFill = await page
+    .locator('.money-timer-frame')
+    .evaluate((element) => getComputedStyle(element).getPropertyValue('--freework-fill').trim());
+  expect(freeWorkFill).toBe('6.25%');
   await expect(page.locator('.money-timer-frame')).toHaveClass(/state-freework/);
   await expect(page.getByTestId('freework-money')).toHaveCSS('color', 'rgb(240, 90, 103)');
   await expect(wallet).not.toContainText('+');
@@ -402,7 +407,11 @@ test('portrait, landscape and compact layouts keep final P1R content inside the 
   const landscapeAmountSize = await page
     .getByTestId('current-money')
     .evaluate((element) => Number.parseFloat(getComputedStyle(element).fontSize));
+  const landscapeLoafingButtonHeight = await page
+    .getByTestId('loafing-toggle')
+    .evaluate((element) => element.getBoundingClientRect().height);
   expect(landscapeAmountSize).toBeGreaterThan(portraitAmountSize);
+  expect(landscapeLoafingButtonHeight).toBeGreaterThanOrEqual(78);
   await expectNoHorizontalOverflow(page);
   await expectTimerLockedToViewport(page);
   await expectInsideViewport(page, '.money-timer-frame');
