@@ -13,7 +13,7 @@
 - IndexedDB
 - CSS Variables 기반 Design Token
 
-라이브러리의 정확한 버전은 구현 Phase 0에서 현재 Stable Version을 확인한 뒤 고정한다.
+라이브러리의 정확한 버전은 Phase P0에서 Stable Version을 확인한 뒤 고정한다.
 
 ---
 
@@ -24,23 +24,34 @@ PayMeter는 UI보다 계산 엔진을 독립적으로 유지한다.
 구조:
 
 ```
-UI
+UI Surfaces
+  |-- Money Timer
+  |-- Full Dashboard
+  |-- History
+  |-- Settings
   |
 Application Services
   |
 Domain
+  |-- Money
   |-- Pay Engine
-  |-- Time Engine
-  |-- Work State Engine
+  |-- Schedule Engine
+  |-- Pay State Engine
+  |-- Activity State Engine
+  |-- Overtime Engine
   |-- Period Aggregator
   |
 Repositories
   |-- Settings Repository
+  |-- Session Repository
   |-- History Repository
   |
-Storage
+Infrastructure
+  |-- Device Clock
+  |-- Time Zone Adapter
   |-- localStorage
   |-- IndexedDB
+  |-- Migration
 ```
 
 Domain Layer는 React에 의존하지 않는다.
@@ -59,27 +70,36 @@ src/
     money/
     pay/
     schedule/
-    work-state/
+    pay-state/
+    activity/
+    overtime/
     aggregation/
     types/
 
   application/
+    timer/
     dashboard/
     settings/
+    activity/
     overtime/
     history/
 
   infrastructure/
     clock/
+      DeviceClock.ts
+      FakeClock.ts
+    timezone/
     storage/
       local-storage/
       indexed-db/
     migration/
 
   features/
+    money-timer/
     dashboard/
     onboarding/
     settings/
+    activity/
     overtime/
     history/
 
@@ -98,11 +118,11 @@ src/
 
 ---
 
-## 4. Domain API 방향
+## 4. Domain Snapshot API
 
 UI가 직접 급여 계산식을 만들지 않는다.
 
-예:
+대표 API:
 
 ```ts
 buildPaySnapshot(input): PaySnapshot
@@ -110,266 +130,590 @@ buildPaySnapshot(input): PaySnapshot
 
 입력:
 
-- 현재 시각
+- nowEpochMs
+- timeZone
 - Salary Profile
 - Weekly Schedule
 - Daily Override
-- Overtime Session
+- App Settings
+- Activity Sessions
+- Overtime Sessions
 - Daily Work State
 
-출력:
+출력 예:
 
-- Work State
-- Current Rate
-- Current Earned
-- Period Totals
-- Remaining Time
-- Unpaid After Hours
+```ts
+PaySnapshot {
+  now
+  payState
+  activityState
 
-Dashboard는 이 결과를 표시한다.
+  realtimeProgressToday
+  finalizedRegularPayToday
+  overtimeEarnedToday
+  totalRecognizedToday
+
+  currentRate
+  elapsedScheduledTime
+  remainingScheduledTime
+
+  workingDuration
+  loafingDuration
+  loafingRatio
+  loafingReferenceValue
+
+  unpaidAfterHoursDuration
+  unpaidAfterHoursReferenceValue
+
+  earnedWeek
+  earnedMonth
+  earnedYear
+}
+```
+
+Money Timer와 Full Dashboard는 동일한 Snapshot을 다른 밀도로 표현한다.
 
 ---
 
-## 5. Clock
+## 5. Device Clock
 
-Clock Adapter:
+Production 현재 시각 SSOT는 사용자의 디바이스 Wall Clock이다.
 
 ```ts
 interface Clock {
   nowEpochMs(): number
+  localTimeZone(): string
 }
 ```
 
 Production:
 
-SystemClock
+```
+DeviceClock
+```
 
 Test:
 
+```
 FakeClock
-
-이 구조를 사용하면 다음 테스트가 가능하다.
-
-- 08:59:59
-- 09:00:00
-- 11:59:59
-- 12:00:00
-- 13:00:00
-- 17:59:59
-- 18:00:00
-- 18:30:00
-
----
-
-## 6. UI Refresh
-
-Dashboard 표시 갱신은 requestAnimationFrame 또는 제한된 refresh loop를 사용할 수 있다.
-
-권장:
-
-- 가시 상태: 부드러운 실시간 갱신
-- 백그라운드: 브라우저에 맡김
-- 포커스 복귀: 즉시 Snapshot 재계산
+```
 
 중요:
 
-Refresh Loop는 돈을 누적하지 않는다.
+- 브라우저 실행시간을 Clock으로 사용하지 않는다.
+- setInterval 호출 횟수를 Clock으로 사용하지 않는다.
+- requestAnimationFrame 누적시간을 급여 계산 SSOT로 사용하지 않는다.
 
-항상 현재 now를 기준으로 Snapshot을 다시 요청한다.
+### Recalculation Triggers
+
+다음 시점에 Snapshot을 즉시 재계산한다.
+
+- Initial Load
+- 일반 UI Refresh
+- visibilitychange -> visible
+- window focus
+- pageshow
+- PWA 재진입
+
+Background에서 Timer가 throttle되더라도 복귀 후 현재 디바이스 시각으로 정확한 결과를 얻어야 한다.
 
 ---
 
-## 7. State Management
+## 6. Local Schedule and Time Zone
 
-초기 규모에서는 대형 전역 상태 라이브러리를 필수로 두지 않는다.
+근무 일정은 Local Civil Time 기준이다.
+
+예:
+
+```
+09:00 ~ 18:00
+```
+
+현재 날짜와 디바이스 Local Time Zone을 기준으로 실제 경계 timestamp를 만든다.
+
+페이지를 10:00에 열었다고 해서 8시간 후인 18:00 또는 19:00을 추정하는 방식은 사용하지 않는다.
+
+Schedule 자체의 18:00이 경계다.
+
+절대 이벤트는 epoch timestamp와 필요 시 timeZone Snapshot을 함께 보존한다.
+
+---
+
+## 7. UI Refresh
+
+Money Timer는 시각적으로 부드럽게 갱신할 수 있다.
 
 권장:
 
-- Settings Context 또는 단순 Store
-- Query 성격 데이터는 Repository에서 로드
-- Dashboard 계산은 Selector 또는 Application Service
+- 가시 상태: requestAnimationFrame 또는 제한된 refresh loop
+- background: 브라우저 throttle 허용
+- foreground 복귀: 즉시 Snapshot 재계산
 
-복잡도가 실제로 증가한 뒤 전역 State Library 도입을 판단한다.
+금지:
+
+```
+displayedMoney += ratePerFrame
+```
+
+허용 개념:
+
+```
+displayedMoney = buildPaySnapshot(deviceClock.now()).currentValue
+```
+
+Animation Layer는 계산 결과를 꾸밀 뿐 계산을 소유하지 않는다.
 
 ---
 
-## 8. Money Layer
+## 8. Post-Work Transition Engine
 
-Money Domain에서 다음 책임을 분리한다.
+설정:
+
+```ts
+type PostWorkTransitionMode =
+  | "MANUAL_OVERTIME"
+  | "AUTO_OVERTIME"
+```
+
+### MANUAL_OVERTIME
+
+Scheduled End 이후:
+
+```
+REGULAR_WORK
+-> AFTER_SCHEDULE_UNPAID
+```
+
+무료봉사 시간과 환산 가치를 계산한다.
+
+사용자가 추가근무를 시작해야 PAID_OVERTIME으로 전환한다.
+
+### AUTO_OVERTIME
+
+Scheduled End 이후:
+
+```
+REGULAR_WORK
+-> PAID_OVERTIME
+```
+
+자동 Overtime Session은 Scheduled End를 시작시각으로 사용하고 지정된 기본 Policy Snapshot을 적용한다.
+
+Policy가 invalid하면:
+
+```
+AFTER_SCHEDULE_UNPAID
+```
+
+로 Fail Safe한다.
+
+---
+
+## 9. Reconstructed Automatic Overtime
+
+웹이 Scheduled End 시각에 실행 중이라는 보장이 없다.
+
+따라서 AUTO_OVERTIME은 이벤트 callback 하나에 의존하면 안 된다.
+
+예:
+
+```
+17:50 background
+18:00 scheduled end
+19:00 foreground
+```
+
+19:00 Snapshot 생성 시 다음을 판정한다.
+
+1. 해당 날짜 Schedule End가 지났는가
+2. PostWorkTransitionMode가 AUTO_OVERTIME인가
+3. 유효한 기본 Policy가 있는가
+4. Clock Out 기록이 없는가
+5. 같은 경계에서 이미 Session이 생성되어 있는가
+
+조건이 만족하면 18:00부터의 Overtime Segment를 재구성한다.
+
+Persistence가 필요한 경우 deterministic key 또는 uniqueness rule을 사용해 중복 Session을 방지한다.
+
+---
+
+## 10. Activity Engine
+
+Activity State:
+
+- WORKING
+- LOAFING
+
+Activity는 Pay State와 독립적이다.
+
+전환:
+
+```
+WORKING -> LOAFING
+LOAFING -> WORKING
+```
+
+각 전환은 timestamp를 가진 ActivitySession으로 기록한다.
+
+FIXED_PERIOD에서는 LOAFING 중에도 급여 진행을 중지하지 않는다.
+
+Money Timer와 Full Dashboard는 동일한 Active Activity Session을 공유한다.
+
+화면 이동으로 Session을 종료하거나 새로 만들지 않는다.
+
+---
+
+## 11. Money Layer
+
+Money Domain 책임:
 
 - 정수 KRW 입력 검증
 - micro-KRW 변환
 - multiplier 적용
+- 기간 배분
 - 표시 반올림
 - 통화 포맷
 
-UI 컴포넌트에서 직접 부동소수점 급여 계산을 하지 않는다.
+권장:
+
+```
+1 KRW = 1,000,000 micro-won
+```
+
+반복적인 floating point 누적은 사용하지 않는다.
 
 ---
 
-## 9. Schedule Engine
+## 12. Schedule Engine
 
-Schedule Engine 책임:
+책임:
 
 - 특정 날짜의 유효 Schedule 결정
-- Weekly Schedule와 Daily Override 병합
+- Weekly Schedule와 Daily Override 우선순위 처리
 - Break 정규화
-- 유급 Segment 생성
-- 경계 시각 판정
+- 정규 유급 Segment 생성
+- Scheduled Start / End 계산
+- Post-Work Transition 경계 제공
 
-결과는 Pay Engine이 사용할 Segment 목록이어야 한다.
+우선순위:
 
----
-
-## 10. Work State Engine
-
-Work State Engine 책임:
-
-- 현재 시각 상태 판정
-- 정규 근무 여부
-- 휴게 여부
-- 정규 종료 여부
-- 유급 추가근무 여부
-- 퇴근 완료 여부
-
-UI 문구는 별도 Presentation Mapping으로 관리한다.
-
-Domain Enum에 한국어 문구를 직접 넣지 않는다.
+```
+Daily Override
+> Weekly Schedule
+> Off Day
+```
 
 ---
 
-## 11. Period Aggregator
+## 13. Pay State Engine
 
-기간 합산:
+책임:
+
+- BEFORE_WORK
+- REGULAR_WORK
+- PAID_BREAK
+- UNPAID_BREAK
+- AFTER_SCHEDULE_UNPAID
+- PAID_OVERTIME
+- CLOCKED_OUT
+- OFF_DAY
+
+현재 시각, Schedule, Clock Out, Overtime Session, Transition Mode를 사용해 상태를 결정한다.
+
+UI 문구는 Presentation Layer에서 매핑한다.
+
+---
+
+## 14. FIXED_PERIOD and TIME_BASED
+
+### FIXED_PERIOD
+
+연봉, 월급, 주급 기본.
+
+근무 중:
+
+```
+Realtime Progress
+= Allocated Daily Pay의 시간 배분
+```
+
+퇴근:
+
+```
+Finalized Regular Pay
+= Allocated Daily Pay 100%
+```
+
+### TIME_BASED
+
+시급 기본.
+
+```
+Finalized Regular Pay
+= Actual Payable Duration * Rate
+```
+
+두 방식을 동일 변수 의미로 섞지 않는다.
+
+---
+
+## 15. Storage
+
+### localStorage
+
+- Salary settings
+- Weekly schedule
+- App settings
+- PostWorkTransitionMode
+- defaultOvertimePolicyId
+- Display preferences
+
+### IndexedDB
+
+- Activity Sessions
+- Overtime Sessions
+- Daily Overrides
+- Clock Out Events
+- Daily Work State
+- Salary revisions
+- History and cache
+
+현재 표시 금액이나 현재 Timer 숫자는 Tick마다 저장하지 않는다.
+
+원본 이벤트와 설정에서 재구성한다.
+
+---
+
+## 16. State Management
+
+초기 규모에서는 대형 전역 상태 라이브러리를 필수로 두지 않는다.
+
+필수 공유 상태:
+
+- Current Snapshot
+- Settings
+- Active Activity Session
+- Active Overtime Session
+
+Money Timer와 Full Dashboard는 동일 Application Service 또는 Store를 사용한다.
+
+화면마다 별도의 급여 계산 상태를 만들지 않는다.
+
+---
+
+## 17. Period Aggregator
+
+기간:
 
 - Today
 - Week
 - Month
 - Year
 
-필요 데이터:
+FIXED_PERIOD:
 
-- Salary effective history
-- Schedule history 또는 당시 Snapshot
-- Daily Override
-- Overtime Session
-- Daily State
+- 완료된 날짜의 finalizedRegularPay 기준
 
-V1 초기에는 과거 Schedule 변경 이력이 없을 경우 현재 스케줄을 과거에 소급 적용하는 문제가 생길 수 있다.
+TIME_BASED:
 
-따라서 구현 초기에 다음 중 하나를 선택해야 한다.
+- 실제 유급 Segment 기준
 
-권장:
+추가수당은 Session Snapshot 기준으로 합산한다.
 
-설정 변경 시 effectiveFrom을 가진 Schedule Revision을 저장한다.
-
-이렇게 해야 과거 누적을 정확히 재현할 수 있다.
+성능을 위해 Daily Summary Cache를 사용할 수 있지만 Cache는 SSOT가 아니다.
 
 ---
 
-## 12. PWA
+## 18. Money Timer Surface
+
+기본 진입 화면.
+
+책임:
+
+- 큰 실시간 누적 금액
+- Current Rate
+- 현재 상태
+- 작은 Timer
+- Activity Toggle
+- Milestone Effect
+- Full Dashboard 진입
+
+Compact Width에서도 Activity Toggle은 유지한다.
+
+---
+
+## 19. Full Dashboard Surface
+
+정식 주요 화면으로 유지한다.
+
+책임:
+
+- 오늘 진행 및 확정 일당
+- 근무 진행률
+- 업무시간
+- 루팡시간
+- 루팡률
+- 무료봉사
+- 추가수당
+- Today / Week / Month / Year
+- Rate Detail
+- History 진입
+
+Money Timer 단순화를 이유로 Dashboard 기능을 삭제하지 않는다.
+
+---
+
+## 20. Milestone Effect
+
+Milestone은 Presentation 이벤트다.
+
+예:
+
+```
+5,000
+10,000
+15,000
+20,000
+...
+```
+
+Threshold Crossing은 이전 Snapshot과 현재 Snapshot의 표시 금액을 비교해 판정할 수 있다.
+
+중요:
+
+- 계산 엔진의 급여 결과를 수정하지 않는다.
+- background 복귀 시 지나간 모든 Threshold Effect를 재생하지 않는다.
+- 한 Threshold는 한 번만 표시한다.
+- Reduced Motion 지원.
+
+---
+
+## 21. PWA
 
 목표:
 
 - 홈 화면 설치
 - 앱 형태 실행
-- 핵심 Asset Offline Cache
-- 네트워크 없이 Dashboard 실행
+- Offline App Shell
+- Local data 기반 계산
+- 네트워크 없이 Money Timer 및 Dashboard 실행
 
-Service Worker가 급여 계산 SSOT가 되어서는 안 된다.
+Service Worker는 Clock 또는 Pay Engine SSOT가 아니다.
 
 ---
 
-## 13. Routing
+## 22. Routing
 
-권장 화면:
+권장:
 
 ```
 /
-  Dashboard
+  Money Timer
+
+/dashboard
+  Full Dashboard
+
+/history
+  History
 
 /setup
   First Run Setup
 
 /settings
-  Salary and Schedule Settings
-
-/history
-  History
+  Salary, Schedule, Transition, Display Settings
 
 /overtime
   Active Overtime Detail
 ```
 
-모바일에서는 Dashboard 중심의 하단 네비게이션 또는 간결한 메뉴를 사용한다.
-
 ---
 
-## 14. Error Handling
+## 23. Error Handling
 
-오류 종류를 분리한다.
+분류:
 
 - Validation Error
 - Storage Error
 - Migration Error
 - Clock Error
 - Domain Invariant Error
+- Invalid Overtime Policy
 
-사용자 데이터 손실 위험이 있는 오류는 자동 초기화하지 않는다.
+자동 전체 초기화는 금지한다.
 
----
-
-## 15. Observability
-
-V1은 서버 Telemetry가 없어도 된다.
-
-개발 모드에서는 Debug Snapshot을 선택적으로 제공할 수 있다.
-
-예:
-
-- 현재 state
-- 적용된 salary revision
-- 적용된 schedule revision
-- 적용된 overtime policy
-- 계산된 payable milliseconds
-
-이 정보는 계산 오류 검증에 유용하다.
-
-Production UI에서는 기본적으로 숨긴다.
+AUTO_OVERTIME Policy 오류는 무료봉사로 Fail Safe하고 오류 상태를 기록한다.
 
 ---
 
-## 16. 성능 목표
+## 24. Clock Anomaly Handling
 
-Dashboard Snapshot 계산은 일반적인 1년 이력 규모에서 체감 지연이 없어야 한다.
+디바이스 시각이 뒤로 이동할 수 있다.
 
-History가 커질 경우:
+원칙:
 
-- 날짜별 Summary Cache
+- 음수 Duration 금지
+- NaN 금지
+- 이미 확정된 과거 급여 자동 감소 금지
+- Active Session의 시작보다 now가 작으면 Reconciliation 대상
+- 사용자 원본 데이터 자동 삭제 금지
+
+Clock anomaly는 Unit Test 대상이다.
+
+---
+
+## 25. Observability
+
+개발용 Debug Snapshot 예:
+
+- nowEpochMs
+- localTimeZone
+- payState
+- activityState
+- active salary revision
+- active schedule revision
+- postWorkTransitionMode
+- defaultOvertimePolicy
+- active overtime session
+- payable milliseconds
+- free work milliseconds
+
+Production 기본 UI에서는 숨긴다.
+
+---
+
+## 26. 성능 목표
+
+Money Timer Snapshot 재계산은 지속적으로 실행되어도 체감 지연이 없어야 한다.
+
+History 규모가 커질 경우:
+
 - IndexedDB index
-- 기간별 incremental cache
+- Daily Summary Cache
+- 기간별 cache invalidation
 
-를 사용할 수 있다.
+을 사용한다.
 
-그러나 정확성보다 캐시를 우선하지 않는다.
+정확성보다 Cache를 우선하지 않는다.
 
 ---
 
-## 17. 구현 전략
-
-처음부터 모든 화면을 만들지 않는다.
+## 27. 구현 전략
 
 권장 순서:
 
 1. Pure Domain Model
-2. Pay Engine
-3. Schedule and Work State
-4. Fake Clock Test
-5. Storage
-6. Minimal Dashboard
-7. Settings
-8. Overtime
-9. History
-10. PWA and Polish
+2. Device Clock and Fake Clock
+3. Schedule Engine
+4. Pay State Engine
+5. FIXED_PERIOD / TIME_BASED
+6. Post-Work Transition
+7. Local Storage
+8. Money Timer
+9. Full Dashboard
+10. Activity Timer
+11. Free Work
+12. Overtime
+13. History
+14. PWA and Polish
 
-계산 엔진을 먼저 검증하고 UI를 얹는다.
+계산 엔진과 Clock Contract를 먼저 검증한 뒤 UI를 얹는다.
