@@ -55,14 +55,7 @@ export function FreeWorkWallet({
   return (
     <section className="freework-wallet" data-testid="freework-wallet">
       <div className="freework-main-zone">
-        <div className="meter-orb freework-orb">
-          <div className="state-pill">
-            <span className="state-dot" />
-            <span>무료봉사 중</span>
-          </div>
-
-          <div className="wallet-label">무료봉사 WALLET</div>
-
+        <div className="freework-amount-stage">
           <div className="wallet-money" data-testid="freework-money">
             {money(snapshot.freeWorkReferenceValueMicroKrw, privacy)}
           </div>
@@ -88,11 +81,6 @@ export function FreeWorkWallet({
             </strong>
           </div>
           <ChevronIcon />
-        </div>
-
-        <div className="ambient-waves" aria-hidden="true">
-          <span />
-          <span />
         </div>
 
         <button className="clockout-button" onClick={onClockOut} data-testid="clock-out">
