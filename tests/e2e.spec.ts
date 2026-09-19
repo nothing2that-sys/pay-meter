@@ -182,7 +182,7 @@ test('scheduled end shows the final Free Work hierarchy and a completed full-loo
   const fullLoopDash = await page
     .locator('.perimeter-progress')
     .evaluate((element) => (element as SVGPathElement).style.strokeDasharray);
-  expect(fullLoopDash.replace(',', '')).toBe('1 0');
+  expect(fullLoopDash.replace(',', '')).toBe('100 100');
 });
 
 test('clock out freezes Free Work money across reload', async ({ page }) => {
@@ -218,17 +218,32 @@ test('detail view shows daily weekly monthly cumulative summaries and graph', as
   await expect(page.getByTestId('cumulative-chart')).toContainText('이번 달 누적');
 });
 
-test('settings expose only pay/work, display and data groups', async ({ page }) => {
+test('settings provide work and break presets without duplicate privacy or milestone controls', async ({
+  page,
+}) => {
   await freshApp(page);
   await setupSalary(page);
-  await page.getByRole('button', { name: '상세 보기' }).click();
   await page.getByRole('button', { name: '설정' }).click();
+
   await expect(page.getByRole('heading', { name: '급여 / 근무' })).toBeVisible();
-  await expect(page.getByRole('heading', { name: '화면' })).toBeVisible();
   await expect(page.getByRole('heading', { name: '데이터' })).toBeVisible();
-  await expect(page.locator('.settings h2')).toHaveCount(3);
-  await expect(page.getByText('Consumer Items')).toHaveCount(0);
-  await expect(page.getByText('금액 소수 표시')).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: '화면' })).toHaveCount(0);
+  await expect(page.getByText('Privacy Mode')).toHaveCount(0);
+  await expect(page.getByText(/Milestone/)).toHaveCount(0);
+  await expect(page.locator('.settings h2')).toHaveCount(2);
+
+  await page.getByLabel('출근').fill('09:00');
+  await page.getByRole('button', { name: '8시간' }).click();
+  await expect(page.getByLabel('퇴근')).toHaveValue('18:00');
+
+  await page.getByLabel('휴게 시작').fill('12:30');
+  await page.getByRole('button', { name: '30분' }).click();
+  await expect(page.getByLabel('휴게 종료')).toHaveValue('13:00');
+
+  await expect(page.getByRole('button', { name: '7시간' })).toBeVisible();
+  await expect(page.getByRole('button', { name: '9시간' })).toBeVisible();
+  await expect(page.getByRole('button', { name: '1시간' })).toBeVisible();
+  await expect(page.getByRole('button', { name: '1시간 30분' })).toBeVisible();
 });
 
 test('open LOAFING survives reload without duplicate intervals', async ({ page }) => {
