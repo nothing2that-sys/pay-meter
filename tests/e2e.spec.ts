@@ -17,7 +17,9 @@ async function setupSalary(page: Page) {
   await expect(page.getByText('돈 버는 중')).toBeVisible();
 }
 
-test('first run setup enters the live Money Timer and wall-clock changes update money', async ({ page }) => {
+test('first run setup enters the live Money Timer and wall-clock changes update money', async ({
+  page,
+}) => {
   await freshApp(page);
   await setupSalary(page);
   const before = await page.getByTestId('current-money').innerText();
@@ -29,7 +31,9 @@ test('first run setup enters the live Money Timer and wall-clock changes update 
   expect(after).not.toBe(before);
 });
 
-test('LOAFING toggles with one click and fixed-period money keeps progressing', async ({ page }) => {
+test('LOAFING toggles with one click and fixed-period money keeps progressing', async ({
+  page,
+}) => {
   await freshApp(page);
   await setupSalary(page);
   const before = await page.getByTestId('current-money').innerText();
@@ -54,7 +58,9 @@ test('Privacy Mode masks and restores the amount', async ({ page }) => {
   await expect(page.getByTestId('current-money')).not.toContainText('••••••');
 });
 
-test('settings and an open LOAFING interval survive reload without duplicate sessions', async ({ page }) => {
+test('settings and an open LOAFING interval survive reload without duplicate sessions', async ({
+  page,
+}) => {
   await freshApp(page);
   await setupSalary(page);
   await page.getByTestId('loafing-toggle').click();
@@ -64,7 +70,44 @@ test('settings and an open LOAFING interval survive reload without duplicate ses
   await page.reload();
   await expect(page.getByText('루팡 중')).toBeVisible();
   await expect(page.getByTestId('loafing-toggle')).toHaveText('업무 복귀');
-  const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('paymeter:p1:loafing') ?? '[]'));
+  const stored = await page.evaluate(() =>
+    JSON.parse(localStorage.getItem('paymeter:p1:loafing') ?? '[]'),
+  );
   expect(stored).toHaveLength(1);
   expect(stored[0].endAtEpochMs).toBeNull();
+});
+
+test('current rate follows pay state and pageshow rebuilds from the device clock', async ({
+  page,
+}) => {
+  await freshApp(page);
+  await setupSalary(page);
+
+  const setNowAndRestore = async (epochMs: number) => {
+    await page.evaluate((nextNow) => {
+      window.__PAYMETER_TEST_NOW__ = nextNow;
+      window.dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true }));
+    }, epochMs);
+    await page.waitForTimeout(50);
+  };
+
+  await setNowAndRestore(new Date(2026, 8, 21, 8, 59, 59, 999).getTime());
+  await expect(page.getByText('출근 전')).toBeVisible();
+  await expect(page.getByTestId('rate')).toContainText('0.000');
+
+  await setNowAndRestore(new Date(2026, 8, 21, 9, 0, 0, 0).getTime());
+  await expect(page.getByText('돈 버는 중')).toBeVisible();
+  await expect(page.getByTestId('rate')).not.toContainText('0.000');
+
+  await setNowAndRestore(new Date(2026, 8, 21, 12, 0, 0, 0).getTime());
+  await expect(page.getByText('휴게시간')).toBeVisible();
+  await expect(page.getByTestId('rate')).toContainText('0.000');
+
+  await setNowAndRestore(new Date(2026, 8, 21, 18, 0, 0, 0).getTime());
+  await expect(page.getByText('오늘 목표 완료')).toBeVisible();
+  await expect(page.getByTestId('rate')).toContainText('0.000');
+
+  await setNowAndRestore(new Date(2026, 8, 20, 10, 0, 0, 0).getTime());
+  await expect(page.getByText('오늘은 휴무')).toBeVisible();
+  await expect(page.getByTestId('rate')).toContainText('0.000');
 });

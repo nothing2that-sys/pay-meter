@@ -13,9 +13,9 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 22
-      - run: npm install
+      - run: npm ci
       - run: npm run lint
-      - run: npm run format
+      - run: npm run format:check
       - run: npm test
       - run: npm run build
 
@@ -26,6 +26,6 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 22
-      - run: npm install
+      - run: npm ci
       - run: npx playwright install chromium --with-deps
       - run: npm run e2e

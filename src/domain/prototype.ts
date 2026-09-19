@@ -1,7 +1,8 @@
 export const MICRO_KRW_PER_KRW = 1_000_000n;
 export const MILESTONE_KRW = 10_000n;
 
-export type PayState = 'OFF_DAY' | 'BEFORE_WORK' | 'REGULAR_WORK' | 'UNPAID_BREAK' | 'AFTER_SCHEDULE';
+export type PayState =
+  'OFF_DAY' | 'BEFORE_WORK' | 'REGULAR_WORK' | 'UNPAID_BREAK' | 'AFTER_SCHEDULE';
 export type ActivityState = 'WORKING' | 'LOAFING';
 
 export interface TimeRangeSetting {
@@ -65,7 +66,8 @@ export interface PaySnapshot {
   currentPayMicroKrw: bigint;
   dailyTargetMicroKrw: bigint;
   progressBasisPoints: number;
-  rateMilliKrwPerSecond: bigint;
+  baseVisualizationRateMilliKrwPerSecond: bigint;
+  currentRateMilliKrwPerSecond: bigint;
   elapsedPaidDurationMs: number;
   workingDurationMs: number;
   loafingDurationMs: number;
@@ -150,9 +152,14 @@ function epochForLocalDateTime(localDate: string, localTime: string): number {
   return new Date(year, month - 1, day, hour, minute, 0, 0).getTime();
 }
 
-export function monthAllocation(settings: PrototypeSettings, year: number, monthIndex: number): MonthAllocation {
+export function monthAllocation(
+  settings: PrototypeSettings,
+  year: number,
+  monthIndex: number,
+): MonthAllocation {
   const salaryKrw = settings.salaryKrw;
-  if (!Number.isSafeInteger(salaryKrw) || salaryKrw < 0) throw new Error('Salary must be an integer KRW value.');
+  if (!Number.isSafeInteger(salaryKrw) || salaryKrw < 0)
+    throw new Error('Salary must be an integer KRW value.');
   const dailyPaidMs = plannedPaidDurationMs(settings.schedule);
   const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
   const workingDates: string[] = [];
@@ -237,7 +244,10 @@ export function buildWorkDayContext(
     scheduledEnd,
     unpaidBreak,
     paidSegments,
-    plannedPaidDurationMs: paidSegments.reduce((sum, segment) => sum + segment.end - segment.start, 0),
+    plannedPaidDurationMs: paidSegments.reduce(
+      (sum, segment) => sum + segment.end - segment.start,
+      0,
+    ),
     dailyTargetMicroKrw: allocation.targets.get(localDate) ?? 0n,
   };
 }
@@ -312,8 +322,18 @@ export function buildPaySnapshot(
   );
   const workingDurationMs = Math.max(0, elapsedPaidDurationMs - loafingDurationMs);
   const loafingRatioBasisPoints =
-    elapsedPaidDurationMs === 0 ? 0 : Math.floor((loafingDurationMs * 10_000) / elapsedPaidDurationMs);
-  const activityState: ActivityState = activeLoafingInterval(loafingIntervals) ? 'LOAFING' : 'WORKING';
+    elapsedPaidDurationMs === 0
+      ? 0
+      : Math.floor((loafingDurationMs * 10_000) / elapsedPaidDurationMs);
+  const activityState: ActivityState = activeLoafingInterval(loafingIntervals)
+    ? 'LOAFING'
+    : 'WORKING';
+  const baseVisualizationRateMilliKrwPerSecond =
+    context.plannedPaidDurationMs === 0
+      ? 0n
+      : context.dailyTargetMicroKrw / BigInt(context.plannedPaidDurationMs);
+  const currentRateMilliKrwPerSecond =
+    payState === 'REGULAR_WORK' ? baseVisualizationRateMilliKrwPerSecond : 0n;
 
   return {
     nowEpochMs,
@@ -323,10 +343,8 @@ export function buildPaySnapshot(
     currentPayMicroKrw,
     dailyTargetMicroKrw: context.dailyTargetMicroKrw,
     progressBasisPoints: Math.min(10_000, Math.max(0, progressBasisPoints)),
-    rateMilliKrwPerSecond:
-      context.plannedPaidDurationMs === 0
-        ? 0n
-        : context.dailyTargetMicroKrw / BigInt(context.plannedPaidDurationMs),
+    baseVisualizationRateMilliKrwPerSecond,
+    currentRateMilliKrwPerSecond,
     elapsedPaidDurationMs,
     workingDurationMs,
     loafingDurationMs,

@@ -22,7 +22,9 @@ export function loadSettings(): PrototypeSettings {
       ...parsed,
       schedule: { ...cloneDefaults().schedule, ...parsed.schedule },
       display: { ...cloneDefaults().display, ...parsed.display },
-      consumerItems: Array.isArray(parsed.consumerItems) ? parsed.consumerItems : cloneDefaults().consumerItems,
+      consumerItems: Array.isArray(parsed.consumerItems)
+        ? parsed.consumerItems
+        : cloneDefaults().consumerItems,
     };
   } catch {
     return cloneDefaults();

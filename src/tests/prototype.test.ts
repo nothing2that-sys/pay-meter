@@ -33,6 +33,10 @@ function at(hour: number, minute = 0, second = 0, millisecond = 0): number {
   return new Date(2026, 8, 21, hour, minute, second, millisecond).getTime();
 }
 
+function atDay(day: number, hour: number, minute = 0, second = 0, millisecond = 0): number {
+  return new Date(2026, 8, day, hour, minute, second, millisecond).getTime();
+}
+
 describe('P1 monthly fixed-period allocation', () => {
   it('allocates the monthly salary by planned paid duration and preserves the exact period total', () => {
     const allocation = monthAllocation(settings, 2026, 8);
@@ -64,6 +68,32 @@ describe('schedule half-open boundaries', () => {
   });
 });
 
+describe('current rate semantics', () => {
+  it.each([
+    [at(8, 59, 59, 999), 'BEFORE_WORK', false],
+    [at(9), 'REGULAR_WORK', true],
+    [at(11, 59, 59, 999), 'REGULAR_WORK', true],
+    [at(12), 'UNPAID_BREAK', false],
+    [at(12, 59, 59, 999), 'UNPAID_BREAK', false],
+    [at(13), 'REGULAR_WORK', true],
+    [at(17, 59, 59, 999), 'REGULAR_WORK', true],
+    [at(18), 'AFTER_SCHEDULE', false],
+  ])('maps %s to %s with active-rate=%s', (now, expectedState, shouldAccrue) => {
+    const snapshot = buildPaySnapshot(settings, now as number, 'Asia/Seoul', []);
+    expect(snapshot.payState).toBe(expectedState);
+    expect(snapshot.baseVisualizationRateMilliKrwPerSecond).toBeGreaterThan(0n);
+    if (shouldAccrue) expect(snapshot.currentRateMilliKrwPerSecond).toBeGreaterThan(0n);
+    else expect(snapshot.currentRateMilliKrwPerSecond).toBe(0n);
+  });
+
+  it('returns zero current rate on an OFF_DAY', () => {
+    const snapshot = buildPaySnapshot(settings, atDay(20, 10), 'Asia/Seoul', []);
+    expect(snapshot.payState).toBe('OFF_DAY');
+    expect(snapshot.baseVisualizationRateMilliKrwPerSecond).toBe(0n);
+    expect(snapshot.currentRateMilliKrwPerSecond).toBe(0n);
+  });
+});
+
 describe('tick independence', () => {
   it('returns the same snapshot for the same wall clock now regardless of imagined refresh cadence', () => {
     const now = at(15, 17, 23, 456);
@@ -77,7 +107,9 @@ describe('tick independence', () => {
 
 describe('inferred activity and break', () => {
   it('keeps fixed-period pay identical while LOAFING changes activity only', () => {
-    const loafing: LoafingInterval[] = [{ id: 'one', startAtEpochMs: at(10, 30), endAtEpochMs: at(11) }];
+    const loafing: LoafingInterval[] = [
+      { id: 'one', startAtEpochMs: at(10, 30), endAtEpochMs: at(11) },
+    ];
     const normal = buildPaySnapshot(settings, at(11), 'Asia/Seoul', []);
     const withLoafing = buildPaySnapshot(settings, at(11), 'Asia/Seoul', loafing);
     expect(withLoafing.currentPayMicroKrw).toBe(normal.currentPayMicroKrw);
@@ -86,7 +118,9 @@ describe('inferred activity and break', () => {
   });
 
   it('excludes a crossed unpaid break from LOAFING duration while preserving the intent interval', () => {
-    const loafing: LoafingInterval[] = [{ id: 'one', startAtEpochMs: at(11, 50), endAtEpochMs: at(13, 20) }];
+    const loafing: LoafingInterval[] = [
+      { id: 'one', startAtEpochMs: at(11, 50), endAtEpochMs: at(13, 20) },
+    ];
     const snapshot = buildPaySnapshot(settings, at(13, 20), 'Asia/Seoul', loafing);
     expect(snapshot.loafingDurationMs).toBe(30 * 60 * 1000);
   });
@@ -104,31 +138,50 @@ describe('milestone presentation guard', () => {
   const micro = (won: number) => BigInt(won) * MICRO_KRW_PER_KRW;
 
   it('emits one representative 10,000 KRW threshold when foreground money crosses it', () => {
-    expect(crossedMilestone(micro(9998), micro(10003), { enabled: true, foreground: true, pip: false })).toBe(10_000n);
+    expect(
+      crossedMilestone(micro(9998), micro(10003), { enabled: true, foreground: true, pip: false }),
+    ).toBe(10_000n);
   });
 
   it('does not replay background catch-up thresholds', () => {
-    expect(crossedMilestone(micro(19000), micro(45000), { enabled: true, foreground: false, pip: false })).toBeNull();
+    expect(
+      crossedMilestone(micro(19000), micro(45000), {
+        enabled: true,
+        foreground: false,
+        pip: false,
+      }),
+    ).toBeNull();
   });
 
   it('is disabled in Document PiP', () => {
-    expect(crossedMilestone(micro(9998), micro(10003), { enabled: true, foreground: true, pip: true })).toBeNull();
+    expect(
+      crossedMilestone(micro(9998), micro(10003), { enabled: true, foreground: true, pip: true }),
+    ).toBeNull();
   });
 
   it('respects the user effect toggle', () => {
-    expect(crossedMilestone(micro(9998), micro(10003), { enabled: false, foreground: true, pip: false })).toBeNull();
+    expect(
+      crossedMilestone(micro(9998), micro(10003), { enabled: false, foreground: true, pip: false }),
+    ).toBeNull();
   });
 });
 
 describe('presentation helpers', () => {
   it('derives consumer value without changing pay data', () => {
-    expect(consumerValueMessage(13_000n * MICRO_KRW_PER_KRW, settings.consumerItems)).toBe('점심값 벌었음');
-    expect(consumerValueMessage(4_000n * MICRO_KRW_PER_KRW, settings.consumerItems)).toBe('커피까지 1,000원');
+    expect(consumerValueMessage(13_000n * MICRO_KRW_PER_KRW, settings.consumerItems)).toBe(
+      '점심값 벌었음',
+    );
+    expect(consumerValueMessage(4_000n * MICRO_KRW_PER_KRW, settings.consumerItems)).toBe(
+      '커피까지 1,000원',
+    );
   });
 
   it('formats the default daily visualization rate around KRW per second without accumulating it', () => {
     const snapshot = buildPaySnapshot(settings, at(10), 'Asia/Seoul', []);
-    expect(formatRateMilliKrw(snapshot.rateMilliKrwPerSecond)).toMatch(/^6\.3/);
+    expect(formatRateMilliKrw(snapshot.baseVisualizationRateMilliKrwPerSecond)).toMatch(/^6\.3/);
+    expect(snapshot.currentRateMilliKrwPerSecond).toBe(
+      snapshot.baseVisualizationRateMilliKrwPerSecond,
+    );
   });
 
   it('uses a fake clock for deterministic tests', () => {

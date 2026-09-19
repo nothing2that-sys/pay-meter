@@ -92,17 +92,25 @@ function MoneyTimer({
           </div>
         ) : null}
         <div className="target-line">
-          오늘 {settings.display.privacy ? '₩ ••••••' : formatPrivacyMoney(snapshot.dailyTargetMicroKrw, settings)} 중{' '}
-          <strong>{percentage(snapshot.progressBasisPoints)}</strong>
+          오늘{' '}
+          {settings.display.privacy
+            ? '₩ ••••••'
+            : formatPrivacyMoney(snapshot.dailyTargetMicroKrw, settings)}{' '}
+          중 <strong>{percentage(snapshot.progressBasisPoints)}</strong>
         </div>
-        <div className="progress-track" aria-label={`오늘 진행률 ${percentage(snapshot.progressBasisPoints)}`}>
+        <div
+          className="progress-track"
+          aria-label={`오늘 진행률 ${percentage(snapshot.progressBasisPoints)}`}
+        >
           <div className="progress-fill" style={{ width: `${progress}%` }} />
         </div>
       </section>
 
       <section className="meter-readouts">
         <div className="rate" data-testid="rate">
-          {settings.display.privacy ? '+ ₩ ••• / sec' : `+ ₩ ${formatRateMilliKrw(snapshot.rateMilliKrwPerSecond)} / sec`}
+          {settings.display.privacy
+            ? '+ ₩ ••• / sec'
+            : `+ ₩ ${formatRateMilliKrw(snapshot.currentRateMilliKrwPerSecond)} / sec`}
         </div>
         <div className="timer-value" data-testid="work-timer">
           {formatDuration(snapshot.elapsedPaidDurationMs)}
@@ -136,7 +144,9 @@ function MoneyTimer({
           위젯으로 열기
         </button>
       ) : null}
-      {!isPiP && !pipSupported ? <div className="compact-hint">작은 창으로 줄이면 Compact Mode로 동작합니다.</div> : null}
+      {!isPiP && !pipSupported ? (
+        <div className="compact-hint">작은 창으로 줄이면 Compact Mode로 동작합니다.</div>
+      ) : null}
     </main>
   );
 }
@@ -152,9 +162,13 @@ function Dashboard({ snapshot, settings, onBack, onSettings }: DashboardProps) {
   return (
     <main className="dashboard-shell">
       <header className="screen-header">
-        <button className="text-button" onClick={onBack}>타이머</button>
+        <button className="text-button" onClick={onBack}>
+          타이머
+        </button>
         <h1>오늘 상세</h1>
-        <button className="text-button" onClick={onSettings}>설정</button>
+        <button className="text-button" onClick={onSettings}>
+          설정
+        </button>
       </header>
       <section className="dashboard-focus">
         <span>오늘 진행</span>
@@ -162,14 +176,31 @@ function Dashboard({ snapshot, settings, onBack, onSettings }: DashboardProps) {
         <span>{percentage(snapshot.progressBasisPoints)}</span>
       </section>
       <section className="metrics-list">
-        <div><span>오늘 목표</span><strong>{formatPrivacyMoney(snapshot.dailyTargetMicroKrw, settings)}</strong></div>
-        <div><span>업무시간</span><strong>{formatDuration(snapshot.workingDurationMs)}</strong></div>
-        <div><span>루팡시간</span><strong>{formatDuration(snapshot.loafingDurationMs)}</strong></div>
-        <div><span>루팡률</span><strong>{percentage(snapshot.loafingRatioBasisPoints)}</strong></div>
+        <div>
+          <span>오늘 목표</span>
+          <strong>{formatPrivacyMoney(snapshot.dailyTargetMicroKrw, settings)}</strong>
+        </div>
+        <div>
+          <span>업무시간</span>
+          <strong>{formatDuration(snapshot.workingDurationMs)}</strong>
+        </div>
+        <div>
+          <span>루팡시간</span>
+          <strong>{formatDuration(snapshot.loafingDurationMs)}</strong>
+        </div>
+        <div>
+          <span>루팡률</span>
+          <strong>{percentage(snapshot.loafingRatioBasisPoints)}</strong>
+        </div>
       </section>
       <section className="consumer-panel">
         <h2>소비재 비교</h2>
-        <p>{settings.display.privacy ? 'Privacy Mode에서 숨김' : consumerValueMessage(snapshot.currentPayMicroKrw, settings.consumerItems) ?? '등록된 항목 없음'}</p>
+        <p>
+          {settings.display.privacy
+            ? 'Privacy Mode에서 숨김'
+            : (consumerValueMessage(snapshot.currentPayMicroKrw, settings.consumerItems) ??
+              '등록된 항목 없음')}
+        </p>
       </section>
     </main>
   );
@@ -219,8 +250,10 @@ function SettingsScreen({ value, onSave, onCancel }: SettingsProps) {
 
   const submit = () => {
     try {
-      if (!Number.isSafeInteger(draft.salaryKrw) || draft.salaryKrw <= 0) throw new Error('월급을 1원 이상 입력해 주세요.');
-      if (draft.schedule.workDays.length === 0) throw new Error('근무 요일을 하나 이상 선택해 주세요.');
+      if (!Number.isSafeInteger(draft.salaryKrw) || draft.salaryKrw <= 0)
+        throw new Error('월급을 1원 이상 입력해 주세요.');
+      if (draft.schedule.workDays.length === 0)
+        throw new Error('근무 요일을 하나 이상 선택해 주세요.');
       buildPaySnapshot(draft, clock.nowEpochMs(), clock.localTimeZone(), []);
       setError('');
       onSave(draft);
@@ -232,7 +265,13 @@ function SettingsScreen({ value, onSave, onCancel }: SettingsProps) {
   return (
     <main className="settings-shell">
       <header className="screen-header">
-        {onCancel ? <button className="text-button" onClick={onCancel}>취소</button> : <span />}
+        {onCancel ? (
+          <button className="text-button" onClick={onCancel}>
+            취소
+          </button>
+        ) : (
+          <span />
+        )}
         <h1>PayMeter 설정</h1>
         <span />
       </header>
@@ -272,18 +311,109 @@ function SettingsScreen({ value, onSave, onCancel }: SettingsProps) {
           ))}
         </div>
         <div className="time-grid">
-          <label>출근<input aria-label="출근" type="time" value={draft.schedule.start} onChange={(event) => setDraft({ ...draft, schedule: { ...draft.schedule, start: event.target.value } })} /></label>
-          <label>퇴근<input aria-label="퇴근" type="time" value={draft.schedule.end} onChange={(event) => setDraft({ ...draft, schedule: { ...draft.schedule, end: event.target.value } })} /></label>
-          <label>휴게 시작<input aria-label="휴게 시작" type="time" value={draft.schedule.unpaidBreak?.start ?? ''} onChange={(event) => setDraft({ ...draft, schedule: { ...draft.schedule, unpaidBreak: { start: event.target.value, end: draft.schedule.unpaidBreak?.end ?? '13:00' } } })} /></label>
-          <label>휴게 종료<input aria-label="휴게 종료" type="time" value={draft.schedule.unpaidBreak?.end ?? ''} onChange={(event) => setDraft({ ...draft, schedule: { ...draft.schedule, unpaidBreak: { start: draft.schedule.unpaidBreak?.start ?? '12:00', end: event.target.value } } })} /></label>
+          <label>
+            출근
+            <input
+              aria-label="출근"
+              type="time"
+              value={draft.schedule.start}
+              onChange={(event) =>
+                setDraft({ ...draft, schedule: { ...draft.schedule, start: event.target.value } })
+              }
+            />
+          </label>
+          <label>
+            퇴근
+            <input
+              aria-label="퇴근"
+              type="time"
+              value={draft.schedule.end}
+              onChange={(event) =>
+                setDraft({ ...draft, schedule: { ...draft.schedule, end: event.target.value } })
+              }
+            />
+          </label>
+          <label>
+            휴게 시작
+            <input
+              aria-label="휴게 시작"
+              type="time"
+              value={draft.schedule.unpaidBreak?.start ?? ''}
+              onChange={(event) =>
+                setDraft({
+                  ...draft,
+                  schedule: {
+                    ...draft.schedule,
+                    unpaidBreak: {
+                      start: event.target.value,
+                      end: draft.schedule.unpaidBreak?.end ?? '13:00',
+                    },
+                  },
+                })
+              }
+            />
+          </label>
+          <label>
+            휴게 종료
+            <input
+              aria-label="휴게 종료"
+              type="time"
+              value={draft.schedule.unpaidBreak?.end ?? ''}
+              onChange={(event) =>
+                setDraft({
+                  ...draft,
+                  schedule: {
+                    ...draft.schedule,
+                    unpaidBreak: {
+                      start: draft.schedule.unpaidBreak?.start ?? '12:00',
+                      end: event.target.value,
+                    },
+                  },
+                })
+              }
+            />
+          </label>
         </div>
       </section>
 
       <section className="settings-section switches">
         <h2>Display</h2>
-        <label><input type="checkbox" checked={draft.display.showDecimals} onChange={(event) => setDraft({ ...draft, display: { ...draft.display, showDecimals: event.target.checked } })} /> 금액 소수 표시</label>
-        <label><input type="checkbox" checked={draft.display.milestoneEnabled} onChange={(event) => setDraft({ ...draft, display: { ...draft.display, milestoneEnabled: event.target.checked } })} /> 1만원 Milestone</label>
-        <label><input type="checkbox" checked={draft.display.privacy} onChange={(event) => setDraft({ ...draft, display: { ...draft.display, privacy: event.target.checked } })} /> Privacy Mode</label>
+        <label>
+          <input
+            type="checkbox"
+            checked={draft.display.showDecimals}
+            onChange={(event) =>
+              setDraft({
+                ...draft,
+                display: { ...draft.display, showDecimals: event.target.checked },
+              })
+            }
+          />{' '}
+          금액 소수 표시
+        </label>
+        <label>
+          <input
+            type="checkbox"
+            checked={draft.display.milestoneEnabled}
+            onChange={(event) =>
+              setDraft({
+                ...draft,
+                display: { ...draft.display, milestoneEnabled: event.target.checked },
+              })
+            }
+          />{' '}
+          1만원 Milestone
+        </label>
+        <label>
+          <input
+            type="checkbox"
+            checked={draft.display.privacy}
+            onChange={(event) =>
+              setDraft({ ...draft, display: { ...draft.display, privacy: event.target.checked } })
+            }
+          />{' '}
+          Privacy Mode
+        </label>
       </section>
 
       <section className="settings-section">
@@ -293,19 +423,48 @@ function SettingsScreen({ value, onSave, onCancel }: SettingsProps) {
             <div key={item.id} className="consumer-row">
               <span>{item.name}</span>
               <span>{item.priceKrw.toLocaleString('ko-KR')}원</span>
-              <button type="button" onClick={() => setDraft({ ...draft, consumerItems: draft.consumerItems.filter((current) => current.id !== item.id) })}>삭제</button>
+              <button
+                type="button"
+                onClick={() =>
+                  setDraft({
+                    ...draft,
+                    consumerItems: draft.consumerItems.filter((current) => current.id !== item.id),
+                  })
+                }
+              >
+                삭제
+              </button>
             </div>
           ))}
         </div>
         <div className="consumer-add">
-          <input aria-label="소비재 이름" value={itemName} onChange={(event) => setItemName(event.target.value)} placeholder="커피" />
-          <input aria-label="소비재 가격" type="number" value={itemPrice} onChange={(event) => setItemPrice(event.target.value)} placeholder="5000" />
-          <button type="button" onClick={addConsumer}>추가</button>
+          <input
+            aria-label="소비재 이름"
+            value={itemName}
+            onChange={(event) => setItemName(event.target.value)}
+            placeholder="커피"
+          />
+          <input
+            aria-label="소비재 가격"
+            type="number"
+            value={itemPrice}
+            onChange={(event) => setItemPrice(event.target.value)}
+            placeholder="5000"
+          />
+          <button type="button" onClick={addConsumer}>
+            추가
+          </button>
         </div>
       </section>
 
-      {error ? <p className="error-text" role="alert">{error}</p> : null}
-      <button className="save-button" onClick={submit} data-testid="save-settings">저장하고 시작</button>
+      {error ? (
+        <p className="error-text" role="alert">
+          {error}
+        </p>
+      ) : null}
+      <button className="save-button" onClick={submit} data-testid="save-settings">
+        저장하고 시작
+      </button>
     </main>
   );
 }
@@ -313,7 +472,9 @@ function SettingsScreen({ value, onSave, onCancel }: SettingsProps) {
 function App() {
   const [settings, setSettings] = useState<PrototypeSettings>(() => loadSettings());
   const [nowEpochMs, setNowEpochMs] = useState(() => clock.nowEpochMs());
-  const [screen, setScreen] = useState<Screen>(() => (loadSettings().salaryKrw > 0 ? 'timer' : 'settings'));
+  const [screen, setScreen] = useState<Screen>(() =>
+    loadSettings().salaryKrw > 0 ? 'timer' : 'settings',
+  );
   const [loafingIntervals, setLoafingIntervals] = useState(() =>
     loadLoafingIntervals(localDateFromEpoch(clock.nowEpochMs())),
   );
@@ -330,17 +491,18 @@ function App() {
 
   useEffect(() => {
     const timer = window.setInterval(() => setNowEpochMs(clock.nowEpochMs()), 250);
-    const refresh = () => setNowEpochMs(clock.nowEpochMs());
-    const onVisibility = () => {
-      if (document.visibilityState === 'visible') skipNextMilestone.current = true;
-      refresh();
+    const refreshFromDeviceClock = () => {
+      skipNextMilestone.current = true;
+      setNowEpochMs(clock.nowEpochMs());
     };
-    window.addEventListener('focus', refresh);
-    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('focus', refreshFromDeviceClock);
+    window.addEventListener('pageshow', refreshFromDeviceClock);
+    document.addEventListener('visibilitychange', refreshFromDeviceClock);
     return () => {
       window.clearInterval(timer);
-      window.removeEventListener('focus', refresh);
-      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('focus', refreshFromDeviceClock);
+      window.removeEventListener('pageshow', refreshFromDeviceClock);
+      document.removeEventListener('visibilitychange', refreshFromDeviceClock);
     };
   }, []);
 
@@ -377,7 +539,10 @@ function App() {
   };
 
   const togglePrivacy = () => {
-    const next = { ...settings, display: { ...settings.display, privacy: !settings.display.privacy } };
+    const next = {
+      ...settings,
+      display: { ...settings.display, privacy: !settings.display.privacy },
+    };
     updateSettings(next);
   };
 

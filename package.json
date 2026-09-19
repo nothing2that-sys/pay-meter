@@ -7,12 +7,12 @@
     "dev": "vite",
     "build": "tsc -p tsconfig.json && vite build",
     "lint": "eslint . --max-warnings=0",
-    "format": "prettier --write src tests public index.html package.json tsconfig.json vite.config.ts playwright.config.ts eslint.config.js .github/workflows/ci.yml",
-    "format:write": "prettier --write .",
+    "format": "prettier --write src tests public index.html package.json tsconfig.json vite.config.ts playwright.config.ts eslint.config.js .github/workflows/*.yml",
     "test": "vitest run",
     "test:watch": "vitest",
     "e2e": "playwright test",
-    "e2e:install": "playwright install chromium --with-deps"
+    "e2e:install": "playwright install chromium --with-deps",
+    "format:check": "prettier --check src tests public index.html package.json tsconfig.json vite.config.ts playwright.config.ts eslint.config.js .github/workflows/*.yml"
   },
   "dependencies": {
     "react": "19.3.0",

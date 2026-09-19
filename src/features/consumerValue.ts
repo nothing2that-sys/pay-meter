@@ -1,6 +1,9 @@
 import { MICRO_KRW_PER_KRW, type ConsumerItem } from '../domain/prototype';
 
-export function consumerValueMessage(currentMicroKrw: bigint, items: ConsumerItem[]): string | null {
+export function consumerValueMessage(
+  currentMicroKrw: bigint,
+  items: ConsumerItem[],
+): string | null {
   const valid = items
     .filter((item) => item.name.trim() && Number.isFinite(item.priceKrw) && item.priceKrw > 0)
     .sort((a, b) => a.priceKrw - b.priceKrw);

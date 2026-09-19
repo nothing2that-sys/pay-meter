@@ -126,3 +126,14 @@ Document Picture-in-Picture는 브라우저와 자동화 환경 제약이 있으
 - RETENTION_NOT_CONFIRMED
 
 수치 기준은 P1 사용 결과를 본 뒤 별도 결정한다.
+
+
+## 11. P1 Closeout 상태
+
+현재 상태:
+
+**P1 Implementation Ready for Retention Test**
+
+Closeout에서는 Current Rate 의미, npm 설치 재현성, Formatter 검증 방식, BFCache/pageshow 복귀 재계산을 정리한다.
+
+1일 / 3일 / 7일 Retention 결과는 아직 기록하지 않는다. 실제 업무 중 사용한 뒤 이 문서에 별도로 남긴다.
