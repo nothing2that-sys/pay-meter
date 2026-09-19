@@ -191,6 +191,22 @@ function DailyReportView({
         </span>
       </section>
 
+      <PeriodChart
+        title={report.localDate === todayLocalDate ? '오늘 누적' : '일간 누적'}
+        points={[
+          {
+            label: report.localDate === todayLocalDate ? '현재' : String(Number(report.localDate.slice(-2))),
+            value: krwNumber(report.recognizedPayMicroKrw),
+            detailLabel: `${report.localDate} ${krwNumber(
+              report.recognizedPayMicroKrw,
+            ).toLocaleString('ko-KR')}원`,
+          },
+        ]}
+        mode="line"
+        privacy={privacy}
+        moneyMetric
+      />
+
       {synthetic ? (
         <section className="detail-integrity-notice">
           <p>
