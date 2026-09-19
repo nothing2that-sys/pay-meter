@@ -15,7 +15,7 @@ import { freeWorkBucket, freeWorkCopy } from '../presentation/freeWorkCopy';
 import { buildMoneyTimerViewModel } from '../presentation/moneyTimerViewModel';
 import {
   PERIMETER_PATH_D,
-  perimeterSegmentStyle,
+  perimeterProgressStyle,
   shouldShowPerimeterMarker,
 } from '../presentation/PerimeterTimeline';
 
@@ -178,17 +178,15 @@ describe('P1R final timer view model and free-work copy', () => {
     );
 
     expect(working).toMatchObject({
-      stateLabel: '업무 중',
+      stateLabel: '업무중',
       stateTheme: 'working',
-      mainSupportLabel: '정상 적립 중',
     });
     expect(loafing).toMatchObject({
-      stateLabel: '루팡 모드',
+      stateLabel: '루팡중',
       stateTheme: 'loafing',
-      mainSupportLabel: null,
     });
     expect(freeWork).toMatchObject({
-      stateLabel: '무료봉사 중',
+      stateLabel: '봉사중',
       stateTheme: 'freework',
       freeWorkMode: true,
     });
@@ -216,14 +214,15 @@ describe('P1R perimeter presentation contract', () => {
     expect(PERIMETER_PATH_D.startsWith('M 50 1.5 H 91.5')).toBe(true);
   });
 
-  it('maps one full normalized segment to one full perimeter loop', () => {
-    const style = perimeterSegmentStyle({
-      type: 'WORKING',
-      startRatio: 0,
-      endRatio: 1,
+  it('maps one progress ratio to one continuous perimeter loop', () => {
+    expect(perimeterProgressStyle(0.25)).toEqual({
+      strokeDasharray: '0.25 0.75',
+      strokeDashoffset: 0,
     });
-    expect(style.strokeDasharray).toBe('1 0');
-    expect(style.strokeDashoffset).toBe(-0);
+    expect(perimeterProgressStyle(1)).toEqual({
+      strokeDasharray: '1 0',
+      strokeDashoffset: 0,
+    });
   });
 
   it('shows the moving marker only for incomplete non-zero progress', () => {
