@@ -141,7 +141,10 @@ function Dashboard({
           <span>주간</span>
           <strong>{money(weekly.total, settings.display.privacy)}</strong>
         </button>
-        <button className={period === 'monthly' ? 'active' : ''} onClick={() => setPeriod('monthly')}>
+        <button
+          className={period === 'monthly' ? 'active' : ''}
+          onClick={() => setPeriod('monthly')}
+        >
           <span>월간</span>
           <strong>{money(monthly.total, settings.display.privacy)}</strong>
         </button>

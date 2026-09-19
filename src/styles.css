@@ -427,10 +427,7 @@ button:disabled {
   .money-timer-frame {
     width: 100dvw;
     height: 100dvh;
-    padding:
-      max(14px, env(safe-area-inset-top))
-      20px
-      max(14px, env(safe-area-inset-bottom));
+    padding: max(14px, env(safe-area-inset-top)) 20px max(14px, env(safe-area-inset-bottom));
   }
   .perimeter-base {
     stroke-width: 10px;
@@ -469,10 +466,7 @@ button:disabled {
   .money-timer-frame {
     width: min(100dvw, 980px);
     height: 100dvh;
-    padding:
-      max(12px, env(safe-area-inset-top))
-      30px
-      max(12px, env(safe-area-inset-bottom));
+    padding: max(12px, env(safe-area-inset-top)) 30px max(12px, env(safe-area-inset-bottom));
   }
   .app-header {
     min-height: 72px;

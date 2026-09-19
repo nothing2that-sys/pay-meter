@@ -60,7 +60,12 @@ export function CumulativeChart({ points, title }: Props) {
           if (!show) return null;
           const x = left + (usableWidth * index) / denominator;
           return (
-            <text key={`label:${point.label}:${index}`} className="chart-label" x={x} y={height - 12}>
+            <text
+              key={`label:${point.label}:${index}`}
+              className="chart-label"
+              x={x}
+              y={height - 12}
+            >
               {point.label}
             </text>
           );
