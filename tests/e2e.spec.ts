@@ -126,6 +126,7 @@ test('settings expose only pay/work, display and data groups', async ({ page }) 
   await expect(page.getByRole('heading', { name: '급여 / 근무' })).toBeVisible();
   await expect(page.getByRole('heading', { name: '화면' })).toBeVisible();
   await expect(page.getByRole('heading', { name: '데이터' })).toBeVisible();
+  await expect(page.locator('.settings h2')).toHaveCount(3);
   await expect(page.getByText('Consumer Items')).toHaveCount(0);
   await expect(page.getByText('금액 소수 표시')).toHaveCount(0);
 });
@@ -183,6 +184,7 @@ test('background-style resume recomputes from wall clock without catch-up ticks'
   await expect(page.getByTestId('progress-value')).toHaveText('100%');
   await expect(page.getByTestId('freework-wallet')).toBeVisible();
   await expect(page.locator('.wallet-duration')).toHaveText('01:00:00');
+  await expect(page.locator('.milestone-ring')).toHaveCount(0);
 });
 
 test('legacy P1 settings data is normalized and does not reactivate Consumer Value UI', async ({
@@ -246,6 +248,13 @@ test('required responsive viewports keep the P1R frame and core controls inside 
     await expectInsideViewport(page, '[data-testid="loafing-toggle"]');
   }
 
+  await setNow(page, new Date(2026, 8, 21, 18, 30).getTime());
+  await expect(page.getByTestId('freework-wallet')).toBeVisible();
+  await expectNoHorizontalOverflow(page);
+  await expectInsideViewport(page, '[data-testid="freework-money"]');
+  await expectInsideViewport(page, '[data-testid="clock-out"]');
+
+  await setNow(page, fixedNow);
   await page.setViewportSize({ width: 360, height: 440 });
   await page.evaluate(() => document.body.classList.add('pip-body'));
   await expectNoHorizontalOverflow(page);
