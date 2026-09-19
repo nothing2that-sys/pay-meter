@@ -192,12 +192,12 @@ test('clock out freezes Free Work money across reload', async ({ page }) => {
 
   const walletMoney = await page.getByTestId('freework-money').innerText();
   await page.getByTestId('clock-out').click();
-  await expect(page.getByText('퇴근 완료')).toBeVisible();
+  await expect(page.getByText('퇴근완료')).toBeVisible();
   await expect(page.getByTestId('clocked-freework-money')).toHaveText(walletMoney);
 
   await setNow(page, new Date(2026, 8, 21, 20).getTime());
   await page.reload();
-  await expect(page.getByText('퇴근 완료')).toBeVisible();
+  await expect(page.getByText('퇴근완료')).toBeVisible();
   await expect(page.getByTestId('clocked-freework-money')).toHaveText(walletMoney);
 });
 
@@ -265,7 +265,7 @@ test('clock out closes an open LOAFING interval and reload does not reopen it', 
 
   await setNow(page, new Date(2026, 8, 21, 20).getTime());
   await page.reload();
-  await expect(page.getByText('퇴근 완료')).toBeVisible();
+  await expect(page.getByText('퇴근완료')).toBeVisible();
 
   const reloaded = await page.evaluate(() =>
     JSON.parse(localStorage.getItem('paymeter:p1:loafing') ?? '[]'),
