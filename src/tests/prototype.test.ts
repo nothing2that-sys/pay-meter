@@ -15,8 +15,7 @@ import { freeWorkBucket, freeWorkCopy } from '../presentation/freeWorkCopy';
 import { buildMoneyTimerViewModel } from '../presentation/moneyTimerViewModel';
 import {
   PERIMETER_PATH_D,
-  perimeterProgressStyle,
-  shouldShowPerimeterMarker,
+  buildPerimeterProgressPath,
 } from '../presentation/PerimeterTimeline';
 
 const settings: PrototypeSettings = {
@@ -210,27 +209,17 @@ describe('P1R final timer view model and free-work copy', () => {
 });
 
 describe('P1R perimeter presentation contract', () => {
-  it('starts the normalized rounded path at top center and proceeds clockwise toward the right edge', () => {
+  it('starts the rounded path at top center and proceeds clockwise toward the right edge', () => {
     expect(PERIMETER_PATH_D.startsWith('M 50 0.7 H 94')).toBe(true);
   });
 
-  it('maps one progress ratio to one continuous perimeter loop', () => {
-    expect(perimeterProgressStyle(0.25)).toEqual({
-      strokeDasharray: '25 100',
-      strokeDashoffset: 0,
-    });
-    expect(perimeterProgressStyle(1)).toEqual({
-      strokeDasharray: '100 100',
-      strokeDashoffset: 0,
-    });
-  });
-
-  it('shows the moving marker only for incomplete non-zero progress', () => {
-    expect(shouldShowPerimeterMarker(0)).toBe(false);
-    expect(shouldShowPerimeterMarker(0.25)).toBe(true);
-    expect(shouldShowPerimeterMarker(0.999)).toBe(true);
-    expect(shouldShowPerimeterMarker(1)).toBe(false);
-    expect(shouldShowPerimeterMarker(0.5, true)).toBe(false);
+  it('builds one physical partial path instead of any dash pattern', () => {
+    const quarter = buildPerimeterProgressPath(0.25);
+    expect(quarter.startsWith('M 50 0.7')).toBe(true);
+    expect(quarter).not.toBe(PERIMETER_PATH_D);
+    expect(quarter).not.toContain('Z');
+    expect(buildPerimeterProgressPath(0)).toBe('');
+    expect(buildPerimeterProgressPath(1)).toBe(PERIMETER_PATH_D);
   });
 });
 
