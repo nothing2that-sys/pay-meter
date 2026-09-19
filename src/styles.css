@@ -64,7 +64,7 @@ button:disabled {
   --active-state: #7f8a96;
   --active-soft: #313942;
   position: relative;
-  width: min(100dvw, 720px);
+  width: 100dvw;
   height: 100dvh;
   margin: 0 auto;
   padding: max(18px, env(safe-area-inset-top)) 28px max(18px, env(safe-area-inset-bottom));
@@ -470,7 +470,7 @@ button:disabled {
 
 @media (orientation: landscape) and (min-width: 520px) {
   .money-timer-frame {
-    width: min(100dvw, 980px);
+    width: 100dvw;
     height: 100dvh;
     padding: max(12px, env(safe-area-inset-top)) 30px max(12px, env(safe-area-inset-bottom));
   }
@@ -554,10 +554,10 @@ button:disabled {
   height: 33px;
 }
 .pip-body .main-money strong {
-  font-size: clamp(48px, 16vw, 68px);
+  font-size: clamp(58px, 18vw, 78px);
 }
 .pip-body .wallet-money {
-  font-size: clamp(50px, 17vw, 72px);
+  font-size: clamp(62px, 19vw, 82px);
 }
 .pip-body .loafing-inline-card {
   margin-top: 16px;
@@ -800,25 +800,8 @@ button:disabled {
   color: #071817;
 }
 
-@keyframes pulse {
-  50% {
-    transform: scale(1.018);
-    text-shadow: 0 0 22px rgba(53, 183, 170, 0.36);
-  }
-}
-@keyframes ring {
-  from {
-    opacity: 0;
-    transform: translateY(10px) scale(0.94);
-  }
-  35% {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-    transform: translateY(-12px) scale(1.02);
-  }
-}
+
+
 
 @media (max-width: 480px) {
   .schedule-input-row {
