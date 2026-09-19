@@ -76,6 +76,8 @@ test('P1R final timer hides percentage and remaining time while keeping main and
   await expect(page.getByTestId('loafing-money')).toBeVisible();
   await expect(page.getByText('루팡 누적액')).toBeVisible();
   await expect(page.locator('.money-timer-frame')).toHaveClass(/state-working/);
+  await expect(page.getByRole('button', { name: '상세 보기' })).toBeVisible();
+  await expect(page.getByText('상세 보기')).toHaveCount(0);
   await expect(page.getByTestId('perimeter-timeline')).toHaveAttribute(
     'data-progress-ratio',
     '0.125',
@@ -99,9 +101,20 @@ test('LOAFING changes the theme while fixed-period money and loafing accumulatio
   await setupSalary(page);
 
   const before = await page.getByTestId('current-money').innerText();
+  const perimeterColorBefore = await page
+    .getByTestId('perimeter-timeline')
+    .evaluate((element) => getComputedStyle(element).color);
+  const loafingButtonHeight = await page
+    .getByTestId('loafing-toggle')
+    .evaluate((element) => element.getBoundingClientRect().height);
+  expect(loafingButtonHeight).toBeGreaterThanOrEqual(68);
   await page.getByTestId('loafing-toggle').click();
   await expect(page.getByText('루팡중')).toBeVisible();
   await expect(page.locator('.money-timer-frame')).toHaveClass(/state-loafing/);
+  const perimeterColorAfter = await page
+    .getByTestId('perimeter-timeline')
+    .evaluate((element) => getComputedStyle(element).color);
+  expect(perimeterColorAfter).toBe(perimeterColorBefore);
 
   await setNow(page, new Date(2026, 8, 21, 10, 30).getTime());
   expect(await page.getByTestId('current-money').innerText()).not.toBe(before);
@@ -364,7 +377,16 @@ test('portrait, landscape and compact layouts keep final P1R content inside the 
     await expectInsideViewport(page, '[data-testid="loafing-toggle"]');
   }
 
+  await page.setViewportSize({ width: 360, height: 480 });
+  const portraitAmountSize = await page
+    .getByTestId('current-money')
+    .evaluate((element) => Number.parseFloat(getComputedStyle(element).fontSize));
+
   await page.setViewportSize({ width: 720, height: 420 });
+  const landscapeAmountSize = await page
+    .getByTestId('current-money')
+    .evaluate((element) => Number.parseFloat(getComputedStyle(element).fontSize));
+  expect(landscapeAmountSize).toBeGreaterThan(portraitAmountSize);
   await expectNoHorizontalOverflow(page);
   await expectTimerLockedToViewport(page);
   await expectInsideViewport(page, '.money-timer-frame');
