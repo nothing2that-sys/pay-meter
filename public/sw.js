@@ -1,4 +1,4 @@
-const CACHE_NAME = 'paymeter-p1-v3';
+const CACHE_NAME = 'paymeter-p1-v4';
 const SHELL = ['/', '/manifest.webmanifest', '/icon.svg'];
 
 self.addEventListener('install', (event) => {
