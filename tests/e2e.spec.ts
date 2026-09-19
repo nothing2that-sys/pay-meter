@@ -14,7 +14,7 @@ async function freshApp(page: Page, now = fixedNow) {
 async function setupSalary(page: Page) {
   await page.getByLabel('월급').fill('4000000');
   await page.getByTestId('save-settings').click();
-  await expect(page.getByText('업무 중')).toBeVisible();
+  await expect(page.getByText('업무중')).toBeVisible();
 }
 
 async function setNow(page: Page, epochMs: number) {
@@ -31,6 +31,21 @@ async function expectNoHorizontalOverflow(page: Page) {
     clientWidth: document.documentElement.clientWidth,
   }));
   expect(sizes.scrollWidth).toBeLessThanOrEqual(sizes.clientWidth);
+}
+
+async function expectTimerLockedToViewport(page: Page) {
+  const sizes = await page.evaluate(() => ({
+    htmlWidth: document.documentElement.scrollWidth,
+    htmlHeight: document.documentElement.scrollHeight,
+    bodyWidth: document.body.scrollWidth,
+    bodyHeight: document.body.scrollHeight,
+    width: window.innerWidth,
+    height: window.innerHeight,
+  }));
+  expect(sizes.htmlWidth).toBeLessThanOrEqual(sizes.width);
+  expect(sizes.bodyWidth).toBeLessThanOrEqual(sizes.width);
+  expect(sizes.htmlHeight).toBeLessThanOrEqual(sizes.height);
+  expect(sizes.bodyHeight).toBeLessThanOrEqual(sizes.height);
 }
 
 async function expectInsideViewport(page: Page, selector: string) {
@@ -65,7 +80,9 @@ test('P1R final timer hides percentage and remaining time while keeping main and
     'data-progress-ratio',
     '0.125',
   );
-  await expect(page.locator('.perimeter-current')).toHaveCount(1);
+  await expect(page.locator('.perimeter-progress')).toHaveCount(1);
+  await expect(page.locator('.perimeter-working, .perimeter-loafing')).toHaveCount(0);
+  await expect(page.locator('.meter-orb')).toHaveCount(0);
 
   await expect(page.getByTestId('progress-value')).toHaveCount(0);
   await expect(page.getByText('오늘 번 돈')).toHaveCount(0);
@@ -83,7 +100,7 @@ test('LOAFING changes the theme while fixed-period money and loafing accumulatio
 
   const before = await page.getByTestId('current-money').innerText();
   await page.getByTestId('loafing-toggle').click();
-  await expect(page.getByText('루팡 모드')).toBeVisible();
+  await expect(page.getByText('루팡중')).toBeVisible();
   await expect(page.locator('.money-timer-frame')).toHaveClass(/state-loafing/);
 
   await setNow(page, new Date(2026, 8, 21, 10, 30).getTime());
@@ -91,7 +108,7 @@ test('LOAFING changes the theme while fixed-period money and loafing accumulatio
   await expect(page.getByTestId('loafing-money')).not.toContainText('₩0');
 
   await page.getByTestId('loafing-toggle').click();
-  await expect(page.getByText('업무 중')).toBeVisible();
+  await expect(page.getByText('업무중')).toBeVisible();
   await expect(page.locator('.money-timer-frame')).toHaveClass(/state-working/);
 });
 
@@ -107,7 +124,7 @@ test('break freezes the real perimeter progress without exposing percentage or r
     .getAttribute('data-progress-ratio');
 
   await setNow(page, new Date(2026, 8, 21, 12, 30).getTime());
-  await expect(page.locator('.state-line')).toHaveText('휴게 중');
+  await expect(page.locator('.state-line')).toHaveText('휴게중');
   await expect(page.getByTestId('perimeter-timeline')).toHaveAttribute(
     'data-progress-ratio',
     progressAtBreakStart ?? '',
@@ -140,8 +157,8 @@ test('scheduled end shows the final Free Work hierarchy and a completed full-loo
 
   const wallet = page.getByTestId('freework-wallet');
   await expect(wallet).toBeVisible();
-  await expect(page.getByText('무료봉사 중')).toBeVisible();
-  await expect(page.getByText('무료봉사 WALLET')).toBeVisible();
+  await expect(page.getByText('봉사중')).toBeVisible();
+  await expect(page.getByText('무료봉사 WALLET')).toHaveCount(0);
   await expect(page.getByText('무료봉사 시간')).toBeVisible();
   await expect(page.getByText('정상 적립 금액')).toBeVisible();
   await expect(page.locator('.money-timer-frame')).toHaveClass(/state-freework/);
@@ -161,10 +178,9 @@ test('scheduled end shows the final Free Work hierarchy and a completed full-loo
 
   await expect(page.getByTestId('perimeter-timeline')).toHaveAttribute('data-progress-ratio', '1');
   await expect(page.getByTestId('perimeter-timeline')).toHaveAttribute('data-complete', 'true');
-  await expect(page.locator('.perimeter-current')).toHaveCount(0);
+  await expect(page.locator('.perimeter-progress')).toHaveCount(1);
   const fullLoopDash = await page
-    .locator('.perimeter-working')
-    .first()
+    .locator('.perimeter-progress')
     .evaluate((element) => (element as SVGPathElement).style.strokeDasharray);
   expect(fullLoopDash.replace(',', '')).toBe('1 0');
 });
@@ -185,6 +201,23 @@ test('clock out freezes Free Work money across reload', async ({ page }) => {
   await expect(page.getByTestId('clocked-freework-money')).toHaveText(walletMoney);
 });
 
+test('detail view shows daily weekly monthly cumulative summaries and graph', async ({ page }) => {
+  await freshApp(page);
+  await setupSalary(page);
+  await page.getByRole('button', { name: '상세 보기' }).click();
+
+  await expect(page.getByRole('heading', { name: '상세 내역' })).toBeVisible();
+  await expect(page.getByRole('button', { name: /일간/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: /주간/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: /월간/ })).toBeVisible();
+  await expect(page.getByTestId('cumulative-chart')).toBeVisible();
+
+  await page.getByRole('button', { name: /주간/ }).click();
+  await expect(page.getByTestId('cumulative-chart')).toContainText('이번 주 누적');
+  await page.getByRole('button', { name: /월간/ }).click();
+  await expect(page.getByTestId('cumulative-chart')).toContainText('이번 달 누적');
+});
+
 test('settings expose only pay/work, display and data groups', async ({ page }) => {
   await freshApp(page);
   await setupSalary(page);
@@ -203,7 +236,7 @@ test('open LOAFING survives reload without duplicate intervals', async ({ page }
   await setupSalary(page);
   await page.getByTestId('loafing-toggle').click();
   await page.reload();
-  await expect(page.getByText('루팡 모드')).toBeVisible();
+  await expect(page.getByText('루팡중')).toBeVisible();
   const stored = await page.evaluate(() =>
     JSON.parse(localStorage.getItem('paymeter:p1:loafing') ?? '[]'),
   );
@@ -281,7 +314,7 @@ test('legacy P1 settings data is normalized and does not reactivate Consumer Val
   });
   await page.reload();
 
-  await expect(page.locator('.state-line')).toHaveText('업무 중');
+  await expect(page.locator('.state-line')).toHaveText('업무중');
   await expect(page.getByText('Legacy Coffee')).toHaveCount(0);
   await page.getByRole('button', { name: '상세 보기' }).click();
   await expect(page.getByText('Legacy Coffee')).toHaveCount(0);
@@ -310,6 +343,7 @@ test('portrait, landscape and compact layouts keep final P1R content inside the 
   ]) {
     await page.setViewportSize(viewport);
     await expectNoHorizontalOverflow(page);
+    await expectTimerLockedToViewport(page);
     await expectInsideViewport(page, '.money-timer-frame');
     await expectInsideViewport(page, '[data-testid="current-money"]');
     await expectInsideViewport(page, '[data-testid="loafing-money"]');
