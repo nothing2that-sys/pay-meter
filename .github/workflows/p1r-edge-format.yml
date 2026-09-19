@@ -1,0 +1,30 @@
+name: P1R Edge Format
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/p1r-edge-format.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npx prettier --write src/presentation/FreeWorkWallet.tsx src/tests/prototype.test.ts
+      - run: |
+          if git diff --quiet; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/presentation/FreeWorkWallet.tsx src/tests/prototype.test.ts
+          git commit -m "style(p1r): format edge UI changes"
+          git push
