@@ -261,3 +261,29 @@ MVP 권장 범위는 P0~P7.
 -> 퇴근
 -> FIXED_PERIOD 일당 확정
 ```
+
+## UI Delivery Rule
+
+P4 Realtime Dashboard 구현 시 실제 기본 화면은 Full Dashboard가 아니라 Minimal Money Timer로 구현한다.
+
+P4 필수:
+
+- 큰 실시간 누적 금액
+- 현재 Rate
+- 작은 근무 Timer
+- 상태 표시
+- Responsive Compact Layout
+- 작은 브라우저 폭에서 Corner Display 형태 유지
+
+P5 이후 추가되는 업무, 루팡, 무료봉사 통계는 기본 화면을 확장하는 대신 Detail View에 우선 배치한다.
+
+Milestone Effect는 P4 또는 별도 P4.1 범위로 구현한다.
+
+필수 검증:
+
+- 5,000원 또는 10,000원 Threshold Crossing 1회 Effect
+- Refresh 간격이 Threshold를 건너뛰어도 정확히 1회
+- Background 복귀 시 과거 Effect 폭주 없음
+- Effect Off 설정
+- Reduced Motion 대응
+
