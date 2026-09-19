@@ -7,7 +7,6 @@ interface Props {
   snapshot: PaySnapshot;
   settings: PrototypeSettings;
   isPiP?: boolean;
-  milestoneKrw?: bigint | null;
   pipSupported?: boolean;
   onToggleLoafing: () => void;
   onTogglePrivacy: () => void;
@@ -83,7 +82,6 @@ export function MoneyTimer({
   snapshot,
   settings,
   isPiP = false,
-  milestoneKrw = null,
   pipSupported = false,
   onToggleLoafing,
   onTogglePrivacy,
@@ -150,7 +148,7 @@ export function MoneyTimer({
           <>
             <section className="timer-main-zone">
               <div className="amount-stage">
-                <div className={`main-money ${milestoneKrw && !isPiP ? 'milestone-pulse' : ''}`}>
+                <div className="main-money">
                   <strong data-testid="current-money">
                     <span className="currency-symbol">₩</span>
                     <span className="currency-digits">
@@ -171,11 +169,6 @@ export function MoneyTimer({
                   </div>
                 </div>
 
-                {milestoneKrw && !isPiP ? (
-                  <div className="milestone-ring" role="status">
-                    {milestoneKrw.toLocaleString('ko-KR')}원
-                  </div>
-                ) : null}
               </div>
             </section>
 
