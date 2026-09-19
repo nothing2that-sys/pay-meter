@@ -12,6 +12,10 @@ function money(value: bigint, privacy: boolean): string {
   return privacy ? '₩ ••••••' : `₩${formatMicroKrw(value)}`;
 }
 
+function moneyDigits(value: bigint, privacy: boolean): string {
+  return privacy ? '••••••' : formatMicroKrw(value);
+}
+
 function ExitIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -57,7 +61,10 @@ export function FreeWorkWallet({
       <div className="freework-main-zone">
         <div className="freework-amount-stage">
           <div className="wallet-money" data-testid="freework-money">
-            {money(snapshot.freeWorkReferenceValueMicroKrw, privacy)}
+            <span className="currency-symbol">₩</span>
+            <span className="currency-digits">
+              {moneyDigits(snapshot.freeWorkReferenceValueMicroKrw, privacy)}
+            </span>
           </div>
 
           <div className="wallet-duration-row">
