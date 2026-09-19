@@ -3,12 +3,8 @@ import { createPortal } from 'react-dom';
 import {
   DEFAULT_SETTINGS,
   buildPaySnapshot,
-  formatDuration,
-  formatMicroKrw,
   localDateFromEpoch,
-  monthAllocation,
   parseTimeToMinutes,
-  type PaySnapshot,
   type PrototypeDayControl,
   type PrototypeSettings,
 } from './domain/prototype';
@@ -26,15 +22,11 @@ import {
   startLoafing,
   stopLoafing,
 } from './infrastructure/storage';
-import { CumulativeChart, type CumulativeChartPoint } from './presentation/CumulativeChart';
 import { MoneyTimer } from './presentation/MoneyTimer';
+import { DetailReportScreen } from './presentation/detail/DetailReportScreen';
 
 const clock = new DeviceClock();
 type Screen = 'timer' | 'dashboard' | 'settings';
-
-function money(value: bigint, privacy: boolean): string {
-  return privacy ? '₩ ••••••' : `₩${formatMicroKrw(value)}`;
-}
 
 function minutesToLocalTime(totalMinutes: number): string | null {
   if (!Number.isFinite(totalMinutes) || totalMinutes < 0 || totalMinutes >= 24 * 60) return null;
@@ -49,157 +41,6 @@ function rangeDurationMinutes(start: string, end: string): number {
   } catch {
     return 0;
   }
-}
-
-type DashboardPeriod = 'daily' | 'weekly' | 'monthly';
-
-function microKrwToKrw(value: bigint): number {
-  return Number(value / 1_000_000n);
-}
-
-function startOfLocalDay(date: Date): Date {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 12, 0, 0, 0);
-}
-
-function dailyTargetForDate(settings: PrototypeSettings, date: Date): bigint {
-  const allocation = monthAllocation(settings, date.getFullYear(), date.getMonth());
-  return allocation.targets.get(localDateFromEpoch(startOfLocalDay(date).getTime())) ?? 0n;
-}
-
-function buildAccumulationData(
-  snapshot: PaySnapshot,
-  settings: PrototypeSettings,
-  period: DashboardPeriod,
-): { total: bigint; points: CumulativeChartPoint[]; title: string } {
-  const now = new Date(snapshot.nowEpochMs);
-
-  if (period === 'daily') {
-    const current = microKrwToKrw(snapshot.todayEarnedMicroKrw);
-    const points = Array.from({ length: 6 }, (_, index) => ({
-      label: index === 0 ? '시작' : index === 5 ? '현재' : String(index),
-      value: Math.round((current * index) / 5),
-    }));
-    return { total: snapshot.todayEarnedMicroKrw, points, title: '오늘 누적' };
-  }
-
-  const dates: Date[] = [];
-  if (period === 'weekly') {
-    const mondayOffset = (now.getDay() + 6) % 7;
-    const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - mondayOffset, 12);
-    for (let index = 0; index <= mondayOffset; index += 1) {
-      dates.push(new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + index, 12));
-    }
-  } else {
-    for (let day = 1; day <= now.getDate(); day += 1) {
-      dates.push(new Date(now.getFullYear(), now.getMonth(), day, 12));
-    }
-  }
-
-  let cumulative = 0n;
-  const points = dates.map((date) => {
-    const sameDay =
-      date.getFullYear() === now.getFullYear() &&
-      date.getMonth() === now.getMonth() &&
-      date.getDate() === now.getDate();
-    cumulative += sameDay ? snapshot.todayEarnedMicroKrw : dailyTargetForDate(settings, date);
-    return {
-      label:
-        period === 'weekly'
-          ? ['일', '월', '화', '수', '목', '금', '토'][date.getDay()]
-          : String(date.getDate()),
-      value: microKrwToKrw(cumulative),
-    };
-  });
-
-  return {
-    total: cumulative,
-    points,
-    title: period === 'weekly' ? '이번 주 누적' : '이번 달 누적',
-  };
-}
-
-function Dashboard({
-  snapshot,
-  settings,
-  onBack,
-  onSettings,
-}: {
-  snapshot: PaySnapshot;
-  settings: PrototypeSettings;
-  onBack: () => void;
-  onSettings: () => void;
-}) {
-  const [period, setPeriod] = useState<DashboardPeriod>('daily');
-  const daily = buildAccumulationData(snapshot, settings, 'daily');
-  const weekly = buildAccumulationData(snapshot, settings, 'weekly');
-  const monthly = buildAccumulationData(snapshot, settings, 'monthly');
-  const selected = period === 'daily' ? daily : period === 'weekly' ? weekly : monthly;
-
-  return (
-    <main className="panel-screen dashboard-screen">
-      <header>
-        <button className="text-button" onClick={onBack}>
-          타이머
-        </button>
-        <h1>상세 내역</h1>
-        <button className="text-button" onClick={onSettings}>
-          설정
-        </button>
-      </header>
-
-      <section className="period-summary-grid" aria-label="누적 금액 요약">
-        <button className={period === 'daily' ? 'active' : ''} onClick={() => setPeriod('daily')}>
-          <span>일간</span>
-          <strong>{money(daily.total, settings.display.privacy)}</strong>
-        </button>
-        <button className={period === 'weekly' ? 'active' : ''} onClick={() => setPeriod('weekly')}>
-          <span>주간</span>
-          <strong>{money(weekly.total, settings.display.privacy)}</strong>
-        </button>
-        <button
-          className={period === 'monthly' ? 'active' : ''}
-          onClick={() => setPeriod('monthly')}
-        >
-          <span>월간</span>
-          <strong>{money(monthly.total, settings.display.privacy)}</strong>
-        </button>
-      </section>
-
-      <CumulativeChart points={selected.points} title={selected.title} />
-
-      <section className="metrics">
-        <div>
-          <span>오늘 누적</span>
-          <strong>{money(snapshot.todayEarnedMicroKrw, settings.display.privacy)}</strong>
-        </div>
-        <div>
-          <span>루팡 누적액</span>
-          <strong>{money(snapshot.loafingEarnedValueMicroKrw, settings.display.privacy)}</strong>
-        </div>
-        <div>
-          <span>업무시간</span>
-          <strong>{formatDuration(snapshot.workingDurationMs)}</strong>
-        </div>
-        <div>
-          <span>루팡시간</span>
-          <strong>{formatDuration(snapshot.loafingDurationMs)}</strong>
-        </div>
-        <div>
-          <span>루팡률</span>
-          <strong>{(snapshot.loafingRatioBasisPoints / 100).toFixed(1)}%</strong>
-        </div>
-        {snapshot.freeWorkDurationMs > 0 ? (
-          <div>
-            <span>무료봉사</span>
-            <strong>
-              {formatDuration(snapshot.freeWorkDurationMs)} ·{' '}
-              {money(snapshot.freeWorkReferenceValueMicroKrw, settings.display.privacy)}
-            </strong>
-          </div>
-        ) : null}
-      </section>
-    </main>
-  );
 }
 
 function SettingsScreen({
@@ -567,11 +408,13 @@ export default function App() {
   }
   if (screen === 'dashboard') {
     return (
-      <Dashboard
+      <DetailReportScreen
         snapshot={snapshot}
         settings={settings}
+        loafingIntervals={loafingIntervals}
         onBack={() => setScreen('timer')}
         onSettings={() => setScreen('settings')}
+        onTogglePrivacy={togglePrivacy}
       />
     );
   }
