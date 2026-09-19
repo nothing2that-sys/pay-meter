@@ -179,10 +179,9 @@ test('scheduled end shows the final Free Work hierarchy and a completed full-loo
   await expect(page.getByTestId('perimeter-timeline')).toHaveAttribute('data-progress-ratio', '1');
   await expect(page.getByTestId('perimeter-timeline')).toHaveAttribute('data-complete', 'true');
   await expect(page.locator('.perimeter-progress')).toHaveCount(1);
-  const fullLoopDash = await page
-    .locator('.perimeter-progress')
-    .evaluate((element) => (element as SVGPathElement).style.strokeDasharray);
-  expect(fullLoopDash.replace(',', '')).toBe('100 100');
+  const fullLoopPath = await page.locator('.perimeter-progress').getAttribute('d');
+  expect(fullLoopPath).toContain('M 50 0.7');
+  expect(await page.locator('.perimeter-progress').getAttribute('stroke-dasharray')).toBeNull();
 });
 
 test('clock out freezes Free Work money across reload', async ({ page }) => {
