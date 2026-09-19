@@ -1,8 +1,4 @@
-import {
-  formatMicroKrw,
-  type PaySnapshot,
-  type PrototypeSettings,
-} from '../domain/prototype';
+import { formatMicroKrw, type PaySnapshot, type PrototypeSettings } from '../domain/prototype';
 import { FreeWorkWallet } from './FreeWorkWallet';
 import { buildMoneyTimerViewModel } from './moneyTimerViewModel';
 import { PerimeterTimeline } from './PerimeterTimeline';
@@ -149,9 +145,7 @@ export function MoneyTimer({
                   <span>{vm.stateLabel}</span>
                 </div>
 
-                <div
-                  className={`main-money ${milestoneKrw && !isPiP ? 'milestone-pulse' : ''}`}
-                >
+                <div className={`main-money ${milestoneKrw && !isPiP ? 'milestone-pulse' : ''}`}>
                   <strong data-testid="current-money">
                     {money(snapshot.todayEarnedMicroKrw, settings.display.privacy)}
                   </strong>
