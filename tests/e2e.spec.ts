@@ -352,6 +352,7 @@ test('portrait, landscape and compact layouts keep final P1R content inside the 
 
   await page.setViewportSize({ width: 720, height: 420 });
   await expectNoHorizontalOverflow(page);
+  await expectTimerLockedToViewport(page);
   await expectInsideViewport(page, '.money-timer-frame');
   const regularLandscape = await page.evaluate(() => {
     const main = document.querySelector('.timer-main-zone')!.getBoundingClientRect();
@@ -363,6 +364,7 @@ test('portrait, landscape and compact layouts keep final P1R content inside the 
   await setNow(page, new Date(2026, 8, 21, 18, 30).getTime());
   await expect(page.getByTestId('freework-wallet')).toBeVisible();
   await expectNoHorizontalOverflow(page);
+  await expectTimerLockedToViewport(page);
   await expectInsideViewport(page, '[data-testid="freework-money"]');
   await expectInsideViewport(page, '[data-testid="clock-out"]');
   const freeWorkLandscape = await page.evaluate(() => {
@@ -376,6 +378,7 @@ test('portrait, landscape and compact layouts keep final P1R content inside the 
   await page.setViewportSize({ width: 360, height: 440 });
   await page.evaluate(() => document.body.classList.add('pip-body'));
   await expectNoHorizontalOverflow(page);
+  await expectTimerLockedToViewport(page);
   await expectInsideViewport(page, '.money-timer-frame');
   await expectInsideViewport(page, '[data-testid="current-money"]');
   await expectInsideViewport(page, '[data-testid="loafing-toggle"]');
