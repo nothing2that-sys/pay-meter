@@ -96,8 +96,27 @@ button:disabled {
   --active-soft: var(--state-freework-soft);
   --perimeter-color: #d45a66;
   background:
-    radial-gradient(circle at 50% 32%, rgba(240, 90, 103, 0.12), transparent 44%),
-    linear-gradient(180deg, #211216 0%, #0d1117 80%);
+    radial-gradient(circle at 50% 32%, rgba(240, 90, 103, 0.08), transparent 44%),
+    linear-gradient(180deg, #1b1114 0%, #0d1117 80%);
+}
+.money-timer-frame.state-freework::after {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--freework-fill, 0%);
+  pointer-events: none;
+  background: linear-gradient(
+    to top,
+    rgba(177, 40, 55, 0.34) 0%,
+    rgba(157, 37, 51, 0.22) 46%,
+    rgba(124, 31, 43, 0.08) 78%,
+    rgba(124, 31, 43, 0) 100%
+  );
+  box-shadow: 0 -20px 46px rgba(205, 56, 72, 0.08);
+  transition: height 420ms ease-out;
 }
 
 .perimeter {
@@ -446,6 +465,23 @@ button:disabled {
   height: 17px;
   color: #77818b;
 }
+.freework-ratio {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 0 4px;
+  color: #aa858c;
+}
+.freework-ratio span {
+  font-size: 11px;
+  font-weight: 700;
+}
+.freework-ratio strong {
+  color: #e47b86;
+  font-size: 14px;
+  font-weight: 800;
+}
 
 @media (max-width: 480px) {
   .money-timer-frame {
@@ -521,8 +557,9 @@ button:disabled {
     font-size: clamp(108px, 15.5vw, 190px);
   }
   .loaf-button {
-    min-height: 82px;
-    font-size: 18px;
+    min-height: 96px;
+    border-radius: 27px;
+    font-size: 19px;
   }
   .loafing-inline-card {
     width: min(72%, 330px);
@@ -551,13 +588,14 @@ button:disabled {
     font-size: clamp(92px, 13.5vw, 144px);
   }
   .loaf-button {
-    min-height: 66px;
+    min-height: 78px;
+    border-radius: 23px;
+    font-size: 17px;
   }
   .loafing-inline-card,
   .wallet-duration-row {
     margin-top: 18px;
   }
-  .loaf-button,
   .clockout-button,
   .detail-button {
     min-height: 44px;
