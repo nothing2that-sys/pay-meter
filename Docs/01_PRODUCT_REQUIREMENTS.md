@@ -2,521 +2,332 @@
 
 ## 1. Product Vision
 
-PayMeter는 사용자의 시간을 돈의 흐름으로 시각화하는 개인용 실시간 급여 모니터다.
+PayMeter는 시간을 돈의 흐름으로 보여주는 개인용 Money Timer다.
 
-기존 급여 계산기가 특정 금액을 계산한 뒤 결과를 보여주는 도구라면 PayMeter는 현재 순간의 근무 상태, 급여 흐름, 실제 회사 체류시간과 사용자가 직접 기록한 업무 및 루팡 시간을 지속적으로 보여준다.
+정밀 근태 시스템을 목표로 하지 않는다.
 
-핵심 질문은 다음과 같다.
+핵심 경험은 다음과 같다.
 
-- 나는 지금 얼마를 벌고 있는가?
-- 오늘 회사에 얼마나 있었는가?
-- 실제 업무 시간과 루팡 시간은 각각 얼마나 되는가?
-- 오늘 급여 중 얼마가 실시간으로 진행됐는가?
-- 월급쟁이라면 퇴근 처리 후 오늘 확보된 계약상 일당은 얼마인가?
-- 정규 근무가 끝났는데 계속 일하고 있다면 그 시간의 가치는 얼마인가?
-- 추가수당이 적용되는 근무라면 실제로 얼마가 더 쌓이고 있는가?
+- 지금 얼마가 채워지고 있는지 본다.
+- 오늘 목표 급여 중 얼마나 진행됐는지 본다.
+- 루팡 시간을 한 번의 버튼으로 기록한다.
+- 퇴근 후 남아 있는 시간을 무료봉사 가치로 본다.
+- 필요할 때만 추가근무를 유급으로 전환한다.
+- 작은 PiP 위젯으로 화면 구석에 계속 띄워둔다.
+- 소비재 가격과 비교하며 돈이 쌓이는 체감을 유지한다.
+- 잘못 누르거나 늦게 누른 기록은 하루 Timeline에서 간단히 고친다.
 
-## 2. Primary User
+## 2. Primary Product Principle
 
-초기 대상은 일정한 급여 또는 시급 구조를 가진 개인 사용자다.
+이 앱의 최대 리스크는 계산식의 복잡도가 아니라 사용자가 일주일 뒤에도 켜는가이다.
 
-지원 급여 입력 유형:
+따라서 V1은 다음을 우선한다.
 
-- 연봉
-- 월급
-- 주급
-- 일급
-- 시급
+- 적은 조작
+- 항상 보이는 Money Timer
+- 짧은 재미 피드백
+- 간단한 사후 보정
+- Local First
+- 이해 가능한 계산
 
-급여의 누적 의미는 두 가지로 구분한다.
+## 3. Supported Pay Types
 
-- FIXED_PERIOD: 연봉, 월급, 주급처럼 기간 급여가 보장되는 월급쟁이형
-- TIME_BASED: 실제 유급 시간에 따라 금액이 확정되는 시급형
+V1 급여 입력:
 
-일급은 설정에 따라 두 방식 중 하나를 선택할 수 있게 확장 가능하게 설계한다.
+- ANNUAL
+- MONTHLY
+- WEEKLY
+- HOURLY
 
-## 3. Core User Flow
-
-### 3.1 첫 실행
-
-1. 급여 유형 선택
-2. 금액 입력
-3. 급여 누적 방식 확인
-4. 근무 요일 지정
-5. 출근 및 퇴근 시각 설정
-6. 휴게시간 설정
-7. 추가수당 정책 선택 또는 건너뛰기
-8. 저장
-9. Money Timer 기본 화면 진입
-
-### 3.2 정규 근무 중
-
-기본 화면은 실시간 Money Timer를 보여준다.
-
-- 실시간 진행 급여
-- 초당 증가 금액
-- 근무 타이머
-- 현재 상태
-- 퇴근까지 남은 시간
-- 즉시 Activity Toggle
-
-사용자는 기본 화면에서 바로 활동 상태를 전환할 수 있다.
-
-- 업무 중
-- 루팡 중
-
-활동 상태는 급여 지급 여부와 분리한다.
-
-월급쟁이 FIXED_PERIOD 모드에서는 루팡 상태여도 계약 급여 진행 자체는 멈추지 않는다.
-
-상세 Dashboard에서는 다음 정보를 추가로 확인한다.
-
-- 오늘 근무 진행률
-- 업무 타이머
-- 루팡 타이머
-- 루팡률
-- 오늘 예상 일당
-- 오늘, 주, 월, 연 누적
-- 무료봉사 및 추가수당 상세
-
-### 3.3 퇴근
-
-FIXED_PERIOD 사용자가 예정 근무일에 퇴근을 누르면 해당 날짜의 정규 계약 급여는 그날의 배정 일당 100%로 확정한다.
-
-예:
-
-- 오늘 배정 일당 200,000원
-- 17:10에 퇴근 처리
-- 실시간 진행 표시가 178,000원이었더라도
-- 퇴근 완료 후 정규 일당은 200,000원으로 확정
-
-이 규칙은 실제 업무 생산성 또는 근무 충실도를 판단하는 규칙이 아니라 고정급 월급의 계약상 일일 배분을 표현하는 규칙이다.
-
-TIME_BASED 사용자는 실제 유급 Segment만 확정한다.
-
-### 3.4 정규 근무 종료
-
-정규 퇴근 시각이 지나면:
-
-- 정규 급여의 실시간 증가는 중지
-- 상태를 `무료봉사 중` 또는 사용자 지정 문구로 전환
-- 정규 종료 이후 경과시간 표시
-- 해당 시간을 기본 급여 가치로 환산한 참고 금액 표시 가능
-- 추가수당 미등록 시간은 실제 추가급여에 반영하지 않음
-
-사용자는 다음 중 하나를 선택할 수 있다.
-
-- 퇴근
-- 유급 추가근무 시작
-- 오늘 근무 일정 변경
-
-### 3.5 추가근무
-
-사용자가 유급 추가근무를 시작하면:
-
-- 추가근무 시작 timestamp 저장
-- 선택된 수당 정책 적용
-- 추가 급여 실시간 증가
-- 정규급여와 추가수당을 구분 표시
-- 추가근무 종료 시 Segment 확정
-
-## 4. V1 Functional Scope
-
-### 4.1 급여 설정
-
-필수:
-
-- 급여 유형
-- 급여 금액
-- 통화
-- 급여 누적 방식
-
-기본 매핑:
+기본 AccrualMode:
 
 - ANNUAL -> FIXED_PERIOD
 - MONTHLY -> FIXED_PERIOD
 - WEEKLY -> FIXED_PERIOD
 - HOURLY -> TIME_BASED
 
-기본 통화는 KRW다.
+DAILY pay basis는 V1에서 제외한다.
 
-### 4.2 근무 일정
+## 4. FIXED_PERIOD Experience
 
-지원:
+FIXED_PERIOD는 오늘 목표 금액을 채우는 경험으로 표현한다.
+
+예:
+
+- 오늘 목표 200,000원
+- 현재 진행 175,000원
+- 진행률 87.5%
+
+사용자가 조기 퇴근하더라도 Clock Out 시 오늘 정규 Daily Target은 100% 확정한다.
+
+이는 법적 일당 판정이 아니라 PayMeter의 기간 급여 시각화 규칙이다.
+
+## 5. FIXED_PERIOD Allocation
+
+기간 급여를 단순 근무일 수로 나누지 않는다.
+
+기간 예정 유급시간 총합으로 Visualization Rate를 정한다.
+
+- Monthly: 해당 월 Planned Paid Duration
+- Weekly: 해당 주 Planned Paid Duration
+- Annual: Annual / 12를 Monthly Pay로 정규화한 뒤 월 기준 사용
+
+각 Day Target은 해당 날짜의 Planned Paid Duration 비율로 배정한다.
+
+## 6. TIME_BASED Experience
+
+HOURLY 사용자는 Clock In과 Clock Out을 사용한다.
+
+Clock In 이후 실제 정규 유급시간만 Base Pay에 포함한다.
+
+Schedule은 다음 용도로 사용한다.
+
+- 예정 시작/종료 표시
+- Break 자동 적용
+- 정규 종료 후 무료봉사 경계
+- Overtime 경계
+
+Clock In 없이 Schedule만으로 실제 유급시간을 생성하지 않는다.
+
+## 7. Work Schedule
+
+V1 지원:
 
 - 요일별 근무 여부
-- 기본 출근 시각
-- 기본 퇴근 시각
-- 휴게 구간 0개 이상
-- 휴게시간 유급 또는 무급
-- 날짜별 Override
-
-V1 Preset 예:
-
-- 월~금
-- 09:00~18:00
-- 12:00~13:00 무급 휴게
-
-### 4.3 활동 타이머
-
-급여 상태와 별도로 사용자가 직접 기록하는 활동 상태를 둔다.
-
-최소 상태:
-
-- WORKING
-- LOAFING
-
-향후 확장:
-
-- MEETING
-- LEARNING
-- PERSONAL
-- CUSTOM
-
-V1 기본 동작:
-
-- 근무 시작 시 WORKING
-- 사용자가 `루팡 시작`을 누르면 LOAFING
-- `업무 복귀`를 누르면 WORKING
-- 전환 버튼은 기본 Money Timer 화면에 항상 접근 가능
-- 정규 휴게시간은 활동 타이머에서 별도 제외 가능
-- 퇴근 시 진행 중 Activity Session 종료
-
-표시 지표:
-
-- 오늘 업무시간
-- 오늘 루팡시간
-- 루팡률
-- 루팡 시간의 급여 환산 가치
-
-루팡률은 사용자 직접 기록을 기준으로 한 참고 지표이며 실제 생산성 평가가 아니다.
-
-### 4.4 추가수당
-
-지원 정책:
-
-- 기본 시급 × 배율
-- 별도 시급
-- 고정수당
-- 시간급 + 고정수당
-
-수당 종류 이름은 사용자 편집 가능하게 설계한다.
-
-예:
-
-- 연장근무
-- 야간근무
-- 휴일근무
-- 특근
-
-### 4.5 기간별 누적
-
-Dashboard와 History에서 최소 다음 값을 확인할 수 있어야 한다.
-
-- 오늘
-- 이번 주
-- 이번 달
-- 올해
-
-FIXED_PERIOD에서는 퇴근 완료된 근무일의 정규 일당이 기간 누적에 반영된다.
-
-### 4.6 근무 상태
-
-최소 급여 상태:
-
-- 출근 전
-- 정규 근무 중
-- 휴게 중
-- 정규 근무 종료
-- 무급 초과시간
-- 유급 추가근무
-- 퇴근 완료
-- 비근무일
-
-활동 상태와 급여 상태는 서로 다른 축으로 관리한다.
-
-### 4.7 Daily Override
-
-특정 날짜만 다음 값을 변경할 수 있어야 한다.
-
 - 출근 시각
 - 퇴근 시각
-- 휴게시간
-- 근무일 또는 휴무일
-- 추가근무 예정
-- 해당 날짜 급여 정책
+- unpaid break 0개 이상
+- 날짜별 간단 Override
+- 자정을 넘기지 않는 Schedule
 
-기본 설정 자체를 변경하지 않고 하루만 수정할 수 있어야 한다.
+지원하지 않음:
 
-## 5. Two-Level Information Architecture
+- paid break
+- overnight shift
+- rotating shift
+- holiday calendar
+- paid leave
 
-PayMeter는 두 개의 주요 표시 레벨을 유지한다.
+## 8. Activity
 
-### Level A: Money Timer
+Activity는 최소 조작을 목표로 한다.
 
-상시 표시용 기본 화면.
+기본 상태는 Inferred WORKING이다.
 
-최소 정보:
+사용자가 명시적으로 기록하는 것은 LOAFING뿐이다.
 
-- 현재 실시간 급여
-- 현재 증가율
-- 현재 상태
-- 작은 근무 타이머
-- 루팡 시작 또는 업무 복귀 버튼
-- 상세 Dashboard 진입 Action
+Money Timer에서:
 
-### Level B: Full Dashboard
+- 루팡 시작
+- 업무 복귀
 
-분석 및 세부 확인용 화면.
+버튼을 한 번 누르면 된다.
 
-표시:
+WORKING Session은 별도로 저장하지 않는다.
 
-- 현재 급여
-- 근무 진행률
-- 예상 또는 확정 일당
-- 업무시간
-- 루팡시간
-- 루팡률
-- 무료봉사
-- 추가수당
-- 오늘, 주, 월, 연 누적
-- 상세 Rate 정보
+LOAFING 시간은 실제 급여 차감에 사용하지 않는다.
 
-기본 화면을 단순화해도 Full Dashboard 기능은 유지한다.
+## 9. Break
 
-## 6. Timer Concept
+Scheduled Break는 자동 적용한다.
 
-PayMeter의 숫자 증가는 타이머처럼 보여야 한다.
+Break 중:
 
-화면에서는 최소 다음 값이 시간에 따라 갱신될 수 있다.
+- 정규 FIXED_PERIOD 진행은 unpaid break이므로 정지
+- TIME_BASED 정규급여도 정지
+- Activity 통계에서 제외
+- Activity Toggle 비활성
 
-- 근무 경과시간
-- 업무 경과시간
-- 루팡 경과시간
-- 무료봉사 경과시간
-- 추가근무 경과시간
-- 실시간 진행 급여
+Break 직전에 LOAFING이었다면 Break 종료 후 다시 LOAFING 의도를 이어간다.
 
-하지만 내부 계산은 tick 누적이 아니라 timestamp 차이로 계산한다.
+## 10. Post Work and Free Work
 
-## 7. Free Work Concept
+V1에는 AUTO_OVERTIME이 없다.
 
-`무료봉사`는 정규 근무 종료 이후 유급 추가근무가 시작되지 않았고 사용자가 퇴근 처리하지 않은 시간이다.
+Scheduled End가 지나고 Clock Out하지 않았으며 유급 Overtime Session이 없다면 무료봉사다.
 
-이 시간은 실제 추가급여에 포함하지 않고 별도 통계로 누적한다.
+무료봉사:
 
-앱은 사용자가 실제로 일을 하는지 자동 판정하지 않는다.
+- 실제 Pay Total에 포함하지 않음
+- 시간 표시
+- Base Visualization Rate 기준 참고 가치 표시
 
-## 8. V1 Non Goals
+## 11. Manual Overtime
 
-V1에서는 다음을 목표로 하지 않는다.
+V1 Overtime은 사용자 명시적 시작만 지원한다.
 
-- 실제 생산성 자동 판정
-- 키보드나 마우스 감시
-- 사용자 행동 감시
-- 법적 급여 명세서 생성
-- 근로기준법 위반 판정
-- 회사 급여 시스템 대체
-- 세금 확정 계산
-- 위치 기반 자동 출퇴근
-- 서버 동기화
-- 조직 관리자 기능
+정책은 multiplier 하나다.
 
-## 9. Future Candidates
+예:
 
-- 활동 상태 사용자 정의
-- 루팡 목표 또는 재미 통계
-- 세전 및 세후 추정
-- 공휴일 캘린더
-- 휴가 및 유급휴일
+- 1.0x
+- 1.5x
+- 2.0x
+
+사용자가 Scheduled End 이후 늦게 Overtime을 시작하면:
+
+- 지금부터 시작
+- Scheduled End부터 소급
+
+중 하나를 빠르게 선택할 수 있다.
+
+Timeline에서 이후 5분 단위로 보정할 수 있다.
+
+## 12. Timeline Correction
+
+사용자는 오늘 또는 최근 Day의 핵심 시간 기록을 5분 단위로 수정할 수 있다.
+
+대상:
+
+- Clock In
+- Clock Out
+- LOAFING start/end
+- Overtime start/end
+
+목적은 정밀 근태 편집이 아니라 버튼을 늦게 누른 실수를 빠르게 복구하는 것이다.
+
+하루 Session 목록과 간단한 앞/뒤 이동 UI 정도로 제한한다.
+
+## 13. Unclosed Day
+
+Clock Out하지 않은 채 날짜가 바뀌면 PayMeter는 전날을 다음날까지 자동 연장하지 않는다.
+
+전날 Day는 midnight에서 임시 종료된 것처럼 계산하고:
+
+- 시간 확인 필요
+
+배지를 표시한다.
+
+사용자가 Timeline Correction으로 실제 종료시간을 정한다.
+
+## 14. Information Architecture
+
+### Money Timer
+
+필수:
+
+- 현재 진행 금액
+- 오늘 목표 금액
+- Today Progress
+- 현재 초당 Rate
+- 작은 Timer
+- Pay State
+- Activity Toggle
+- Privacy Mode
+- Dashboard 진입
+
+### Document PiP
+
+지원 브라우저의 데스크톱에서 Money Timer를 Always-on-top 형태로 제공한다.
+
+API 지원 여부를 feature detection으로 확인한다.
+
+PiP는 사용자의 명시적 Action으로 연다.
+
+### Full Dashboard
+
+필수:
+
+- Today
+- Week
+- Month
+- Working Time
+- Loafing Time
+- Loafing Ratio
+- Free Work
+- Overtime
+- Consumer Value
+- Timeline
+- History
+
+Year 통계는 V1에서 제외한다.
+
+## 15. Milestone
+
+V1 Milestone은 10,000원 단위 하나만 지원한다.
+
+조건:
+
+- foreground Money Timer에서만 Effect
+- PiP에서는 Effect 비활성
+- background 복귀 시 지나간 수십 개 Effect 재생 금지
+- 같은 threshold 중복 재생 금지
+- Reduced Motion 지원
+
+## 16. Consumer Value
+
+사용자는 소비재 이름과 금액을 직접 등록할 수 있다.
+
+예:
+
+- 커피 5,000원
+- 점심 12,000원
+- 치킨 25,000원
+
+표현 예:
+
+- 점심값 벌었음
+- 치킨까지 3,420원
+
+Consumer Value는 Pay Domain에 영향을 주지 않는 Presentation Derived Feature다.
+
+## 17. Privacy Mode
+
+Money Timer와 PiP에서 빠르게 금액을 숨길 수 있어야 한다.
+
+Privacy Mode에서도 Timer와 상태는 선택적으로 유지할 수 있다.
+
+상시 띄워놓는 화면의 어깨너머 노출을 주요 개인정보 위험으로 본다.
+
+## 18. Estimated Net
+
+정밀 세금 엔진은 만들지 않는다.
+
+선택적으로 사용자가 단일 예상 공제율을 설정할 수 있다.
+
+Estimated Net은 Presentation Derived Value이며 Gross Pay 원본을 변경하지 않는다.
+
+## 19. Statistics
+
+V1 기간 통계:
+
+- Today
+- Week
+- Month
+
+제외:
+
+- Year
+
+Rate Detail:
+
+- hour
+- minute
+- second
+
+제외:
+
+- millisecond
+
+## 20. Export
+
+V1은 JSON Export를 지원한다.
+
+Local First 제품에서 브라우저 데이터 삭제나 기기 변경에 대비하기 위한 신뢰 기능이다.
+
+JSON Import는 Migration 안정성이 확보되는 후반 V1 Phase에서 제공한다.
+
+## 21. Non Goals
+
+- 정밀 근태 증명
+- 법적 임금 계산
+- 세금 신고
+- 회사 근태 시스템 대체
+- 생산성 판정
+- 자동 사용자 감시
+- AUTO_OVERTIME
+- 공휴일
+- 연차
 - 교대근무
-- 복수 급여 프로필
-- 목표 구매 금액
-- 노동시간 환산 위젯
-- 연봉 변경 이력
-- 월별 리포트
-- CSV 및 JSON Export
-- Cloud Sync 옵션
-- Widget 및 Always On Display
-
-## 10. Default Always-On Experience
-
-PayMeter의 기본 화면은 상세 Dashboard가 아니라 타이머처럼 상시 표시할 수 있는 최소 화면으로 정의한다.
-
-기본 화면의 최우선 정보는 하나다.
-
-- 현재 실시간 누적 급여
-
-보조 정보는 하단에 작게 표시한다.
-
-권장 기본 구성:
-
-```
-돈 버는 중
-
-₩ 142,381.72
-
-+ ₩ 6.944 / sec
-
-05:37:18   퇴근까지 02:22
-
-[루팡 시작]   [상세]
-```
-
-LOAFING 상태:
-
-```
-루팡 중
-
-₩ 142,381.72
-
-+ ₩ 6.944 / sec
-
-루팡 00:13:42
-
-[업무 복귀]   [상세]
-```
-
-루팡 중에도 FIXED_PERIOD 급여는 계속 증가한다.
-
-업무시간, 루팡률, 주간 및 월간 통계, 무료봉사 가치 등 세부 정보는 Full Dashboard에서 확인한다.
-
-기본 화면은 다음 사용 상황을 우선한다.
-
-- 휴대폰을 책상 위에 세워두고 지속적으로 보기
-- 브라우저 창을 작게 줄여 화면 구석에 배치
-- 별도 조작 없이 돈이 증가하는 것을 시각적으로 관찰
-- 한 번의 Tap으로 업무와 루팡 상태 전환
-- 필요할 때 Full Dashboard 열기
-
-### Compact Mode
-
-작은 브라우저 창이나 모바일 보조 화면을 위한 Compact Mode를 제공한다.
-
-Compact Mode 최소 구성:
-
-```
-₩ 142,381.72
-+ ₩ 6.944/s
-05:37:18
-[루팡]
-```
-
-LOAFING 중:
-
-```
-₩ 143,022.14
-+ ₩ 6.944/s
-루팡 00:13:42
-[복귀]
-```
-
-### Milestone Effect
-
-급여 누적 금액이 사용자가 인지하기 쉬운 금액 단위를 통과할 때 짧은 시각 효과를 표시한다.
-
-V1 기본 후보:
-
-- 5,000원 단위
-- 10,000원 단위
-
-효과는 금액 읽기를 방해하지 않는 짧은 Pulse, Ring, Particle 또는 숫자 강조 수준으로 제한한다.
-
-Milestone Effect는 설정에서 끌 수 있어야 한다.
-
-## 11. Device Time Synchronization
-
-PayMeter는 웹 페이지가 계속 실행되고 있다는 가정에 의존하지 않는다.
-
-현재 상태와 금액은 사용자의 디바이스 현재 시각을 기준으로 계산한다.
-
-필수 동작:
-
-- 첫 진입 시 현재 디바이스 시각으로 계산
-- 새로고침 시 현재 디바이스 시각으로 재계산
-- 다른 앱 또는 탭에서 돌아왔을 때 즉시 재계산
-- 화면이 오랫동안 background였어도 누락 시간 없이 재계산
-- PWA 재실행 시에도 동일하게 재계산
-
-예:
-
-```
-17:50 화면 이탈
-18:00 정규 퇴근 시각
-19:00 다시 PayMeter 확인
-```
-
-19:00 Snapshot은 17:50 이후 Timer Tick이 실제 실행됐는지와 관계없이 설정과 19:00의 디바이스 시각으로 계산한다.
-
-## 12. Post-Work Transition Setting
-
-사용자는 기본 출근 및 퇴근 시각과 함께 정규 근무 종료 후 동작을 설정할 수 있다.
-
-### MANUAL_OVERTIME
-
-정규 퇴근 시각이 지나면 자동으로 무료봉사 상태가 된다.
-
-```
-18:00 정규 근무 종료
-18:00 이후 무료봉사
-```
-
-표시:
-
-- 정규 급여 증가 정지
-- 무료봉사 시간 증가
-- 무료봉사 환산 금액 증가
-- 추가근무 시작 버튼 표시
-
-사용자가 `추가근무 시작`을 눌러야 유급 추가근무로 전환한다.
-
-### AUTO_OVERTIME
-
-정규 퇴근 시각이 지나면 설정된 기본 추가수당 정책으로 유급 추가근무를 자동 시작한다.
-
-필수 설정:
-
-- 기본 Overtime Policy
-
-예:
-
-```
-18:00 정규 근무 종료
-18:00부터 연장근무 1.5x 자동 시작
-```
-
-기본 Overtime Policy가 없거나 유효하지 않으면 안전하게 무료봉사 상태로 전환한다.
-
-### Default Fallback
-
-사용자가 설정하지 않은 경우 V1 기본값은 MANUAL_OVERTIME으로 한다.
-
-이 기본값은 유급 추가근무를 앱이 임의로 가정하지 않기 위한 안전한 동작이다.
-
-## 13. Reopen Reconstruction
-
-정규 퇴근 시점에 PayMeter가 열려 있지 않아도 상태 전환은 논리적으로 발생한 것으로 계산한다.
-
-예:
-
-MANUAL_OVERTIME:
-
-```
-퇴근 설정 18:00
-앱 재진입 19:00
-
-무료봉사 01:00:00
-무료봉사 환산 가치 표시
-```
-
-AUTO_OVERTIME:
-
-```
-퇴근 설정 18:00
-앱 재진입 19:00
-
-추가근무 01:00:00
-해당 정책의 추가수당 누적
-```
-
-이미 사용자가 퇴근 처리한 기록이 있으면 해당 시각 이후 어떤 자동 누적도 발생하지 않는다.
+- 복수직장
+- Cloud Sync

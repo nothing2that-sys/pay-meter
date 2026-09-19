@@ -1,188 +1,264 @@
 # PayMeter Open Decisions
 
-이 문서는 아직 확정하지 않은 제품 및 계산 정책과 이미 확정된 주요 결정을 기록한다.
+이 문서는 결정된 설계 방향과 V1 밖으로 미룬 항목을 기록한다.
 
----
+상위 SSOT와 충돌하면 상위 문서가 우선한다.
 
 # Decided
 
-## D3. FIXED_PERIOD 조기 퇴근
+## D1. 제품 성격
 
 상태: DECIDED
 
-연봉, 월급, 주급 기반 FIXED_PERIOD 사용자는 예정 근무일에 퇴근을 누르면 해당 날짜의 배정 정규 일당을 100% 확정한다.
+PayMeter는 정밀 근태 도구가 아니라 상시 띄워두는 캐주얼 Money Timer다.
 
-조기퇴근은 시간 통계에 남길 수 있으나 정규 일당을 비례 삭감하지 않는다.
+Retention과 낮은 조작 비용을 우선한다.
 
-TIME_BASED에는 적용하지 않는다.
-
-관련 정본:
-
-- 01_PRODUCT_REQUIREMENTS
-- 02_PAY_TIME_ENGINE_SPEC
-- 07_TEST_AND_ACCEPTANCE
-
----
-
-## D8. 기간 누적 의미
+## D2. FIXED_PERIOD 배분
 
 상태: DECIDED
 
-두 개념을 분리한다.
+근무일 수가 아니라 Period 예정 유급시간 총합으로 배분한다.
 
-- Realtime Progress: 오늘 현재 시점의 타이머형 급여 진행 표시
-- Finalized Pay: 퇴근 또는 Session 종료 후 확정된 급여
+Daily Target은 Day 예정 유급시간 비율로 계산한다.
 
-FIXED_PERIOD의 Week, Month, Year 누적은 완료된 날짜의 Finalized Pay를 기준으로 한다.
+Daily Target 합계는 정확히 Period Pay와 같아야 한다.
 
-현재 진행 중 오늘 값은 Dashboard에서 실시간으로 별도 합성할 수 있다.
-
----
-
-## D11. 업무와 루팡 타이머
+## D3. FIXED_PERIOD 조기퇴근
 
 상태: DECIDED
 
-급여 상태와 활동 상태를 분리한다.
+Clock Out 시 해당 Day의 정규 Daily Target 100% 확정.
 
-사용자는 정규 근무 중 다음 상태를 직접 전환한다.
+차감 옵션 없음.
 
-- WORKING
-- LOAFING
-
-루팡 상태에서도 FIXED_PERIOD 급여 진행은 계속된다.
-
-루팡 시간과 환산 가치는 분석용 지표이며 급여 차감 또는 생산성 판정에 사용하지 않는다.
-
-키보드, 마우스, 앱 사용량 자동 감시는 하지 않는다.
-
----
-
-## D2. 정규 근무 종료 후 전환 방식
+## D4. TIME_BASED Clock In
 
 상태: DECIDED
 
-사용자 설정으로 두 방식을 지원한다.
+HOURLY는 Clock In 없이는 실제 정규 유급시간을 생성하지 않는다.
 
-- MANUAL_OVERTIME: 정규 종료 즉시 무료봉사 상태로 자동 전환. 유급 추가근무는 사용자가 직접 시작.
-- AUTO_OVERTIME: 정규 종료 즉시 지정된 기본 Overtime Policy로 유급 추가근무 시작.
-
-설정이 없거나 AUTO_OVERTIME Policy가 invalid하면 MANUAL_OVERTIME처럼 무료봉사로 Fail Safe한다.
-
----
-
-## D13. 현재 시각 기준
+## D5. Activity
 
 상태: DECIDED
 
-PayMeter의 현재 시각 SSOT는 사용자 디바이스 Wall Clock이다.
+Inferred WORKING을 사용한다.
 
-페이지 실행시간이나 setInterval Tick 수를 시간의 SSOT로 사용하지 않는다.
+Persist하는 Activity는 LOAFING interval뿐이다.
 
-앱 진입 및 foreground 복귀 시 디바이스 현재 시각으로 전체 Snapshot을 재계산한다.
+## D6. Break
 
----
+상태: DECIDED
+
+V1 Scheduled Break는 unpaid only.
+
+자동 적용하며 Break 중 Activity Toggle을 비활성화한다.
+
+Break 이전 LOAFING intent는 Break 이후 유지한다.
+
+## D7. Post Work
+
+상태: DECIDED
+
+AUTO_OVERTIME 삭제.
+
+Scheduled End 이후 기본은 무료봉사.
+
+유급 Overtime은 사용자 명시적 Action으로만 시작한다.
+
+## D8. Overtime Policy
+
+상태: DECIDED
+
+V1은 multiplier만 지원한다.
+
+삭제:
+
+- fixed allowance
+- custom hourly overtime
+- hourly plus fixed
+- automatic night/holiday rule
+
+별도 Policy Revision system은 만들지 않는다.
+
+Overtime Session에는 multiplier와 base rate 계산 Snapshot만 남긴다.
+
+## D9. Retroactive Overtime
+
+상태: DECIDED
+
+Overtime Start 시:
+
+- now
+- Scheduled End
+
+중 하나를 선택할 수 있다.
+
+추후 Timeline에서 5분 단위 수정 가능.
+
+## D10. Timeline Correction
+
+상태: DECIDED
+
+Clock In/Out, LOAFING, Overtime을 5분 단위로 사후 보정한다.
+
+정밀 근태 editor로 확장하지 않는다.
+
+## D11. Unclosed Day
+
+상태: DECIDED
+
+Clock Out 없이 날짜가 바뀌면 이전 Day를 local midnight에서 임시 clamp한다.
+
+NEEDS_TIME_REVIEW를 표시하고 Timeline Correction으로 해결한다.
+
+다음날까지 자동 연장하지 않는다.
+
+## D12. Time Zone
+
+상태: DECIDED
+
+WorkDay 생성 시 timeZoneSnapshot 고정.
+
+과거 Day는 이후 Device Time Zone으로 재해석하지 않는다.
+
+## D13. Document PiP
+
+상태: DECIDED
+
+데스크톱 지원 환경의 핵심 상시 표시 Surface로 포함한다.
+
+지원 여부는 feature detection.
+
+미지원 환경은 일반 Compact Money Timer.
+
+## D14. Milestone
+
+상태: DECIDED
+
+10,000원 단위 하나만 지원.
+
+PiP에서는 Effect 비활성.
+
+Background catch-up Effect 없음.
+
+## D15. Statistics
+
+상태: DECIDED
+
+V1 기간:
+
+- Today
+- Week
+- Month
+
+Year 삭제.
+
+Rate는 hour/minute/second만 표시.
+
+ms rate 삭제.
+
+## D16. Consumer Value
+
+상태: DECIDED
+
+V1 Retention 기능으로 포함.
+
+사용자가 이름과 가격을 직접 등록한다.
+
+Pay Domain에는 영향 없음.
+
+## D17. Privacy
+
+상태: DECIDED
+
+Privacy Mode를 V1에 포함한다.
+
+상시 화면 노출 위험을 핵심 Privacy 문제로 취급한다.
+
+## D18. Estimated Net
+
+상태: DECIDED
+
+정밀 세금 엔진 삭제.
+
+선택적 단일 공제율 기반 추정치만 지원 가능.
+
+Gross Pay SSOT는 변경하지 않는다.
+
+## D19. Multi-tab
+
+상태: DECIDED
+
+V1은:
+
+- IndexedDB transaction
+- deterministic key
+- unique index
+- BroadcastChannel
+
+을 우선한다.
+
+Web Locks는 필요성이 확인되면 추가한다.
+
+## D20. Snapshot Side Effect
+
+상태: DECIDED
+
+Pay Snapshot 계산은 Pure Function.
+
+Session 생성과 저장은 Command/Reconciliation에서 수행.
+
+## D21. JSON Export
+
+상태: DECIDED
+
+Local First 신뢰 기능으로 V1 포함.
+
+# Deferred Beyond V1
+
+다음은 V1에서 설계 확장을 하지 않는다.
+
+- Paid Break
+- 공휴일 자동처리
+- 연차
+- 교대근무
+- Overnight Schedule
+- 복수직장
+- Cloud Sync
+- 법정 수당 자동 판정
+- 정밀 세금/보험
+- 위치 기반 출퇴근
+- 조직 관리자
+- Year Statistics
 
 # Open
 
-## D1. 급여 배분 방식 세부
+## O1. Retention Gate 기준
 
-FIXED_PERIOD의 기본은 기간 급여를 예정 근무일과 예정 유급시간에 배분한다.
+P1 Prototype 사용 후 다음을 확인한다.
 
-추가 검토:
+- 실제 상시 사용 빈도
+- PiP 유지 사용 여부
+- LOAFING Toggle 사용 여부
+- Consumer Value 유효성
+- Milestone 피로도
 
-- 월 중간 Salary Revision의 분모
-- 일급의 기본 AccrualMode
-- Manual Hourly Override
+구체적 수치 Gate는 Prototype 사용 결과를 보고 정한다.
 
----
+## O2. Consumer Value 기본 Preset
 
-## D4. 유급휴일
+사용자가 처음부터 직접 등록하게 할지, 커피/점심 같은 예시 Preset을 제공할지 구현 전에 결정 가능하다.
 
-FIXED_PERIOD에서 유급휴일을 어떻게 처리할지 결정 필요.
+## O3. Estimated Net 기본 노출
 
-후보:
+기능을 기본 숨김 Advanced Setting으로 둘지 일반 Settings에 둘지 UX Prototype 후 결정한다.
 
-- Paid Leave State로 일당은 확정하되 근무시간은 0
-- 근무일 재배분
+# Decision Process
 
-Paid Leave State 방식이 더 자연스럽지만 미확정.
+새 결정은 다음 순서로 반영한다.
 
----
-
-## D5. Overnight Schedule
-
-예:
-
-```
-22:00 ~ 07:00
-```
-
-MVP에서는 금지하고 교대근무 Phase에서 구현하는 것을 권장.
-
----
-
-## D6. 세전과 세후
-
-V1은 입력 금액 자체를 정본으로 사용.
-
-향후 Gross, Net 또는 둘 다 표시 검토.
-
----
-
-## D7. 무료봉사 문구
-
-기본:
-
-```
-무료봉사 중
-```
-
-향후 선택:
-
-- 정규 근무 종료
-- 초과근무 미등록
-- 업무시간 초과
-- 퇴근하세요
-- 사용자 직접 입력
-
----
-
-## D9. 휴가
-
-연차 사용일의 처리 결정 필요.
-
-권장 방향:
-
-Paid Leave State를 별도로 두고 FIXED_PERIOD 일당에는 포함하되 실제 Work Timer에는 포함하지 않는다.
-
----
-
-## D10. 월급 및 연봉 변경일
-
-월 중간 Salary Revision 시 기간 배분 분모를 Revision 구간별로 계산하는 규칙을 확정해야 한다.
-
----
-
-## D12. 루팡률 분모
-
-현재 V1 권장:
-
-```
-LOAFING / (WORKING + LOAFING)
-```
-
-정규 무급 휴게는 제외.
-
-향후 회의, 교육, 개인업무 등 Activity State 확장 시 분모 정책을 다시 결정한다.
-
----
-
-## Decision Process
-
-결정이 내려지면:
-
-1. 상태를 DECIDED로 변경
-2. 관련 상위 SSOT 반영
-3. 테스트 Fixture 추가
+1. 이 문서에서 DECIDED
+2. 상위 SSOT 반영
+3. 테스트 추가
 4. 구현

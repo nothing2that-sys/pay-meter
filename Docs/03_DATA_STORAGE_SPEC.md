@@ -2,382 +2,336 @@
 
 ## 1. 목표
 
-PayMeter V1은 Local First로 동작한다.
+PayMeter V1은 Local First다.
 
-사용자의 급여와 근무 데이터는 기본적으로 사용자 기기 밖으로 전송하지 않는다.
+급여와 Activity 기록은 기본적으로 외부 서버로 전송하지 않는다.
 
----
+저장은 캐주얼 앱에 필요한 최소 구조를 유지하되 과거 결과가 현재 설정 변경으로 바뀌지 않게 한다.
 
-## 2. 저장소 구분
+## 2. localStorage
 
-### localStorage
+UI 및 현재 설정 접근에 적합한 작은 데이터:
 
-작고 자주 읽는 설정 데이터.
-
-- appSettings
-- salaryProfile
-- weeklySchedule
-- defaultOvertimePolicies
+- appSettings pointer
 - displayPreferences
+- privacyMode
+- milestoneEnabled
+- consumerItems
+- lastRoute
 - schemaVersion pointer
 
-### IndexedDB
+급여 결과의 과거 재현에 필요한 유일한 SSOT를 localStorage 현재값 하나에만 두지 않는다.
 
-이력성 데이터와 날짜별 이벤트.
+## 3. IndexedDB
 
-- Daily Override
+이력 및 이벤트:
+
+- SalaryRevision
+- ScheduleRevision
+- WorkDay
+- ClockEvent
+- LoafingSession
+- OvertimeSession
+- DailyOverride
+- DailySummaryCache
+- migration metadata
+
+## 4. SalaryRevision
+
+최소:
+
+- id
+- effectiveFromLocalDate
+- payBasis
+- accrualMode
+- amountKrw
+- currency
+- createdAt
+
+과거 Revision을 덮어쓰지 않는다.
+
+V1에서 FIXED_PERIOD 설정 변경 UX는 다음 Period 적용을 기본으로 하여 복잡한 월중 재배분을 피한다.
+
+- MONTHLY, ANNUAL: 다음 달
+- WEEKLY: 다음 주
+
+HOURLY Rate 변경은 다음 localDate 적용을 기본으로 한다.
+
+## 5. ScheduleRevision
+
+최소:
+
+- id
+- effectiveFromLocalDate
+- timeZoneAtCreation
+- weekStartsOn
+- day schedules
+- unpaid breaks
+- createdAt
+
+V1에서는 Schedule 변경도 다음 localDate 또는 사용자가 명시한 미래 localDate부터 적용한다.
+
+이미 materialize된 과거 WorkDay를 자동 재작성하지 않는다.
+
+## 6. WorkDay
+
+WorkDay는 날짜별 계산 Context다.
+
+최소:
+
+- id
+- localDate
+- timeZoneSnapshot
+- salaryRevisionId
+- scheduleRevisionId
+- scheduleSnapshot
+- scheduledStartEpochMs
+- scheduledEndEpochMs
+- plannedPaidDurationMs
+- dailyTargetPayMicroKrw
+- clockInAtEpochMs
+- clockOutAtEpochMs
+- integrityStatus
+- createdAt
+- updatedAt
+
+natural key:
+
+- localDate
+
+단일 프로필 V1에서는 같은 localDate에 WorkDay 하나만 존재한다.
+
+## 7. DailyOverride
+
+최소:
+
+- id
+- localDate
+- startLocalTime
+- endLocalTime
+- unpaidBreaks
+- enabled
+- note
+- updatedAt
+
+DailyOverride는 해당 날짜 WorkDay materialization 전에 적용하거나 Timeline Correction 흐름에서 명시적으로 다시 계산한다.
+
+이미 발생한 Overtime 및 Clock Event를 조용히 삭제하지 않는다.
+
+금액 결과를 바꾸는 Override에는 사용자 확인이 필요하다.
+
+## 8. ClockEvent
+
+V1은 WorkDay에 Clock In/Out field를 둘 수 있으며 변경 이력이 필요하면 ClockEvent log를 함께 사용할 수 있다.
+
+TIME_BASED:
+
+- Clock In 필수
+- Clock Out 권장
+
+FIXED_PERIOD:
+
+- Clock In 불필요
+- Clock Out이 Daily Target 확정 Action
+
+동일 Day의 Clock Out은 하나만 유효하다.
+
+## 9. LoafingSession
+
+최소:
+
+- id
+- workDayId
+- startAtEpochMs
+- endAtEpochMs nullable
+- createdAt
+- updatedAt
+
+WORKING Session은 저장하지 않는다.
+
+open LoafingSession은 WorkDay당 최대 하나다.
+
+Break와 겹칠 수 있으나 통계 계산에서 Break 교집합은 제외한다.
+
+## 10. OvertimeSession
+
+최소:
+
+- id
+- workDayId
+- startAtEpochMs
+- endAtEpochMs nullable
+- multiplierBasisPointsSnapshot
+- baseRateSnapshot
+- note
+- createdAt
+- updatedAt
+
+V1에는 별도 OvertimePolicy entity와 Policy Revision system이 없다.
+
+Session 자체에 계산 Snapshot을 보존한다.
+
+open OvertimeSession은 WorkDay당 최대 하나다.
+
+## 11. Free Work
+
+무료봉사 Session Store는 만들지 않는다.
+
+Free Work는 다음 원본에서 계산한다.
+
+- WorkDay scheduledEnd
+- Clock Out
 - Overtime Session
-- Activity Session
-- Clock Out Event
-- Daily Summary Cache
-- 설정 변경 이력
-- Import 및 Migration metadata
-
----
-
-## 3. 기본 원칙
-
-- 급여 설정은 사용자가 명시적으로 저장해야 변경된다.
-- 과거 급여 결과는 과거에 적용된 Snapshot으로 재현 가능해야 한다.
-- 현재 설정 변경이 과거 Session 금액을 바꾸면 안 된다.
-- 모든 기록에는 stable ID를 사용한다.
-- 절대 이벤트에는 timestamp를 사용한다.
-- timeZone 정보를 보존할 수 있어야 한다.
-- Activity 기록은 급여 기록과 분리한다.
-
----
-
-## 4. SalaryProfile
-
-```ts
-SalaryProfile {
-  id
-  name
-  payBasis
-  accrualMode
-  amountKrw
-  currency
-  effectiveFrom
-  createdAt
-  updatedAt
-}
-```
-
-- payBasis: ANNUAL | MONTHLY | WEEKLY | DAILY | HOURLY
-- accrualMode: FIXED_PERIOD | TIME_BASED
-- amountKrw: 정수 KRW
-
-기본 매핑:
-
-- ANNUAL, MONTHLY, WEEKLY -> FIXED_PERIOD
-- HOURLY -> TIME_BASED
-
----
-
-## 5. WeeklySchedule
-
-```ts
-WeeklySchedule {
-  timeZone
-  weekStartsOn
-  days
-}
-
-DaySchedule {
-  enabled
-  startLocalTime
-  endLocalTime
-  breaks
-}
-
-BreakWindow {
-  startLocalTime
-  endLocalTime
-  paid
-}
-```
-
----
-
-## 6. DailyOverride
-
-```ts
-DailyOverride {
-  id
-  localDate
-  enabled
-  startLocalTime
-  endLocalTime
-  breaks
-  note
-  createdAt
-  updatedAt
-}
-```
-
-Override가 기본 WeeklySchedule보다 우선한다.
-
----
-
-## 7. ActivitySession
-
-사용자가 직접 기록한 업무 및 루팡 Timer의 원본 데이터다.
-
-```ts
-ActivitySession {
-  id
-  localDate
-  type
-  startAtEpochMs
-  endAtEpochMs
-  timeZone
-  createdAt
-  updatedAt
-}
-```
-
-type:
-
-- WORKING
-- LOAFING
-
-진행 중 Session은 endAtEpochMs가 null일 수 있다.
-
-전환 시 이전 Session을 종료하고 새 Session을 생성한다.
-
-급여 엔진은 ActivitySession을 근거로 정규 급여를 삭감하지 않는다.
-
----
-
-## 8. OvertimePolicy
-
-```ts
-OvertimePolicy {
-  id
-  name
-  type
-  multiplierBasisPoints
-  customHourlyKrw
-  fixedAllowanceKrw
-  enabled
-}
-```
-
-예:
-
-```
-1.5x = 15000
-2.0x = 20000
-```
-
----
-
-## 9. OvertimeSession
-
-```ts
-OvertimeSession {
-  id
-  localDate
-  startAtEpochMs
-  endAtEpochMs
-  timeZone
-  policySnapshot
-  baseRateSnapshot
-  earnedMicroKrw
-  note
-  createdAt
-  updatedAt
-}
-```
-
-Session 시작 시 정책 Snapshot을 고정한다.
-
----
-
-## 10. DailyWorkState
-
-```ts
-DailyWorkState {
-  localDate
-  clockedOutAtEpochMs
-  activeOvertimeSessionId
-  activeActivitySessionId
-  finalizedRegularPayMicroKrw
-  unpaidAfterHoursSuppressed
-  updatedAt
-}
-```
-
-FIXED_PERIOD 사용자가 퇴근 처리하면 `finalizedRegularPayMicroKrw`에 해당 날짜의 배정 정규 일당을 확정할 수 있다.
-
-`clockedOutAtEpochMs` 이후에는 무료봉사 및 Activity Timer가 증가하지 않는다.
-
----
-
-## 11. Salary Change History
-
-급여 변경 시 기존 Profile을 덮어쓰기만 하지 않는다.
-
-Effective Dated Salary Profile을 사용한다.
-
-예:
-
-```
-2026-01-01 ~ 2026-06-30
-Monthly 4,000,000
-
-2026-07-01 ~
-Monthly 4,300,000
-```
-
----
+- day clamp
 
 ## 12. Daily Summary Cache
 
-성능용 캐시는 다음 파생값을 포함할 수 있다.
+예:
 
-```ts
-DailySummary {
-  localDate
-  finalizedRegularPayMicroKrw
-  overtimePayMicroKrw
-  workingDurationMs
-  loafingDurationMs
-  unpaidAfterHoursDurationMs
-  clockedOutAtEpochMs
-  sourceRevision
-}
-```
+- workDayId
+- sourceVersion
+- finalizedRegularPayMicroKrw
+- overtimePayMicroKrw
+- workingDurationMs
+- loafingDurationMs
+- freeWorkDurationMs
+- clockOutAtEpochMs
 
-이 캐시는 SSOT가 아니다.
+Cache는 SSOT가 아니다.
 
-원본 Session과 설정에서 재생성 가능해야 한다.
+원본 WorkDay와 Session에서 재생성할 수 있어야 한다.
 
----
+## 13. Timeline Correction
 
-## 13. Schema Version
+Timeline 수정 대상:
 
-각 저장 루트에는 schemaVersion을 둔다.
+- Clock In
+- Clock Out
+- Loafing start/end
+- Overtime start/end
+
+UI 기본 step:
+
+- 5 minutes
+
+수정은 같은 WorkDay의 invariant를 검증한 하나의 readwrite transaction으로 저장한다.
+
+수정 후 관련 Daily Summary Cache를 invalidate한다.
+
+## 14. Unclosed Day
+
+이전 WorkDay가 clockOutAtEpochMs 없이 날짜를 넘겼으면:
+
+- WorkDay integrityStatus = NEEDS_TIME_REVIEW
+- 계산은 local midnight에서 clamp
+- 다음 Day와 자동 병합하지 않음
+- Timeline Correction으로 해결
+
+자동으로 임의 Clock Out timestamp를 영구 저장하지 않는다.
+
+## 15. Time Zone Snapshot
+
+WorkDay가 materialize될 때 timeZoneSnapshot을 저장한다.
+
+과거 Event epoch timestamp는 그대로 유지한다.
+
+현재 Device Time Zone이 바뀌었다고 과거 WorkDay localDate나 Schedule 경계를 다시 계산하지 않는다.
+
+## 16. Natural Key and Unique Index
+
+필수 uniqueness 예:
+
+- WorkDay.localDate unique
+- open Loafing per WorkDay invariant
+- open Overtime per WorkDay invariant
+- Clock Out one effective value per WorkDay
+
+deterministic key 예:
+
+- WORKDAY:{localDate}
+- LOAFING:{workDayId}:{startAtEpochMs}
+- OVERTIME:{workDayId}:{startAtEpochMs}
+
+AUTO_OT key는 V1에 필요 없다.
+
+## 17. Multi-tab
+
+V1 전략:
+
+1. Command 시작
+2. IndexedDB readwrite transaction
+3. 현재 WorkDay 상태 재조회
+4. invariant 검증
+5. write
+6. commit 후 BroadcastChannel로 invalidate 알림
+
+BroadcastChannel 메시지는 SSOT가 아니다.
+
+다른 탭은 메시지를 받으면 Repository에서 다시 읽는다.
+
+Web Locks는 V1 필수가 아니다.
+
+## 18. Schema Version
+
+각 저장 root는 schemaVersion을 가진다.
 
 Migration 원칙:
 
-- 읽기 전에 버전 확인
 - 순차 Migration
 - 실패 시 원본 보존
-- 사용자 동의 없이 초기화 금지
-- 이전 버전 Fixture 테스트
+- 자동 전체 초기화 금지
+- 부분 손상 레코드는 quarantine 가능
+- 이전 버전 Fixture Test
 
----
+## 19. Corruption
 
-## 14. Import and Export
+거부 또는 quarantine 대상:
 
-Export 대상:
+- invalid money
+- invalid localDate
+- end < start
+- WorkDay를 벗어나는 invalid session
+- multiplier <= 0
+- overlapping incompatible overtime
+- duplicated effective Clock Out
+- unknown schemaVersion
+
+손상된 하나의 Session 때문에 전체 DB를 초기화하지 않는다.
+
+## 20. JSON Export and Import
+
+V1 Export 대상:
 
 - Settings
-- Salary History
-- Schedule
+- Salary Revisions
+- Schedule Revisions
+- Work Days
 - Daily Overrides
+- Loafing Sessions
 - Overtime Sessions
-- Activity Sessions
-- Daily State
+- Consumer Items
 
----
+Export에는 schemaVersion을 포함한다.
 
-## 15. Reset
+Import는 validate -> preview -> apply 순서를 사용하며 기존 데이터를 즉시 덮어쓰지 않는다.
 
-범위를 분리한다.
+## 21. Reset
 
-- 화면 설정만 초기화
-- 급여 및 근무 설정 초기화
-- 활동 기록만 삭제
-- 근무 이력만 삭제
-- 전체 데이터 초기화
+분리:
 
-전체 초기화는 별도 확인 절차를 둔다.
+- UI Preferences reset
+- Consumer Items reset
+- Activity History reset
+- Work History reset
+- Full Local Data reset
 
----
+전체 초기화는 별도 확인이 필요하다.
 
-## 16. 데이터 무결성
+## 22. Privacy
 
-다음 데이터는 거부한다.
+- 원격 업로드 없음
+- 원격 Activity telemetry 없음
+- 사용자 행동 자동 감시 없음
+- Local data 접근은 동일 브라우저 프로필 보안에 의존
 
-- 음수 급여
-- NaN 또는 Infinity
-- invalid Schedule
-- 겹치는 Break
-- end < start Session
-- 동일 시각에 겹치는 ActivitySession
-- 존재하지 않는 Policy Snapshot
-- invalid Local Date
-- invalid multiplier
-
-자정을 넘기는 Schedule은 별도 Contract 전까지 암묵적으로 허용하지 않는다.
-
----
-
-## 17. Privacy
-
-V1 기본:
-
-- 외부 서버 업로드 없음
-- 급여 데이터 원격 전송 없음
-- 활동 기록 원격 전송 없음
-- 키보드, 마우스, 앱 사용 감시 없음
-- 사용자가 직접 Activity 상태를 전환
-- 브라우저 로컬 저장
-
-향후 Cloud Sync가 추가되면 Local Only와 명확히 구분한다.
-
-## 18. App Time and Transition Settings
-
-localStorage의 appSettings에는 최소 다음 설정을 보존한다.
-
-```ts
-AppSettings {
-  deviceTimeZoneMode: "DEVICE_LOCAL"
-  postWorkTransitionMode:
-    | "MANUAL_OVERTIME"
-    | "AUTO_OVERTIME"
-  defaultOvertimePolicyId: string | null
-}
-```
-
-기본값:
-
-```
-deviceTimeZoneMode = DEVICE_LOCAL
-postWorkTransitionMode = MANUAL_OVERTIME
-```
-
-AUTO_OVERTIME을 선택할 때는 유효한 defaultOvertimePolicyId가 필요하다.
-
-정책이 삭제되거나 손상된 경우 자동으로 유급시간을 생성하지 않고 무료봉사 상태로 Fail Safe한다.
-
-## 19. No Tick Persistence
-
-다음 값은 매 UI Tick마다 저장하지 않는다.
-
-- 현재 표시 금액
-- 현재 표시 Timer 숫자
-- ms 단위 경과값
-
-대신 다음 원본을 저장한다.
-
-- Schedule
-- Clock Out Event
-- Activity Session start/end
-- Overtime Session start/end
-- Daily Override
-- Policy Snapshot
-
-현재 값은 디바이스 시각에서 재계산한다.
-
-이 방식으로 페이지가 닫혀 있던 시간도 정확히 복원한다.
-
-## 20. Reconstructed Automatic Overtime
-
-AUTO_OVERTIME에서 앱이 정규 종료 시점에 실행 중이지 않았던 경우 다음 실행 시 Scheduled End를 시작 시각으로 하는 Overtime Session을 재구성할 수 있다.
-
-재구성 Session은 중복 생성되지 않아야 한다.
-
-Clock Out 기록이 Scheduled End 이전 또는 이후에 존재하면 Clock Out 이후 구간을 자동 Overtime으로 생성하지 않는다.
+CSP와 외부 Script 최소화를 권장한다.
