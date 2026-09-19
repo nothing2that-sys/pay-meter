@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
   DEFAULT_SETTINGS,
@@ -7,11 +7,11 @@ import {
   formatMicroKrw,
   localDateFromEpoch,
   monthAllocation,
+  parseTimeToMinutes,
   type PaySnapshot,
   type PrototypeDayControl,
   type PrototypeSettings,
 } from './domain/prototype';
-import { crossedMilestone } from './features/milestone';
 import { DeviceClock } from './infrastructure/clock';
 import { openDocumentPiP, supportsDocumentPiP } from './infrastructure/pip';
 import {
@@ -34,6 +34,21 @@ type Screen = 'timer' | 'dashboard' | 'settings';
 
 function money(value: bigint, privacy: boolean): string {
   return privacy ? '₩ ••••••' : `₩${formatMicroKrw(value)}`;
+}
+
+function minutesToLocalTime(totalMinutes: number): string | null {
+  if (!Number.isFinite(totalMinutes) || totalMinutes < 0 || totalMinutes >= 24 * 60) return null;
+  const hour = Math.floor(totalMinutes / 60);
+  const minute = totalMinutes % 60;
+  return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+}
+
+function rangeDurationMinutes(start: string, end: string): number {
+  try {
+    return Math.max(0, parseTimeToMinutes(end) - parseTimeToMinutes(start));
+  } catch {
+    return 0;
+  }
 }
 
 type DashboardPeriod = 'daily' | 'weekly' | 'monthly';
@@ -216,6 +231,37 @@ function SettingsScreen({
     setDraft({ ...draft, schedule: { ...draft.schedule, workDays } });
   };
 
+  const applyPaidHours = (hours: number) => {
+    const startMinutes = parseTimeToMinutes(draft.schedule.start);
+    const breakMinutes = draft.schedule.unpaidBreak
+      ? rangeDurationMinutes(draft.schedule.unpaidBreak.start, draft.schedule.unpaidBreak.end)
+      : 0;
+    const end = minutesToLocalTime(startMinutes + hours * 60 + breakMinutes);
+    if (!end) {
+      setError('퇴근 시간이 자정을 넘을 수 없습니다.');
+      return;
+    }
+    setError('');
+    setDraft({ ...draft, schedule: { ...draft.schedule, end } });
+  };
+
+  const applyBreakDuration = (minutes: number) => {
+    const start = draft.schedule.unpaidBreak?.start ?? '12:00';
+    const end = minutesToLocalTime(parseTimeToMinutes(start) + minutes);
+    if (!end) {
+      setError('휴게 종료 시간이 자정을 넘을 수 없습니다.');
+      return;
+    }
+    setError('');
+    setDraft({
+      ...draft,
+      schedule: {
+        ...draft.schedule,
+        unpaidBreak: { start, end },
+      },
+    });
+  };
+
   const submit = () => {
     try {
       if (!Number.isSafeInteger(draft.salaryKrw) || draft.salaryKrw <= 0)
@@ -224,7 +270,7 @@ function SettingsScreen({
         throw new Error('근무 요일을 하나 이상 선택해 주세요.');
       const clean = {
         ...draft,
-        display: { ...draft.display, showDecimals: false },
+        display: { ...draft.display, showDecimals: false, milestoneEnabled: false },
         consumerItems: [],
       };
       buildPaySnapshot(clean, clock.nowEpochMs(), clock.localTimeZone(), []);
@@ -292,97 +338,101 @@ function SettingsScreen({
             </button>
           ))}
         </div>
-        <div className="time-grid">
-          <label>
-            출근
-            <input
-              aria-label="출근"
-              type="time"
-              value={draft.schedule.start}
-              onChange={(e) =>
-                setDraft({ ...draft, schedule: { ...draft.schedule, start: e.target.value } })
-              }
-            />
-          </label>
-          <label>
-            퇴근
-            <input
-              aria-label="퇴근"
-              type="time"
-              value={draft.schedule.end}
-              onChange={(e) =>
-                setDraft({ ...draft, schedule: { ...draft.schedule, end: e.target.value } })
-              }
-            />
-          </label>
-          <label>
-            휴게 시작
-            <input
-              aria-label="휴게 시작"
-              type="time"
-              value={draft.schedule.unpaidBreak?.start ?? ''}
-              onChange={(e) =>
-                setDraft({
-                  ...draft,
-                  schedule: {
-                    ...draft.schedule,
-                    unpaidBreak: {
-                      start: e.target.value,
-                      end: draft.schedule.unpaidBreak?.end ?? '13:00',
-                    },
-                  },
-                })
-              }
-            />
-          </label>
-          <label>
-            휴게 종료
-            <input
-              aria-label="휴게 종료"
-              type="time"
-              value={draft.schedule.unpaidBreak?.end ?? ''}
-              onChange={(e) =>
-                setDraft({
-                  ...draft,
-                  schedule: {
-                    ...draft.schedule,
-                    unpaidBreak: {
-                      start: draft.schedule.unpaidBreak?.start ?? '12:00',
-                      end: e.target.value,
-                    },
-                  },
-                })
-              }
-            />
-          </label>
+        <div className="schedule-block">
+          <div className="schedule-input-row">
+            <label>
+              출근
+              <input
+                aria-label="출근"
+                type="time"
+                value={draft.schedule.start}
+                onChange={(e) =>
+                  setDraft({ ...draft, schedule: { ...draft.schedule, start: e.target.value } })
+                }
+              />
+            </label>
+            <label>
+              퇴근
+              <input
+                aria-label="퇴근"
+                type="time"
+                value={draft.schedule.end}
+                onChange={(e) =>
+                  setDraft({ ...draft, schedule: { ...draft.schedule, end: e.target.value } })
+                }
+              />
+            </label>
+          </div>
+          <div className="quick-setting-row" aria-label="근무시간 빠른 설정">
+            <span>유급 근무시간</span>
+            <button type="button" onClick={() => applyPaidHours(7)}>
+              7시간
+            </button>
+            <button type="button" onClick={() => applyPaidHours(8)}>
+              8시간
+            </button>
+            <button type="button" onClick={() => applyPaidHours(9)}>
+              9시간
+            </button>
+          </div>
         </div>
-      </section>
 
-      <section className="switches">
-        <h2>화면</h2>
-        <label>
-          <input
-            type="checkbox"
-            checked={draft.display.privacy}
-            onChange={(e) =>
-              setDraft({ ...draft, display: { ...draft.display, privacy: e.target.checked } })
-            }
-          />{' '}
-          Privacy Mode
-        </label>
-        <label>
-          <input
-            type="checkbox"
-            checked={draft.display.milestoneEnabled}
-            onChange={(e) =>
-              setDraft({
-                ...draft,
-                display: { ...draft.display, milestoneEnabled: e.target.checked },
-              })
-            }
-          />{' '}
-          1만원 Milestone
-        </label>
+        <div className="schedule-block">
+          <div className="schedule-input-row">
+            <label>
+              휴게 시작
+              <input
+                aria-label="휴게 시작"
+                type="time"
+                value={draft.schedule.unpaidBreak?.start ?? ''}
+                onChange={(e) =>
+                  setDraft({
+                    ...draft,
+                    schedule: {
+                      ...draft.schedule,
+                      unpaidBreak: {
+                        start: e.target.value,
+                        end: draft.schedule.unpaidBreak?.end ?? '13:00',
+                      },
+                    },
+                  })
+                }
+              />
+            </label>
+            <label>
+              휴게 종료
+              <input
+                aria-label="휴게 종료"
+                type="time"
+                value={draft.schedule.unpaidBreak?.end ?? ''}
+                onChange={(e) =>
+                  setDraft({
+                    ...draft,
+                    schedule: {
+                      ...draft.schedule,
+                      unpaidBreak: {
+                        start: draft.schedule.unpaidBreak?.start ?? '12:00',
+                        end: e.target.value,
+                      },
+                    },
+                  })
+                }
+              />
+            </label>
+          </div>
+          <div className="quick-setting-row" aria-label="휴게시간 빠른 설정">
+            <span>휴게시간</span>
+            <button type="button" onClick={() => applyBreakDuration(30)}>
+              30분
+            </button>
+            <button type="button" onClick={() => applyBreakDuration(60)}>
+              1시간
+            </button>
+            <button type="button" onClick={() => applyBreakDuration(90)}>
+              1시간 30분
+            </button>
+          </div>
+        </div>
       </section>
 
       <section>
@@ -423,10 +473,6 @@ export default function App() {
     loadPrototypeDayControl(localDateFromEpoch(clock.nowEpochMs())),
   );
   const [pipWindow, setPipWindow] = useState<Window | null>(null);
-  const [milestoneKrw, setMilestoneKrw] = useState<bigint | null>(null);
-  const previousPay = useRef<bigint | null>(null);
-  const milestoneTimer = useRef<number | null>(null);
-  const skipNextMilestone = useRef(false);
 
   const snapshot = useMemo(
     () =>
@@ -437,7 +483,6 @@ export default function App() {
   useEffect(() => {
     const timer = window.setInterval(() => setNowEpochMs(clock.nowEpochMs()), 250);
     const refresh = () => {
-      skipNextMilestone.current = true;
       setNowEpochMs(clock.nowEpochMs());
     };
     window.addEventListener('focus', refresh);
@@ -451,24 +496,6 @@ export default function App() {
     };
   }, []);
 
-  useEffect(() => {
-    const previous = previousPay.current;
-    if (previous === null || skipNextMilestone.current) {
-      previousPay.current = snapshot.todayEarnedMicroKrw;
-      skipNextMilestone.current = false;
-      return;
-    }
-    const crossed = crossedMilestone(previous, snapshot.todayEarnedMicroKrw, {
-      enabled: settings.display.milestoneEnabled,
-      foreground: document.visibilityState === 'visible',
-      pip: false,
-    });
-    previousPay.current = snapshot.todayEarnedMicroKrw;
-    if (!crossed) return;
-    setMilestoneKrw(crossed);
-    if (milestoneTimer.current !== null) window.clearTimeout(milestoneTimer.current);
-    milestoneTimer.current = window.setTimeout(() => setMilestoneKrw(null), 700);
-  }, [settings.display.milestoneEnabled, snapshot.todayEarnedMicroKrw]);
 
   useEffect(() => {
     const currentDate = localDateFromEpoch(nowEpochMs);
@@ -554,7 +581,6 @@ export default function App() {
     <MoneyTimer
       snapshot={snapshot}
       settings={settings}
-      milestoneKrw={milestoneKrw}
       onToggleLoafing={toggleLoafing}
       onTogglePrivacy={togglePrivacy}
       onClockOut={clockOut}
