@@ -56,7 +56,7 @@ test('break freezes progress and rate and uses break-end label', async ({ page }
   await freshApp(page);
   await setupSalary(page);
   await setNow(page, new Date(2026, 8, 21, 12, 30).getTime());
-  await expect(page.getByText('휴게 중')).toBeVisible();
+  await expect(page.locator('.state-line')).toHaveText('휴게 중');
   await expect(page.getByText(/휴게 종료까지/)).toBeVisible();
   await expect(page.getByTestId('progress-value')).toHaveText('37.5%');
   await expect(page.getByTestId('rate')).toContainText('0.000');
