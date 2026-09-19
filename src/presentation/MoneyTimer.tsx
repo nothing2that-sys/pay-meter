@@ -98,12 +98,14 @@ export function MoneyTimer({
     snapshot.payState === 'CLOCKED_OUT';
   const showActivityAction =
     snapshot.payState === 'REGULAR_WORK' || snapshot.payState === 'UNPAID_BREAK';
-  const freeWorkRatio =
+  const freeWorkFillBasisPoints =
     snapshot.dailyTargetMicroKrw > 0n
-      ? Number(snapshot.freeWorkReferenceValueMicroKrw) / Number(snapshot.dailyTargetMicroKrw)
+      ? Number(
+          (snapshot.freeWorkReferenceValueMicroKrw * 10_000n) / snapshot.dailyTargetMicroKrw,
+        )
       : 0;
   const frameStyle = {
-    '--freework-fill': `${Math.min(100, Math.max(0, freeWorkRatio * 100))}%`,
+    '--freework-fill': `${Math.min(100, Math.max(0, freeWorkFillBasisPoints / 100))}%`,
   } as CSSProperties;
 
   return (
