@@ -140,7 +140,7 @@ export function MoneyTimer({
           <>
             <section className="timer-main-zone">
               <div className="meter-orb">
-                <div className="state-pill">
+                <div className="state-pill state-line">
                   <span className="state-dot" />
                   <span>{vm.stateLabel}</span>
                 </div>
@@ -183,6 +183,17 @@ export function MoneyTimer({
                 <span />
                 <span />
               </div>
+
+              {vm.clockedOut && snapshot.freeWorkDurationMs > 0 ? (
+                <div className="secondary-amount-card clocked-freework-card">
+                  <div>
+                    <span>무료봉사 기록</span>
+                    <strong data-testid="clocked-freework-money">
+                      {money(snapshot.freeWorkReferenceValueMicroKrw, settings.display.privacy)}
+                    </strong>
+                  </div>
+                </div>
+              ) : null}
 
               {showActivityAction ? (
                 <button
