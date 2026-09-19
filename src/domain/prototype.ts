@@ -104,7 +104,7 @@ export const DEFAULT_SETTINGS: PrototypeSettings = {
     end: '18:00',
     unpaidBreak: { start: '12:00', end: '13:00' },
   },
-  display: { showDecimals: false, milestoneEnabled: true, privacy: false },
+  display: { showDecimals: false, milestoneEnabled: false, privacy: false },
   consumerItems: [],
 };
 
