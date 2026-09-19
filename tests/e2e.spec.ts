@@ -82,8 +82,8 @@ test('P1R final timer hides percentage and remaining time while keeping main and
     'data-progress-ratio',
     '0.125',
   );
-  await expect(page.locator('.perimeter-progress')).toHaveCount(1);
-  await expect(page.locator('.perimeter-working, .perimeter-loafing')).toHaveCount(0);
+  await expect(page.locator('.perimeter-segment-working .perimeter-segment-core')).toHaveCount(1);
+  await expect(page.locator('.perimeter-segment-loafing')).toHaveCount(0);
   await expect(page.locator('.meter-orb')).toHaveCount(0);
 
   await expect(page.getByTestId('progress-value')).toHaveCount(0);
@@ -94,35 +94,48 @@ test('P1R final timer hides percentage and remaining time while keeping main and
   await expect(page.getByText('소비재 비교')).toHaveCount(0);
 });
 
-test('LOAFING changes the theme while fixed-period money and loafing accumulation continue', async ({
+test('LOAFING preserves elapsed working color and paints only the later range amber', async ({
   page,
 }) => {
-  await freshApp(page);
+  await freshApp(page, new Date(2026, 8, 21, 9, 48).getTime());
   await setupSalary(page);
 
-  const before = await page.getByTestId('current-money').innerText();
-  const perimeterColorBefore = await page
-    .getByTestId('perimeter-timeline')
-    .evaluate((element) => getComputedStyle(element).color);
+  await expect(page.getByTestId('perimeter-timeline')).toHaveAttribute('data-progress-ratio', '0.1');
+  const workingPathAtSwitch = await page
+    .locator('.perimeter-segment-working .perimeter-segment-core')
+    .getAttribute('d');
+  expect(workingPathAtSwitch).toBeTruthy();
+
   const loafingButtonHeight = await page
     .getByTestId('loafing-toggle')
     .evaluate((element) => element.getBoundingClientRect().height);
   expect(loafingButtonHeight).toBeGreaterThanOrEqual(68);
+
   await page.getByTestId('loafing-toggle').click();
   await expect(page.getByText('루팡중')).toBeVisible();
-  await expect(page.locator('.money-timer-frame')).toHaveClass(/state-loafing/);
-  const perimeterColorAfter = await page
-    .getByTestId('perimeter-timeline')
-    .evaluate((element) => getComputedStyle(element).color);
-  expect(perimeterColorAfter).toBe(perimeterColorBefore);
+  await setNow(page, new Date(2026, 8, 21, 10, 12).getTime());
 
-  await setNow(page, new Date(2026, 8, 21, 10, 30).getTime());
-  expect(await page.getByTestId('current-money').innerText()).not.toBe(before);
+  await expect(page.locator('.perimeter-segment-working')).toHaveCount(1);
+  await expect(page.locator('.perimeter-segment-loafing')).toHaveCount(1);
+  await expect(page.locator('.perimeter-segment-working .perimeter-segment-core')).toHaveCSS(
+    'stroke',
+    'rgb(53, 183, 170)',
+  );
+  await expect(page.locator('.perimeter-segment-loafing .perimeter-segment-core')).toHaveCSS(
+    'stroke',
+    'rgb(216, 147, 53)',
+  );
+  expect(
+    await page.locator('.perimeter-segment-working .perimeter-segment-core').getAttribute('d'),
+  ).toBe(workingPathAtSwitch);
+
   await expect(page.getByTestId('loafing-money')).not.toContainText('₩0');
 
   await page.getByTestId('loafing-toggle').click();
   await expect(page.getByText('업무중')).toBeVisible();
-  await expect(page.locator('.money-timer-frame')).toHaveClass(/state-working/);
+  await setNow(page, new Date(2026, 8, 21, 10, 24).getTime());
+  await expect(page.locator('.perimeter-segment-working')).toHaveCount(2);
+  await expect(page.locator('.perimeter-segment-loafing')).toHaveCount(1);
 });
 
 test('break freezes the real perimeter progress without exposing percentage or remaining time', async ({
@@ -191,10 +204,10 @@ test('scheduled end shows the final Free Work hierarchy and a completed full-loo
 
   await expect(page.getByTestId('perimeter-timeline')).toHaveAttribute('data-progress-ratio', '1');
   await expect(page.getByTestId('perimeter-timeline')).toHaveAttribute('data-complete', 'true');
-  await expect(page.locator('.perimeter-progress')).toHaveCount(1);
-  const fullLoopPath = await page.locator('.perimeter-progress').getAttribute('d');
+  await expect(page.locator('.perimeter-segment-core')).toHaveCount(1);
+  const fullLoopPath = await page.locator('.perimeter-segment-core').getAttribute('d');
   expect(fullLoopPath).toContain('M 50 0.7');
-  expect(await page.locator('.perimeter-progress').getAttribute('stroke-dasharray')).toBeNull();
+  expect(await page.locator('.perimeter-segment-core').getAttribute('stroke-dasharray')).toBeNull();
 });
 
 test('clock out freezes Free Work money across reload', async ({ page }) => {
