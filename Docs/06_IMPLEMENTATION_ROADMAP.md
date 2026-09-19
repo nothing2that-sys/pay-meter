@@ -322,3 +322,44 @@ P5 Activity Timer 구현 시 Money Timer에도 Activity Toggle을 추가한다.
 
 Money Timer를 단순화하기 위해 Full Dashboard를 삭제하거나 기능 축소해서는 안 된다.
 
+## Device Time and Post-Work Implementation
+
+### P1 추가
+
+- Production DeviceClock
+- FakeClock
+- Local Time Zone Adapter
+- Clock jump validation
+
+### P2 추가
+
+- PostWorkTransitionMode
+- MANUAL_OVERTIME
+- AUTO_OVERTIME
+- Scheduled End boundary transition
+- Missing Overtime Policy Fail Safe
+- background reconstruction logic
+
+### P3 추가
+
+First Run 및 Settings에서:
+
+- 기본 출근 시각
+- 기본 퇴근 시각
+- 정규 종료 후 동작 선택
+- AUTO_OVERTIME 기본 Policy 선택
+
+### P4 추가
+
+다음 이벤트에서 Snapshot 강제 갱신:
+
+- initial load
+- visibility visible
+- focus
+- pageshow
+
+백그라운드 시간에 대한 catch-up animation은 만들지 않는다.
+
+### P7 추가
+
+AUTO_OVERTIME Session 재구성 및 중복 방지 검증을 포함한다.
