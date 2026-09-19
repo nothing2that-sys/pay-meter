@@ -287,3 +287,38 @@ Milestone Effect는 P4 또는 별도 P4.1 범위로 구현한다.
 - Effect Off 설정
 - Reduced Motion 대응
 
+## Surface Implementation Contract
+
+P4에서 두 화면을 모두 구현 대상으로 유지한다.
+
+### P4A Money Timer
+
+- Default route 또는 default surface
+- 실시간 누적 금액
+- 현재 Rate
+- Timer
+- Compact Mode
+- Milestone Effect
+- Full Dashboard 진입
+
+### P4B Full Dashboard
+
+- 기존 상세 Dashboard 유지
+- Today summary
+- Work progress
+- Week, Month, Year
+- Rate details
+- 이후 Phase에서 Activity, Free Work, Overtime 상세를 점진적으로 연결
+
+P5 Activity Timer 구현 시 Money Timer에도 Activity Toggle을 추가한다.
+
+필수:
+
+- WORKING 상태에서 `루팡 시작`
+- LOAFING 상태에서 `업무 복귀`
+- 상태 전환 중에도 FIXED_PERIOD 급여 증가 지속
+- Full Dashboard와 Money Timer가 동일 Activity Session을 공유
+- 화면 이동 때문에 Session이 끊기거나 중복 생성되지 않음
+
+Money Timer를 단순화하기 위해 Full Dashboard를 삭제하거나 기능 축소해서는 안 된다.
+
