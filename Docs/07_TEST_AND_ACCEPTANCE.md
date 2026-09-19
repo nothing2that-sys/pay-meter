@@ -318,3 +318,89 @@ TIME_BASED:
 - Mobile Smoke PASS
 - Desktop Smoke PASS
 - 문서와 구현 일치
+
+## 21. Device Clock Resume
+
+Fixture:
+
+```
+Schedule 09:00~18:00
+Mode MANUAL_OVERTIME
+```
+
+절차:
+
+1. 17:50 Snapshot
+2. UI Timer 실행 중단
+3. FakeClock 19:00으로 이동
+4. visibility/focus 복귀
+
+기대:
+
+```
+Regular stops at 18:00
+Pay State = AFTER_SCHEDULE_UNPAID
+Free Work = 1h
+```
+
+중간 Tick 개수는 결과에 영향 없음.
+
+## 22. AUTO_OVERTIME Resume
+
+설정:
+
+```
+Schedule 09:00~18:00
+Mode AUTO_OVERTIME
+Policy 1.5x
+Base 25,000/hour
+```
+
+17:50에서 19:00으로 바로 이동.
+
+기대:
+
+```
+Overtime Start = 18:00
+Overtime Duration = 1h
+Overtime Earned = 37,500
+```
+
+앱이 18:00에 실행 중이었는지 여부는 결과에 영향 없음.
+
+## 23. Missing Auto Policy
+
+AUTO_OVERTIME인데 default policy가 없거나 invalid.
+
+18:00 이후 기대:
+
+```
+Pay State = AFTER_SCHEDULE_UNPAID
+Current Rate = 0
+```
+
+유급 추가근무를 임의 생성하면 실패.
+
+## 24. Device Clock Change
+
+현재 진행 Session 중 디바이스 시간을 과거로 변경하는 Fixture를 둔다.
+
+기대:
+
+- 음수 Duration 없음
+- NaN 없음
+- 확정 과거 급여 자동 감소 없음
+- 현재 Snapshot이 안전한 상태 유지
+
+## 25. Reconstructed Session Deduplication
+
+AUTO_OVERTIME 상태에서:
+
+1. 19:00 재진입
+2. Session 재구성
+3. 새로고침
+4. 다시 19:00 Snapshot
+
+기대:
+
+동일 18:00 시작 Overtime Session이 중복 생성되지 않는다.
