@@ -20,13 +20,10 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
-  const networkRequest =
-    event.request.mode === 'navigate'
-      ? new Request(event.request, { cache: 'no-store' })
-      : event.request;
-
   event.respondWith(
-    fetch(networkRequest)
+    fetch(event.request, {
+      cache: event.request.mode === 'navigate' ? 'no-store' : 'default',
+    })
       .then((response) => {
         if (response.ok) {
           const copy = response.clone();
