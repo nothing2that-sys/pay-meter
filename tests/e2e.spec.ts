@@ -190,7 +190,7 @@ test('clock out freezes Free Work money across reload', async ({ page }) => {
   await setupSalary(page);
   await setNow(page, new Date(2026, 8, 21, 18, 30).getTime());
 
-  const walletMoney = await page.getByTestId('freework-money').innerText();
+  const walletMoney = (await page.getByTestId('freework-money').innerText()).replace(/\s+/g, '');
   await page.getByTestId('clock-out').click();
   await expect(page.getByText('퇴근완료')).toBeVisible();
   await expect(page.getByTestId('clocked-freework-money')).toHaveText(walletMoney);
@@ -237,7 +237,7 @@ test('settings provide work and break presets without duplicate privacy or miles
   await expect(page.getByLabel('퇴근')).toHaveValue('18:00');
 
   await page.getByLabel('휴게 시작').fill('12:30');
-  await page.getByRole('button', { name: '30분' }).click();
+  await page.getByRole('button', { name: '30분', exact: true }).click();
   await expect(page.getByLabel('휴게 종료')).toHaveValue('13:00');
 
   await expect(page.getByRole('button', { name: '7시간' })).toBeVisible();
