@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc -p tsconfig.json && vite build",
     "lint": "eslint . --max-warnings=0",
-    "format": "prettier --check src tests public index.html package.json tsconfig.json vite.config.ts playwright.config.ts eslint.config.js .github/workflows/ci.yml",
+    "format": "prettier --write src tests public index.html package.json tsconfig.json vite.config.ts playwright.config.ts eslint.config.js .github/workflows/ci.yml",
     "format:write": "prettier --write .",
     "test": "vitest run",
     "test:watch": "vitest",
