@@ -4,8 +4,6 @@ interface Props {
   snapshot: PaySnapshot;
   privacy: boolean;
   onClockOut: () => void;
-  onDetails?: () => void;
-  showDetails?: boolean;
 }
 
 function money(value: bigint, privacy: boolean): string {
@@ -20,15 +18,6 @@ function ExitIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
       <path d="M10 4H5v16h5M14 8l4 4-4 4M18 12H9" />
-    </svg>
-  );
-}
-
-function ListIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M9 6h11M9 12h11M9 18h11" />
-      <path d="M4 6h.01M4 12h.01M4 18h.01" />
     </svg>
   );
 }
@@ -49,13 +38,7 @@ function ChevronIcon() {
   );
 }
 
-export function FreeWorkWallet({
-  snapshot,
-  privacy,
-  onClockOut,
-  onDetails,
-  showDetails = true,
-}: Props) {
+export function FreeWorkWallet({ snapshot, privacy, onClockOut }: Props) {
   return (
     <section className="freework-wallet" data-testid="freework-wallet">
       <div className="freework-main-zone">
@@ -96,13 +79,7 @@ export function FreeWorkWallet({
           <ChevronIcon />
         </button>
 
-        {showDetails && onDetails ? (
-          <button className="detail-button" onClick={onDetails}>
-            <ListIcon />
-            <span>상세 내역 보기</span>
-            <ChevronIcon />
-          </button>
-        ) : null}
+
       </div>
     </section>
   );
