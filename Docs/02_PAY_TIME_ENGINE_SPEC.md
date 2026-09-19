@@ -494,3 +494,174 @@ Loafing Reference Value = 12,500원
 - 과거 Overtime Session은 현재 설정 변경으로 변하지 않는다.
 - UI refresh 주기는 계산 결과에 영향을 주지 않는다.
 - 모든 타이머는 timestamp에서 재계산 가능해야 한다.
+
+## 21. Device Clock Contract
+
+Production Clock의 현재 시각은 디바이스 Wall Clock을 사용한다.
+
+개념:
+
+```ts
+interface Clock {
+  nowEpochMs(): number
+  localTimeZone(): string
+}
+```
+
+Snapshot 재계산 Trigger:
+
+- Initial Load
+- Regular UI Refresh
+- visibilitychange -> visible
+- window focus
+- pageshow
+- PWA resume 성격의 재진입
+
+중요:
+
+```
+previousMoney + missedTicks
+```
+
+방식으로 복구하지 않는다.
+
+항상:
+
+```
+Snapshot = calculate(currentDeviceTime, persisted events, schedule, policies)
+```
+
+방식으로 복구한다.
+
+### Device Clock Change
+
+사용자가 디바이스 시간을 수동 변경하면 새로운 Wall Clock을 이후 계산의 기준으로 사용한다.
+
+단:
+
+- 음수 Segment 생성 금지
+- 이미 확정된 과거 Session 금액 자동 역산 금지
+- 현재 진행 Session에서 시간 역행이 감지되면 안전한 Reconciliation 상태를 만들 수 있다
+
+## 22. Post-Work Transition Mode
+
+설정:
+
+```ts
+type PostWorkTransitionMode =
+  | "MANUAL_OVERTIME"
+  | "AUTO_OVERTIME"
+```
+
+### MANUAL_OVERTIME
+
+Scheduled End에 도달하면:
+
+```
+REGULAR_WORK
+  -> AFTER_SCHEDULE_UNPAID
+```
+
+정규 Rate:
+
+```
+0
+```
+
+무료봉사:
+
+```
+unpaidAfterHoursDuration
+= now - scheduledEnd
+  - paidOvertimeSegments
+  - timeAfterClockOut
+```
+
+환산 가치:
+
+```
+unpaidAfterHoursReferenceValue
+= Visualization Base Rate
+* unpaidAfterHoursDuration
+```
+
+사용자가 유급 추가근무를 시작하면 그 시작 시각부터 PAID_OVERTIME으로 전환한다.
+
+### AUTO_OVERTIME
+
+Scheduled End에 도달하면:
+
+```
+REGULAR_WORK
+  -> PAID_OVERTIME
+```
+
+자동 Session 시작 시각:
+
+```
+scheduledEnd
+```
+
+적용 정책:
+
+```
+defaultOvertimePolicy
+```
+
+앱이 Scheduled End 시각에 실행 중이지 않았더라도 재진입 시 해당 경계부터 Session을 재구성한다.
+
+Default Policy가 없거나 invalid하면:
+
+```
+REGULAR_WORK
+  -> AFTER_SCHEDULE_UNPAID
+```
+
+로 Fail Safe한다.
+
+## 23. Schedule Boundary Authority
+
+기본 정규 근무 경계는 사용자가 지정한 Local Schedule을 사용한다.
+
+예:
+
+```
+09:00 ~ 18:00
+```
+
+18:00:00은 디바이스 로컬 시각 기준 정규 근무 종료 경계다.
+
+단순히 페이지를 연 뒤 8시간이 지났는지로 판정하지 않는다.
+
+즉 10:00에 페이지를 처음 열었다고 해서 18:00 경계가 19:00으로 밀리지 않는다.
+
+## 24. Background Example
+
+설정:
+
+```
+Schedule 09:00~18:00
+Mode MANUAL_OVERTIME
+Base Visualization Rate 25,000/hour
+```
+
+17:50에 페이지 background.
+
+19:00 복귀.
+
+기대:
+
+```
+Regular Progress stops at 18:00
+Pay State = AFTER_SCHEDULE_UNPAID
+Free Work Duration = 1h
+Free Work Reference Value = 25,000
+```
+
+AUTO_OVERTIME + 1.5x라면:
+
+```
+Pay State = PAID_OVERTIME
+Overtime Duration = 1h
+Overtime Earned = 37,500
+```
