@@ -575,3 +575,93 @@ Privacy Mode에서는 모든 금액을 동일하게 mask한다.
 구현 완료 후 바로 P2로 이동하지 않는다.
 
 먼저 이 UI로 실제 업무 중 `P1R_RETENTION_TEST`를 수행한다.
+
+
+---
+
+## 16. 2026-09-19 Final Visual Correction
+
+실제 Android/PWA 사용 피드백에 따라 다음 사항을 최종 우선 규칙으로 확정한다.
+
+### 16.1 Center Meter
+
+- 중앙 원형 Meter / Ring UI는 제거한다.
+- 진행률을 표현하는 원형 Progress UI를 추가하지 않는다.
+- 메인 화면의 진행률 시각화는 화면 최외곽 Perimeter 하나만 사용한다.
+- 메인 금액은 중앙 공간을 더 크게 사용한다.
+
+### 16.2 Perimeter Simplification
+
+이전의 WORKING / LOAFING historical segment 다중 stroke 표현은 기본 화면에서 제거한다.
+
+최종 표현:
+
+- 한 바퀴 전체 = 100%
+- 하나의 inactive base line
+- 하나의 continuous elapsed progress line
+- source = `scheduledProgressRatio`
+- 시작 = 상단 중앙
+- 방향 = 시계 방향
+- 현재 WORKING = Teal progress line
+- 현재 LOAFING = Amber progress line
+- FREE WORK = Red 100% progress line
+- unpaid break 중 ratio freeze
+
+외곽 진행선이 여러 조각 또는 등분된 progress로 보이면 실패다.
+
+### 16.3 State Label Position
+
+상태는 PayMeter Logo 바로 아래에 표시한다.
+
+표시 문구:
+
+- WORKING: `업무중`
+- LOAFING: `루팡중`
+- AFTER_SCHEDULE_UNPAID: `봉사중`
+
+상태를 메인 금액 내부나 중앙 별도 Ring 안에 배치하지 않는다.
+
+### 16.4 Removed Copy
+
+기본 화면에서 추가 제거:
+
+- `정상 적립 중`
+- `무료봉사 WALLET`
+
+무료봉사에서는 큰 Red 금액과 무료봉사 시간만 중심 정보로 유지한다.
+
+### 16.5 Full Viewport / PWA
+
+Money Timer는 Android 설치형 PWA 포함 모든 viewport에서:
+
+- document horizontal scroll = 0
+- document vertical scroll = 0
+- frame width <= viewport width
+- frame height <= viewport height
+- refresh 후에도 동일
+- safe-area inset 내부 배치
+
+를 만족한다.
+
+Money Timer 자체는 scroll container를 만들지 않는다.
+설정 / 상세 화면만 별도 내부 scroll을 허용한다.
+
+### 16.6 Detail Accumulation
+
+상세 내역에는 다음 누적 요약과 그래프를 제공한다.
+
+- 일간 누적
+- 주간 누적
+- 월간 누적
+- 선택 Period의 cumulative line graph
+
+P1R에서는 새 History Persistence를 만들지 않는다.
+FIXED_PERIOD Prototype 기준으로:
+
+- 오늘 = 현재 Snapshot
+- 과거 근무일 = 해당 월 Daily Target allocation
+- 미래 날짜 = 누적하지 않음
+
+으로 현재까지의 정규 누적 시각화를 만든다.
+
+이 표현은 P2/P3 정식 WorkDay History 도입 후 실제 History 기반 집계로 교체 가능하다.
