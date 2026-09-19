@@ -50,46 +50,81 @@ function fmt(value: number): string {
   return Number(value.toFixed(3)).toString();
 }
 
-function pointOnArc(step: Extract<PathStep, { kind: 'arc' }>, fraction: number) {
-  const angle = (step.startDeg + (step.endDeg - step.startDeg) * fraction) * (Math.PI / 180);
+function pointOnStep(step: PathStep, fraction: number): { x: number; y: number } {
+  const clamped = Math.min(1, Math.max(0, fraction));
+  if (step.kind === 'line') {
+    return {
+      x: step.x0 + (step.x1 - step.x0) * clamped,
+      y: step.y0 + (step.y1 - step.y0) * clamped,
+    };
+  }
+
+  const angle =
+    (step.startDeg + (step.endDeg - step.startDeg) * clamped) * (Math.PI / 180);
   return {
     x: step.cx + R * Math.cos(angle),
     y: step.cy + R * Math.sin(angle),
   };
 }
 
-export function buildPerimeterProgressPath(progressRatio: number): string {
-  const progress = Math.min(1, Math.max(0, progressRatio));
-  if (progress <= 0) return '';
-  if (progress >= 1) return PERIMETER_PATH_D;
+export function buildPerimeterRangePath(startRatio: number, endRatio: number): string {
+  const start = Math.min(1, Math.max(0, startRatio));
+  const end = Math.min(1, Math.max(start, endRatio));
+  if (end <= start) return '';
+  if (start === 0 && end === 1) return PERIMETER_PATH_D;
 
-  let remaining = TOTAL_LENGTH * progress;
-  let d = `M ${fmt(MID_X)} ${fmt(Y0)}`;
+  const startDistance = TOTAL_LENGTH * start;
+  const endDistance = TOTAL_LENGTH * end;
+  let stepStartDistance = 0;
+  let d = '';
+  let started = false;
 
   for (const step of STEPS) {
-    if (remaining <= 0) break;
-    const consumed = Math.min(step.length, remaining);
-    const fraction = consumed / step.length;
+    const stepEndDistance = stepStartDistance + step.length;
+    const overlapStart = Math.max(startDistance, stepStartDistance);
+    const overlapEnd = Math.min(endDistance, stepEndDistance);
 
-    if (step.kind === 'line') {
-      const x = step.x0 + (step.x1 - step.x0) * fraction;
-      const y = step.y0 + (step.y1 - step.y0) * fraction;
-      d += ` L ${fmt(x)} ${fmt(y)}`;
-    } else {
-      const point = pointOnArc(step, fraction);
-      d += ` A ${fmt(R)} ${fmt(R)} 0 0 1 ${fmt(point.x)} ${fmt(point.y)}`;
+    if (overlapEnd > overlapStart) {
+      const localStart = (overlapStart - stepStartDistance) / step.length;
+      const localEnd = (overlapEnd - stepStartDistance) / step.length;
+      const startPoint = pointOnStep(step, localStart);
+      const endPoint = pointOnStep(step, localEnd);
+
+      if (!started) {
+        d = `M ${fmt(startPoint.x)} ${fmt(startPoint.y)}`;
+        started = true;
+      }
+
+      if (step.kind === 'line') {
+        d += ` L ${fmt(endPoint.x)} ${fmt(endPoint.y)}`;
+      } else {
+        d += ` A ${fmt(R)} ${fmt(R)} 0 0 1 ${fmt(endPoint.x)} ${fmt(endPoint.y)}`;
+      }
     }
 
-    remaining -= consumed;
-    if (fraction < 1) break;
+    if (stepEndDistance >= endDistance) break;
+    stepStartDistance = stepEndDistance;
   }
 
   return d;
 }
 
-export function PerimeterTimeline({ progressRatio, complete = false }: Props) {
+export function buildPerimeterProgressPath(progressRatio: number): string {
+  return buildPerimeterRangePath(0, progressRatio);
+}
+
+export function PerimeterTimeline({
+  progressRatio,
+  segments,
+  complete = false,
+}: Props) {
   const progress = complete ? 1 : Math.min(1, Math.max(0, progressRatio));
-  const progressPath = buildPerimeterProgressPath(progress);
+  const visibleSegments =
+    segments.length > 0
+      ? segments.filter((segment) => segment.endRatio > segment.startRatio)
+      : progress > 0
+        ? [{ type: 'WORKING' as const, startRatio: 0, endRatio: progress }]
+        : [];
 
   return (
     <svg
@@ -101,20 +136,24 @@ export function PerimeterTimeline({ progressRatio, complete = false }: Props) {
       data-progress-ratio={progress}
       data-complete={complete ? 'true' : 'false'}
     >
-      <defs>
-        <linearGradient id="perimeter-ambient-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="currentColor" stopOpacity="0.5" />
-          <stop offset="52%" stopColor="currentColor" stopOpacity="1" />
-          <stop offset="100%" stopColor="currentColor" stopOpacity="0.58" />
-        </linearGradient>
-      </defs>
       <path className="perimeter-base" d={PERIMETER_PATH_D} />
-      {progressPath ? (
-        <>
-          <path className="perimeter-progress-glow" d={progressPath} />
-          <path className="perimeter-progress" d={progressPath} />
-        </>
-      ) : null}
+
+      {visibleSegments.map((segment, index) => {
+        const d = buildPerimeterRangePath(segment.startRatio, segment.endRatio);
+        const tone = segment.type === 'LOAFING' ? 'loafing' : 'working';
+        return (
+          <g
+            key={`${segment.type}:${segment.startRatio}:${segment.endRatio}:${index}`}
+            className={`perimeter-segment-group perimeter-segment-${tone}`}
+            data-segment-type={segment.type}
+            data-segment-start={segment.startRatio}
+            data-segment-end={segment.endRatio}
+          >
+            <path className="perimeter-segment-glow" d={d} />
+            <path className="perimeter-segment-core" d={d} />
+          </g>
+        );
+      })}
     </svg>
   );
 }
