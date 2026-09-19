@@ -13,10 +13,7 @@ import { crossedMilestone } from '../features/milestone';
 import { FakeClock } from '../infrastructure/clock';
 import { freeWorkBucket, freeWorkCopy } from '../presentation/freeWorkCopy';
 import { buildMoneyTimerViewModel } from '../presentation/moneyTimerViewModel';
-import {
-  PERIMETER_PATH_D,
-  buildPerimeterProgressPath,
-} from '../presentation/PerimeterTimeline';
+import { PERIMETER_PATH_D, buildPerimeterProgressPath } from '../presentation/PerimeterTimeline';
 
 const settings: PrototypeSettings = {
   salaryKrw: 4_000_000,

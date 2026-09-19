@@ -78,8 +78,6 @@ export function FreeWorkWallet({ snapshot, privacy, onClockOut }: Props) {
           <span>퇴근</span>
           <ChevronIcon />
         </button>
-
-
       </div>
     </section>
   );
