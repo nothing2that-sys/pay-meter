@@ -50,7 +50,13 @@ export function MoneyTimer({
       />
 
       <div className="timer-topline">
-        {!isPiP ? <button className="text-button" onClick={onDetails}>상세</button> : <span />}
+        {!isPiP ? (
+          <button className="text-button" onClick={onDetails}>
+            상세
+          </button>
+        ) : (
+          <span />
+        )}
         <button className="text-button" onClick={onTogglePrivacy} aria-label="금액 숨김 전환">
           {settings.display.privacy ? '금액 보기' : '금액 숨김'}
         </button>
@@ -59,7 +65,10 @@ export function MoneyTimer({
       <section className="timer-core">
         <div className="state-line">{vm.stateLabel}</div>
         <div className="progress-value" data-testid="progress-value">
-          {(snapshot.scheduledProgressRatio * 100).toFixed(snapshot.scheduledProgressRatio >= 1 ? 0 : 1)}%
+          {(snapshot.scheduledProgressRatio * 100).toFixed(
+            snapshot.scheduledProgressRatio >= 1 ? 0 : 1,
+          )}
+          %
         </div>
         {vm.timeLabel ? (
           <div className="remaining-time">
@@ -68,20 +77,29 @@ export function MoneyTimer({
         ) : null}
 
         {vm.freeWorkMode ? (
-          <FreeWorkWallet snapshot={snapshot} privacy={settings.display.privacy} onClockOut={onClockOut} />
+          <FreeWorkWallet
+            snapshot={snapshot}
+            privacy={settings.display.privacy}
+            onClockOut={onClockOut}
+          />
         ) : vm.clockedOut ? (
           <section className="clocked-summary">
             <div className="money-block">
               <span>오늘 번 돈</span>
-              <strong data-testid="current-money">{money(snapshot.todayEarnedMicroKrw, settings.display.privacy)}</strong>
+              <strong data-testid="current-money">
+                {money(snapshot.todayEarnedMicroKrw, settings.display.privacy)}
+              </strong>
             </div>
             <div className="money-block secondary-money">
               <span>그중 루팡으로 번 돈</span>
-              <strong data-testid="loafing-money">{money(snapshot.loafingEarnedValueMicroKrw, settings.display.privacy)}</strong>
+              <strong data-testid="loafing-money">
+                {money(snapshot.loafingEarnedValueMicroKrw, settings.display.privacy)}
+              </strong>
             </div>
             {snapshot.freeWorkDurationMs > 0 ? (
               <div className="freework-summary">
-                무료봉사 {formatDuration(snapshot.freeWorkDurationMs)} · {money(snapshot.freeWorkReferenceValueMicroKrw, settings.display.privacy)} 상당
+                무료봉사 {formatDuration(snapshot.freeWorkDurationMs)} ·{' '}
+                {money(snapshot.freeWorkReferenceValueMicroKrw, settings.display.privacy)} 상당
               </div>
             ) : null}
           </section>
@@ -89,14 +107,20 @@ export function MoneyTimer({
           <>
             <div className={`money-block ${milestoneKrw && !isPiP ? 'milestone-pulse' : ''}`}>
               <span>오늘 번 돈</span>
-              <strong data-testid="current-money">{money(snapshot.todayEarnedMicroKrw, settings.display.privacy)}</strong>
+              <strong data-testid="current-money">
+                {money(snapshot.todayEarnedMicroKrw, settings.display.privacy)}
+              </strong>
             </div>
             <div className="money-block secondary-money">
               <span>그중 루팡으로 번 돈</span>
-              <strong data-testid="loafing-money">{money(snapshot.loafingEarnedValueMicroKrw, settings.display.privacy)}</strong>
+              <strong data-testid="loafing-money">
+                {money(snapshot.loafingEarnedValueMicroKrw, settings.display.privacy)}
+              </strong>
             </div>
             {milestoneKrw && !isPiP ? (
-              <div className="milestone-ring" role="status">{milestoneKrw.toLocaleString('ko-KR')}원</div>
+              <div className="milestone-ring" role="status">
+                {milestoneKrw.toLocaleString('ko-KR')}원
+              </div>
             ) : null}
             <button
               className={`loaf-button ${snapshot.activityState === 'LOAFING' ? 'active' : ''}`}
@@ -121,7 +145,9 @@ export function MoneyTimer({
       </div>
 
       {!isPiP && pipSupported && onOpenPiP ? (
-        <button className="pip-button text-button" onClick={onOpenPiP}>위젯으로 열기</button>
+        <button className="pip-button text-button" onClick={onOpenPiP}>
+          위젯으로 열기
+        </button>
       ) : null}
     </main>
   );

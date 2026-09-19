@@ -1,4 +1,9 @@
-import { formatDuration, formatMicroKrw, formatRateMilliKrw, type PaySnapshot } from '../domain/prototype';
+import {
+  formatDuration,
+  formatMicroKrw,
+  formatRateMilliKrw,
+  type PaySnapshot,
+} from '../domain/prototype';
 import { freeWorkCopy } from './freeWorkCopy';
 
 interface Props {
@@ -20,7 +25,9 @@ export function FreeWorkWallet({ snapshot, privacy, onClockOut }: Props) {
       </div>
       <div className="wallet-duration">{formatDuration(snapshot.freeWorkDurationMs)}</div>
       <div className="wallet-rate">
-        {privacy ? '+₩•••/s 상당' : `+₩${formatRateMilliKrw(snapshot.baseVisualizationRateMilliKrwPerSecond)}/s 상당`}
+        {privacy
+          ? '+₩•••/s 상당'
+          : `+₩${formatRateMilliKrw(snapshot.baseVisualizationRateMilliKrwPerSecond)}/s 상당`}
       </div>
       <div className="wallet-warning">실제 지급액 아님</div>
       <p className="wallet-copy">{freeWorkCopy(snapshot.localDate, snapshot.freeWorkDurationMs)}</p>

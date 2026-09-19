@@ -39,7 +39,11 @@ export function loadSettings(): PrototypeSettings {
 export function saveSettings(settings: PrototypeSettings): void {
   localStorage.setItem(
     SETTINGS_KEY,
-    JSON.stringify({ ...settings, display: { ...settings.display, showDecimals: false }, consumerItems: [] }),
+    JSON.stringify({
+      ...settings,
+      display: { ...settings.display, showDecimals: false },
+      consumerItems: [],
+    }),
   );
 }
 
@@ -60,7 +64,10 @@ export function saveLoafingIntervals(intervals: LoafingInterval[]): void {
 
 export function startLoafing(intervals: LoafingInterval[], atEpochMs: number): LoafingInterval[] {
   if (intervals.some((interval) => interval.endAtEpochMs === null)) return intervals;
-  return [...intervals, { id: `loafing:${atEpochMs}`, startAtEpochMs: atEpochMs, endAtEpochMs: null }];
+  return [
+    ...intervals,
+    { id: `loafing:${atEpochMs}`, startAtEpochMs: atEpochMs, endAtEpochMs: null },
+  ];
 }
 
 export function stopLoafing(intervals: LoafingInterval[], atEpochMs: number): LoafingInterval[] {
