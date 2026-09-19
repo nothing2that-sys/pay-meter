@@ -242,7 +242,7 @@ test('settings provide work and break presets without duplicate privacy or miles
 
   await expect(page.getByRole('button', { name: '7시간' })).toBeVisible();
   await expect(page.getByRole('button', { name: '9시간' })).toBeVisible();
-  await expect(page.getByRole('button', { name: '1시간' })).toBeVisible();
+  await expect(page.getByRole('button', { name: '1시간', exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: '1시간 30분' })).toBeVisible();
 });
 
