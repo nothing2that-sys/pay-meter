@@ -100,9 +100,7 @@ export function MoneyTimer({
     snapshot.payState === 'REGULAR_WORK' || snapshot.payState === 'UNPAID_BREAK';
   const freeWorkFillBasisPoints =
     snapshot.dailyTargetMicroKrw > 0n
-      ? Number(
-          (snapshot.freeWorkReferenceValueMicroKrw * 10_000n) / snapshot.dailyTargetMicroKrw,
-        )
+      ? Number((snapshot.freeWorkReferenceValueMicroKrw * 10_000n) / snapshot.dailyTargetMicroKrw)
       : 0;
   const frameStyle = {
     '--freework-fill': `${Math.min(100, Math.max(0, freeWorkFillBasisPoints / 100))}%`,
