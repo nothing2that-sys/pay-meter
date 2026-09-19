@@ -13,7 +13,11 @@ import { crossedMilestone } from '../features/milestone';
 import { FakeClock } from '../infrastructure/clock';
 import { freeWorkBucket, freeWorkCopy } from '../presentation/freeWorkCopy';
 import { buildMoneyTimerViewModel } from '../presentation/moneyTimerViewModel';
-import { PERIMETER_PATH_D, buildPerimeterProgressPath } from '../presentation/PerimeterTimeline';
+import {
+  PERIMETER_PATH_D,
+  buildPerimeterProgressPath,
+  buildPerimeterRangePath,
+} from '../presentation/PerimeterTimeline';
 
 const settings: PrototypeSettings = {
   salaryKrw: 4_000_000,
@@ -217,6 +221,15 @@ describe('P1R perimeter presentation contract', () => {
     expect(quarter).not.toContain('Z');
     expect(buildPerimeterProgressPath(0)).toBe('');
     expect(buildPerimeterProgressPath(1)).toBe(PERIMETER_PATH_D);
+  });
+
+  it('builds independent physical paths for historical activity ranges', () => {
+    const working = buildPerimeterRangePath(0, 0.1);
+    const loafing = buildPerimeterRangePath(0.1, 0.25);
+    expect(working.startsWith('M 50 0.7')).toBe(true);
+    expect(loafing.startsWith('M 50 0.7')).toBe(false);
+    expect(working).not.toBe(loafing);
+    expect(buildPerimeterRangePath(0.25, 0.25)).toBe('');
   });
 });
 
