@@ -1,25 +1,25 @@
 # PayMeter
 
-PayMeter는 사용자가 설정한 급여와 근무시간을 기준으로 지금 벌고 있는 금액을 타이머처럼 보여주는 Local First Money Timer 웹앱입니다.
+PayMeter는 사용자가 설정한 급여와 근무시간을 기준으로 오늘 하루의 진행과 돈의 흐름을 작은 위젯처럼 보여주는 Local First Money Timer 웹앱입니다.
 
-PayMeter는 정밀 근태 시스템이나 급여 명세서 생성기가 아닙니다. 핵심은 작은 화면을 오래 띄워두고, 오늘의 시간을 돈의 흐름으로 가볍게 체감하는 것입니다.
+PayMeter는 정밀 근태 시스템이나 급여 명세서 생성기가 아닙니다. 핵심은 작은 화면을 오래 띄워두고, 오늘이 얼마나 진행됐는지와 그 시간의 금전적 가치를 직관적으로 체감하는 것입니다.
 
 ## 핵심 경험
 
 - 기본 화면은 Money Timer
-- 데스크톱 지원 브라우저에서는 Document Picture-in-Picture 위젯 제공
-- 모바일에서는 책상 위에 세워두는 상시 표시 경험 우선
-- FIXED_PERIOD 월급형은 오늘 목표 일당을 진행률로 채워가는 방식
-- TIME_BASED 시급형은 Clock In 이후 실제 유급시간 기준
+- 화면 외곽 한 바퀴가 오늘 예정 유급시간 100%를 나타내는 Progress Timeline
+- 외곽 Timeline에서 정상근무와 LOAFING 구간을 서로 다른 색으로 표현
+- 중앙에는 현재 상태, 오늘 진행률, 퇴근까지 남은 시간 표시
+- 돈 정보는 기본 화면에서 "오늘 번 돈"과 "그중 루팡으로 번 돈" 두 개를 핵심으로 표시
+- 현재 Rate는 구석에 작은 계측값으로 표시
 - WORKING은 기본 추론하고 LOAFING만 사용자가 직접 기록
-- 정규 근무 종료 후에는 무료봉사 상태로 전환
-- 유급 추가근무는 사용자가 직접 시작하며 단일 배율만 지원
-- 무료봉사 구간을 추가근무 시작 시 정규 종료 시각까지 소급 전환 가능
-- 하루 타임라인을 5분 단위로 사후 보정
-- 오늘, 이번 주, 이번 달 통계
-- 10,000원 단위 Milestone Effect
-- 소비재 금액 환산
+- 무급 휴게시간은 Progress와 Activity 집계에서 제외
+- 정규 근무 종료 후 외곽 Progress는 100%에서 완료되고 무료봉사 Wallet 모드로 전환
+- 무료봉사 Wallet에는 실제 지급액이 아닌 무상 노동 환산 가치가 실시간으로 증가
+- 무료봉사 상태에서는 사용자가 아니라 상황을 비꼬는 짧은 카피를 사용
+- 데스크톱 지원 브라우저에서는 Document Picture-in-Picture 위젯 제공
 - Privacy Mode
+- 10,000원 단위 Milestone Effect
 - JSON Export
 - PWA 및 Offline App Shell
 
@@ -49,32 +49,53 @@ V1에서는 다음을 하지 않습니다.
 
 추가근무는 사용자가 직접 시작하고, 배율 하나만 사용합니다.
 
-## 화면 구조
+## 기본 화면
 
-### Money Timer
+정규 근무 중:
 
-항상 띄워두는 기본 화면입니다.
-
-- 현재 진행 금액
-- 오늘 목표 금액과 진행률
-- 현재 Rate
-- 작은 Timer
+- 외곽 Progress Timeline
+- 정상근무 / LOAFING 색상 Segment
 - 현재 상태
-- 루팡 시작 또는 업무 복귀
-- 상세 Dashboard 진입
+- 오늘 진행률
+- 퇴근까지 남은 시간
+- 오늘 번 돈
+- 그중 루팡으로 번 돈
+- 작은 Current Rate
+- 루팡 시작 / 업무 복귀
 - Privacy Mode
 
-### Document PiP
+Daily Target Pay는 계산에 필요하지만 기본 화면에는 표시하지 않습니다.
+
+## 무료봉사 모드
+
+Scheduled End 이후 Clock Out 전까지 유급 Overtime이 없으면 무료봉사 상태입니다.
+
+- 정규 Progress는 100%에서 완료
+- 오늘 정규 급여 증가는 정지
+- 무료봉사 Wallet이 별도 표시
+- Wallet에는 무료봉사 시간과 기준 급여 환산 가치가 증가
+- Wallet 금액은 실제 급여 총액에 포함되지 않음
+- UI에는 "실제 지급액 아님" 의미를 명확히 표시
+- 짧은 상황 조롱 카피를 Threshold 기반으로 노출
+
+예:
+
+- "정규 근무는 끝났는데 왜 아직 여기 계시죠?"
+- "현재 회사에 무상 노동 가치 제공 중"
+- "월급은 멈췄지만 시간은 계속 나가고 있습니다."
+
+## Document PiP
 
 지원 브라우저에서 사용자가 명시적으로 위젯을 열면 작은 Always-on-top 창으로 Money Timer를 표시합니다.
 
 지원 여부는 User Agent 문자열이 아니라 API feature detection으로 판단합니다.
 
-PiP에서는 Milestone Effect를 비활성화합니다.
+PiP에서도 동일한 Domain Snapshot과 외곽 Progress 개념을 사용합니다.
 
-### Full Dashboard
+## Full Dashboard
 
-- 오늘 급여
+- 오늘 번 돈
+- 루팡으로 번 돈
 - 이번 주
 - 이번 달
 - 업무시간
@@ -82,8 +103,13 @@ PiP에서는 Milestone Effect를 비활성화합니다.
 - 루팡률
 - 무료봉사
 - 추가근무
-- 소비재 환산
 - Timeline 및 History 진입
+
+## 보류된 실험
+
+Consumer Value는 초기 P1에서 실험했으나 기본 화면과 제품 흐름을 복잡하게 만든다는 초기 사용 피드백으로 V1 핵심 기능에서 일단 제외합니다.
+
+필요성이 다시 확인되기 전까지 기본 UI와 설정에서 노출하지 않습니다.
 
 ## 문서 정본
 

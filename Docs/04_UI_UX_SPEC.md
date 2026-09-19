@@ -1,312 +1,378 @@
 # PayMeter UI and UX Specification
 
-## 1. 방향
+## 1. UI 방향
 
-PayMeter의 기본 인상은 Dashboard가 아니라 Money Timer다.
+PayMeter의 기본 화면은 카드형 Dashboard가 아니라 한 장짜리 계측기다.
 
-키워드:
+핵심 시각 요소는 화면 외곽을 따라 진행하는 Workday Timeline이다.
 
-- 작은 화면
-- 항상 보임
-- 숫자 중심
-- 적은 조작
-- 캐주얼
-- 재미
-- 사후 보정 가능
+우선순위:
 
-## 2. Money Timer
+1. 하루 진행
+2. 현재 상태
+3. 오늘 번 돈
+4. 그중 루팡으로 번 돈
+5. 남은 시간
+6. 작은 Current Rate
+7. Activity Toggle
 
-기본 화면 예:
+## 2. Default Money Timer
 
-돈 버는 중
+기본 개념:
 
-175,000원
-오늘 200,000원 중 87.5%
+- 화면 외곽 = 오늘 Planned Paid Duration 100%
+- 중앙 = 현재 상태 + 진행률 + 남은 시간
+- 하단 또는 중앙 보조 = 오늘 번 돈 + 루팡으로 번 돈
+- 구석 = Current Rate
+- 하단 Action = 루팡 시작 / 업무 복귀
 
-+6.944원 / sec
+예:
 
-05:37:18
+업무 중
 
-[루팡 시작] [상세]
+62.4%
+퇴근까지 02:41
 
-FIXED_PERIOD는 단순 현재 금액보다 오늘 목표를 채워가는 Progress를 함께 보여준다.
+오늘 번 돈
+₩124,800
 
-퇴근 시 100% 확정이 갑작스러운 금액 점프보다 목표가 채워지는 경험으로 읽히게 한다.
+루팡으로 번 돈
+₩21,350
 
-## 3. Compact Mode
+[루팡 시작]
 
-좁은 창:
++₩6.944/s
 
-175,000원
-87.5%
-+6.944/s
-05:37:18
-[루팡]
+Today Target 금액은 표시하지 않는다.
 
-가로 Scroll 금지.
+## 3. Perimeter Timeline
 
-Activity Toggle은 Compact에서도 유지한다.
+화면의 Rounded Rectangle 외곽 path를 normalized 0~100% Timeline으로 사용한다.
 
-## 4. Document PiP Widget
+권장:
 
-데스크톱 지원 환경에서는 사용자가 명시적으로:
+- 시작점: 상단 중앙
+- 방향: 시계방향
+- Scheduled paid duration 100%
+- 현재 위치에 작은 glow/marker
 
-- 위젯으로 열기
+Timeline 색상:
 
-Action을 눌러 Document PiP를 연다.
+- WORKING token
+- LOAFING token
+- inactive/unelapsed token
 
-지원 판단은 feature detection으로 한다.
+실제 색상 값은 화면을 보고 조정한다.
 
-PiP 내용:
+중요한 것은 WORKING과 LOAFING이 즉시 구분되는 것이다.
 
-- Current Pay
-- Today Progress
-- Small Timer
-- Current State
-- Activity Toggle
-- Privacy Toggle
+## 4. Segment Mapping
 
-PiP에서 제거:
+외곽선은 단순 누적 색이 아니라 시간 순서를 보존한다.
 
-- Milestone animation
-- 상세 Card
-- 복잡한 Navigation
+예:
 
-PiP를 닫아도 Session은 종료되지 않는다.
+WORKING
+-> LOAFING
+-> WORKING
+-> LOAFING
+-> 현재
 
-## 5. Full Dashboard
+이면 외곽선도 같은 순서로 색 구간이 이어져야 한다.
 
-Full Dashboard는 정식 Surface로 유지한다.
+unpaid break는 별도 색 구간을 만들지 않는다.
 
-표시:
+Break는 100% 분모에서 제외되므로 외곽 진행이 멈췄다가 Break 종료 후 이어진다.
 
-- Today Pay
-- Today Target and Progress
-- Week
-- Month
-- Working Time
-- Loafing Time
-- Loafing Ratio
-- Loafing Reference Value
-- Free Work
-- Overtime
-- Hour / Minute / Second Rate
-- Consumer Value
-- Timeline
-- History
+## 5. Center Information
 
-Year와 ms Rate는 표시하지 않는다.
+중앙의 가장 큰 숫자:
 
-## 6. FIXED_PERIOD State
+- scheduledProgressRatio %
 
-퇴근 전:
+상태:
 
-오늘 급여 진행
-175,000 / 200,000
-87.5%
+- 업무 중
+- 루팡 중
+- 휴게 중
+- 출근 전
+- 오늘 근무 완료
 
-퇴근 후:
+보조:
 
-오늘 목표 완료
-200,000 / 200,000
-100%
-확정
+- 퇴근까지 HH:MM
 
-조기퇴근 차감 옵션은 노출하지 않는다.
+루팡률 숫자는 기본 화면에 표시하지 않는다.
 
-## 7. TIME_BASED Clock In
+## 6. Money Information
 
-HOURLY 사용자는 정규 시작 전후 Money Timer에 Clock In Action을 제공한다.
+기본 화면의 돈 정보는 두 개다.
 
-미출근 상태:
+### 오늘 번 돈
 
-출근 대기
-현재 급여 0원
-[출근]
+현재까지 인정되는 Pay.
 
-Clock In 후 실제 유급시간 계산을 시작한다.
+### 루팡으로 번 돈
 
-Clock Out 후 종료한다.
+그중 LOAFING 시간에 대응하는 Pay Value.
+
+두 값을 더해서 새로운 Total을 만들지 않는다.
+
+"루팡으로 번 돈"은 Today Earned 안에 포함된 Breakdown이다.
+
+## 7. Current Rate
+
+Current Rate는 구석에 작은 계측값으로 표시한다.
+
+예:
+
++₩6.944/s
+
+시각적 우선순위는 낮게 둔다.
+
+비유급 상태에서는:
+
+- ₩0.000/s
+- 또는 비활성/Dimmed Rate
+
+중 구현 화면에서 더 자연스러운 방식을 선택한다.
 
 ## 8. Activity Toggle
 
-정규 Activity eligible 구간:
+WORKING:
 
-WORKING inferred:
-- [루팡 시작]
+[루팡 시작]
 
 LOAFING:
-- [업무 복귀]
 
-FIXED_PERIOD Pay는 LOAFING 중 계속 진행한다.
+[업무 복귀]
+
+한 번의 Tap/Click.
+
+LOAFING 중에도 FIXED_PERIOD Today Earned는 계속 증가한다.
 
 ## 9. Break
 
 Scheduled unpaid break는 자동 적용한다.
 
-표시:
+Break 중:
 
-휴게시간
-정규 급여 진행 일시정지
-Activity 집계 제외
+- Progress 정지
+- Current Rate 0
+- Activity Toggle 비활성
+- Activity 집계 제외
 
-Break 중 Activity Toggle 비활성.
+Break 전 LOAFING이었다면 Break 후 LOAFING 상태 표현으로 복귀 가능하다.
 
-Break 직전 LOAFING이었다면 Break 종료 후 다시 루팡 상태 표현으로 돌아갈 수 있다.
+## 10. Privacy Mode
 
-## 10. Free Work
+금액 두 개를 모두 즉시 마스킹한다.
 
-Scheduled End 이후:
+예:
 
-무료봉사 중
+오늘 번 돈
+₩••••••
 
-정규 급여
-200,000원
-증가 정지
+루팡으로 번 돈
+₩••••••
 
-무료봉사
-01:00:00
+Progress, 상태, 시간은 유지한다.
 
-환산 가치
-25,000원
+## 11. Free Work Transition
 
-[추가근무 시작]
+Scheduled End 도달 시:
+
+- 외곽 Timeline = 100%
+- 정상/루팡 Segment 이력은 그대로 유지
+- 정규 Today Earned 증가 정지
+- Current regular Rate = 0
+- 화면의 주인공을 Free Work Wallet으로 전환
+
+기존 외곽 Timeline을 다시 돌리거나 100% 이상 확장하지 않는다.
+
+## 12. Free Work Wallet
+
+예:
+
+오늘 근무 완료
+100%
+
+오늘 번 돈
+₩200,000
+
+무료봉사 WALLET
+
+₩18,742
+00:44:58
+
++₩6.944/s 상당
+실제 지급액 아님
+
+[추가근무]
 [퇴근]
 
-무료봉사 환산 가치는 실제 급여 Total에 포함하지 않는다.
+Wallet은 실제 금융 지갑처럼 정돈된 카드/패널 느낌을 사용할 수 있다.
 
-## 11. Overtime Start
+단, 실제 급여와 혼동되지 않게 Label을 명확하게 한다.
 
-추가근무 시작 Action 시:
+## 13. Free Work Personality
+
+무료봉사 상태에서는 PayMeter가 상황을 약간 비꼬는 캐릭터를 보여준다.
+
+원칙:
+
+- 사용자를 공격하지 않는다.
+- "무상 노동 가치가 계속 쌓이고 있는 상황"을 조롱한다.
+- 짧고 건조한 문장이 좋다.
+- 매 Tick마다 바꾸지 않는다.
+- 금액 또는 시간 Threshold에서 문구를 변경한다.
+
+초기 카피 후보:
+
+0~5,000원:
+- 무료 체험이 시작됐습니다.
+- 정규 근무는 끝났습니다. 참고로요.
+
+5,000~15,000원:
+- 회사 입장에서는 꽤 좋은 시간대입니다.
+- 월급은 멈췄지만 시간은 계속 나가고 있습니다.
+
+15,000~30,000원:
+- 무료봉사 Wallet이 제법 건강해졌습니다.
+- 퇴근 버튼은 아직 정상 작동합니다.
+
+30,000원 이상:
+- 무상 노동 포트폴리오가 커지고 있습니다.
+- 이 Wallet은 출금 기능이 없습니다.
+
+카피는 UX 테스트 후 계속 조정한다.
+
+## 14. Overtime Conversion
+
+무료봉사 중 [추가근무] 선택:
 
 추가근무를 언제부터 계산할까요?
 
 - 지금부터
-- 정규 종료 18:00부터
+- 정규 종료부터
 
-선택 후 multiplier를 확인한다.
+Scheduled End부터 소급 전환하면 Wallet 금액은 Segment 재계산 결과에 따라 감소하거나 0이 된다.
 
-세부 수정은 Timeline에서 한다.
+돈을 실제 Wallet에서 Overtime으로 옮기는 애니메이션은 가능하지만 Domain에서는 재분류 계산일 뿐이다.
 
-## 12. Overtime
+## 15. CLOCKED_OUT
 
-추가근무 중:
+Clock Out 후:
 
-추가근무 중
-1.5x
+- 외곽 Timeline은 완료 상태
+- 실시간 Rate 정지
+- Wallet 정지
+- 오늘 결과 요약
+- Dashboard/History 진입
 
-추가근무 01:00:00
-추가수당 37,500원
+FIXED_PERIOD 정규 Pay는 Daily Target 100% 확정.
 
-[추가근무 종료]
-[퇴근]
+## 16. Document PiP
 
-복합 정책 UI는 없다.
+PiP도 같은 디자인 언어를 사용한다.
 
-## 13. Timeline Correction
+최소:
 
-Timeline은 정밀 편집기가 아니라 실수 복구 도구다.
+- 외곽 Timeline
+- Progress %
+- 상태
+- 오늘 번 돈
+- 루팡으로 번 돈
+- Activity Toggle
+- Privacy
+- 작은 Rate
 
-하루 목록 예:
+Free Work 시:
 
-09:05 출근
-10:30 루팡 시작
-10:50 업무 복귀
-18:00 정규 종료
-18:20 추가근무 시작
-20:10 퇴근
+- 100% 외곽
+- Free Work Wallet value
+- Free Work Duration
+- 짧은 카피
+- 퇴근/추가근무 Action은 공간에 따라 축약
 
-각 항목은 기본 5분 단위 앞/뒤 조정.
+PiP에서는 Milestone Effect를 비활성화한다.
 
-금액이 변하는 수정은 저장 전 간단한 결과 Preview를 보여준다.
+## 17. Full Dashboard
 
-## 14. Unclosed Day UX
+기본 Money Timer에 제거한 상세 정보를 Dashboard에서 제공한다.
 
-이전 Day가 미마감이면:
+- Today Earned
+- Loafing Earned
+- Working Time
+- Loafing Time
+- Loafing Ratio
+- Free Work
+- Overtime
+- Week
+- Month
+- Rate Detail
+- Timeline
+- History
 
-시간 확인 필요
+## 18. Milestone
 
-어제 퇴근 처리가 없습니다.
-임시로 자정까지만 계산했습니다.
+10,000원 단위.
 
-[시간 수정]
+새 외곽 Timeline보다 강하게 튀지 않는 짧은 Highlight만 허용한다.
 
-정상 급여 화면처럼 조용히 넘어가지 않는다.
+PiP에서는 비활성.
 
-## 15. Privacy Mode
+## 19. Settings
 
-Money Timer와 PiP에 빠른 금액 숨김 Action을 둔다.
+설정 화면을 관리도구처럼 만들지 않는다.
 
-예:
+### 급여 / 근무
 
-돈 버는 중
-••••••원
-87.5%
-05:37:18
+- 월급 또는 Pay Basis
+- 근무요일
+- 출근
+- 퇴근
+- 휴게
 
-Privacy Mode 여부는 로컬에 보존할 수 있다.
+### 화면
 
-## 16. Milestone
+- Privacy
+- Milestone
 
-V1:
+### 데이터
 
-- 10,000원 배수 하나만
-- foreground Money Timer에서 짧은 Effect
-- PiP에서는 비활성
-- background 복귀 catch-up 재생 금지
-- 동일 threshold 중복 금지
-- Reduced Motion 대응
+- Export
+- Reset
 
-## 17. Consumer Value
+기본 화면에서 필요 없는 세부 Display 설정을 늘리지 않는다.
 
-사용자가 직접 소비재를 등록한다.
+금액 소수점 표시는 제품 기본값으로 결정한다.
 
-예:
+## 20. Consumer Value
 
-커피 5,000
-점심 12,000
-치킨 25,000
+Consumer Value UI와 Settings는 제거한다.
 
-표현:
+상태:
 
-점심값 벌었음
-치킨까지 3,420원
+PAUSED_EXPERIMENT
 
-과도한 알림 대신 Money Timer 하단의 짧은 문구나 Dashboard Card로 제공한다.
+향후 실제 사용 중 "금액 숫자가 다시 무감각해진다"는 문제가 확인될 경우 별도 실험으로 재검토한다.
 
-## 18. Estimated Net
+## 21. Integrity UI
 
-옵션으로 단일 예상 공제율을 입력할 수 있다.
-
-표시는 반드시 추정치임을 명시한다.
-
-정밀 세금 또는 보험 계산처럼 보이게 하지 않는다.
-
-## 19. Error and Integrity UI
-
-integrityStatus가 정상이 아니면 작은 Badge를 우선 노출한다.
-
-예:
+정상 계산이 어려우면:
 
 - 시간 확인 필요
 - 데이터 확인 필요
 - 저장 오류
 
-정상 숫자를 확신하는 것처럼 보여주지 않는다.
+Badge를 표시한다.
 
-## 20. Background Resume
+## 22. Accessibility
 
-오랫동안 보지 않다가 돌아오면 중간 Animation을 빠르게 재생하지 않는다.
-
-즉시 현재 Snapshot을 표시한다.
-
-Milestone도 지나간 모든 threshold를 재생하지 않는다.
-
-## 21. Accessibility
-
-- 색만으로 상태 전달 금지
+- 색만으로 상태 의미를 전달하지 않음
+- WORKING/LOAFING text/label 제공
 - 충분한 contrast
-- Touch Target 확보
-- Screen Reader label
 - Reduced Motion
-- tabular numeric font 권장
+- Screen Reader label
+- tabular nums

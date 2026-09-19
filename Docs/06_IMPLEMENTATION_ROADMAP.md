@@ -4,21 +4,15 @@
 
 PayMeter는 전체 Domain을 완성한 뒤 처음 사용해보는 방식으로 진행하지 않는다.
 
-가장 먼저 Retention Prototype을 만든다.
-
-검증 질문:
-
-- 실제 업무 중 계속 띄워두는가
-- Document PiP가 유용한가
-- Today Progress가 자주 보게 만드는가
-- LOAFING Toggle을 실제로 누르는가
-- Consumer Value와 Milestone이 며칠 뒤에도 의미가 있는가
-
-Prototype이 가치가 없으면 복잡한 V1 구현을 중단할 수 있어야 한다.
+Retention Prototype을 먼저 실제 사용하고, 사용 피드백을 다음 구현에 반영한다.
 
 ---
 
 # P0 - Toolchain
+
+상태:
+
+COMPLETED
 
 - React
 - TypeScript strict
@@ -28,119 +22,180 @@ Prototype이 가치가 없으면 복잡한 V1 구현을 중단할 수 있어야 
 - PWA shell
 - CI
 
-완료:
-
-- dev
-- build
-- unit smoke
-- e2e smoke
-- CI PASS
-
 ---
 
 # P1 - Retention Prototype
 
-버려도 되는 Prototype 성격을 허용한다.
+상태:
 
-범위:
+COMPLETED
 
-- MONTHLY FIXED_PERIOD only
-- 단일 월~금 Schedule
-- unpaid break
-- Device Clock
+구현:
+
+- MONTHLY FIXED_PERIOD
+- Device Wall Clock
 - Money Timer
-- Today Target
-- Today Progress
+- Today Target/Progress Prototype
 - Inferred WORKING
 - LOAFING Toggle
-- 10,000원 Milestone
-- Consumer Value
-- Privacy Mode
+- unpaid break
+- Milestone
+- Consumer Value experiment
+- Privacy
+- Compact
 - Document PiP
-- Compact fallback
+- Reload Restore
+- Background Resume
 
-제외:
+Closeout HEAD 이후 실제 사용 피드백이 발생했다.
 
-- History
-- Timeline Correction
-- Hourly
-- Overtime
-- Week/Month 정교화
-- Import
-- Multi-tab hardening
+---
 
-## Retention Gate
+# P1R - Retention UX Rework
 
-P1 이후 실제 상시 사용성을 확인한다.
+상태:
 
-Gate 통과 시 P2 이후 진행.
+REQUIRED_BEFORE_P2
+
+목적:
+
+첫 P1 화면을 실제 사용한 결과를 반영해 PayMeter 기본 화면을 다시 단순화한다.
+
+## P1R-1 Perimeter Timeline
+
+- 화면 외곽 한 바퀴 = Planned Paid Duration 100%
+- SVG rounded-rectangle path
+- WORKING/LOAFING 서로 다른 색
+- 시간 순서 Segment 유지
+- Break 제외
+- Current marker
+- Scheduled End 100%
+
+## P1R-2 Money Information Simplification
+
+기본 화면 제거:
+
+- Today Target 금액
+- 목표금액 대비 문구
+- Consumer Value
+- 루팡률
+- 상세 Rate
+
+기본 화면 유지:
+
+- Today Earned
+- Loafing Earned Value
+- Progress %
+- Remaining Time
+- small Current Rate
+
+## P1R-3 Free Work Wallet
+
+정규 종료 후:
+
+- perimeter 100% 고정
+- regular pay 증가 정지
+- Free Work Wallet 표시
+- freeWorkDuration
+- freeWorkReferenceValue
+- 실제 지급액 아님 label
+- threshold based sarcasm copy
+
+실제 사용을 위해 Free Work Wallet을 멈출 수 있는 최소 Clock Out marker/action을 Prototype 범위에 포함할 수 있다.
+
+정식 History/Settlement 구조는 이후 Phase에서 교체한다.
+
+## P1R-4 Product Voice
+
+무료봉사 상태:
+
+- 상황을 가볍게 비꼬는 문구
+- 사용자 개인 비하 금지
+- Threshold 단위 변경
+- 매 Tick random 변경 금지
+
+## P1R-5 Settings Simplification
+
+기본 Settings:
+
+- 급여 / 근무
+- 화면
+- 데이터
+
+제거:
+
+- Consumer Item editor
+- 금액 소수 표시 옵션
+- 저가치 Display 옵션
+
+## P1R-6 Consumer Value
+
+상태:
+
+PAUSED_EXPERIMENT
+
+기본 UI와 Settings에서 제거한다.
+
+## P1R Acceptance
+
+- 외곽 Timeline을 보고 진행률과 LOAFING 구간을 직관적으로 이해
+- Today Earned / Loafing Earned의 관계가 명확
+- Free Work Wallet이 실제 급여와 혼동되지 않음
+- 무료봉사 카피가 재미는 있으나 불쾌한 개인 조롱이 아님
+- Settings가 초기 P1보다 단순
+- PiP에서도 핵심 정보가 유지
+- Mobile/Compact에서 외곽 path가 깨지지 않음
+
+P1R 완료 후 Retention Test를 다시 시작한다.
+
+P2는 이 Retention Test 이전에 착수하지 않는다.
 
 ---
 
 # P2 - Domain Contract
 
-구현:
+상태:
 
-- Money BigInt micro-KRW
-- exact allocation
-- deterministic remainder
+BLOCKED_BY_P1R_RETENTION
+
+구현 예정:
+
+- exact money arithmetic
 - SalaryRevision
 - ScheduleRevision
 - WorkDayContext
-- FakeClock
 - Time Zone Snapshot
 - Pay State
 - Integrity Status
-- half-open interval
 - Clock Out settlement
-
-완료:
-
-- FIXED_PERIOD target
-- early Clock Out 100%
-- break boundary
-- timezone snapshot
-- clock jump safety
 
 ---
 
 # P3 - Persistence Baseline
 
-- IndexedDB schema
-- localStorage preferences
+- IndexedDB
 - WorkDay
-- Salary Revision
-- Schedule Revision
+- Revision
 - Loafing Session
-- migrations
-- deterministic keys
-- unique indexes
+- migration
+- unique index
 - BroadcastChannel
-
-완료:
-
-- reload restore
-- migration fixture
-- basic multi-tab conflict test
-- corruption does not full-reset
 
 ---
 
 # P4 - Production Money Timer and PiP
 
-Prototype 코드를 그대로 제품 코드로 간주하지 않는다.
+P1R에서 검증한 UX를 정식 P2/P3 Domain에 연결한다.
 
-P2/P3 Domain을 기반으로 재연결한다.
-
-- Money Timer
-- Progress
-- Compact
-- PiP
+- Perimeter Timeline
+- Today Earned
+- Loafing Earned
+- Current Rate
 - Privacy
+- PiP
 - Milestone
-- Consumer Value
 
-Money Timer와 PiP는 같은 Snapshot Query를 사용한다.
+Consumer Value는 기본 Production Scope에서 제외한다.
 
 ---
 
@@ -149,36 +204,33 @@ Money Timer와 PiP는 같은 Snapshot Query를 사용한다.
 - inferred WORKING
 - LOAFING intervals
 - break automatic pause
-- break toggle disable
-- pre-break LOAFING intent restore
-- loafing ratio
-- loafing reference value
+- loafing ratio/reference
 
 ---
 
 # P6 - Manual Overtime and Free Work
 
-- AFTER_SCHEDULE_UNPAID
-- Free Work derived metrics
-- multiplier overtime only
-- manual start/stop
-- retroactive to Scheduled End
-- session calculation snapshot
+P1R Free Work Wallet Prototype을 정식 Domain 구조에 연결한다.
 
-AUTO_OVERTIME은 구현하지 않는다.
+- AFTER_SCHEDULE_UNPAID
+- Free Work derived metric
+- Clock Out
+- multiplier overtime
+- manual start/stop
+- retroactive start
+- Free Work Wallet
+- overtime session snapshot
 
 ---
 
 # P7 - Timeline Correction and Unclosed Day
 
 - 5 minute correction
-- Clock In/Out correction
-- LOAFING correction
-- Overtime correction
-- correction preview
-- unclosed previous day detection
+- Clock In/Out
+- LOAFING
+- Overtime
+- unclosed day
 - midnight clamp
-- NEEDS_TIME_REVIEW
 
 ---
 
@@ -186,37 +238,28 @@ AUTO_OVERTIME은 구현하지 않는다.
 
 - Clock In
 - AWAITING_CLOCK_IN
-- actual regular payable interval
+- actual payable interval
 - Clock Out
-- break intersection
-- overtime coexistence
-
-Clock In 없이 regular pay 생성 금지.
 
 ---
 
 # P9 - Dashboard and Period Statistics
 
-- Full Dashboard
 - Today
 - Week
 - Month
-- Daily Summary Cache
 - History
-- Consumer statistics
-
-Year는 제외한다.
+- Daily Summary Cache
 
 ---
 
 # P10 - PWA, Offline, Backup
 
 - Install
-- Offline App Shell
-- Service Worker update safety
-- JSON Export
-- JSON Import preview
-- Reset scopes
+- Offline
+- Update safety
+- JSON Export/Import
+- Reset
 
 ---
 
@@ -224,27 +267,23 @@ Year는 제외한다.
 
 - Accessibility
 - Reduced Motion
-- Storage corruption recovery
-- Multi-tab race tests
-- Clock anomaly UX
-- Performance
+- corruption recovery
+- multi-tab races
+- Clock anomaly
+- performance
 - CSP
 - Production E2E
-- documentation verification
 
 ---
 
-## V1 Release Scope
-
-P0부터 P11까지 완료하되 기능 범위는 문서의 단순화된 V1을 넘지 않는다.
-
-특히 구현 금지:
+## V1 구현 금지
 
 - AUTO_OVERTIME
-- 복합 추가수당
+- 복합 수당
 - Paid Break
 - Overnight Schedule
 - Holiday/Leave
 - Multi Job
 - Year Statistics
 - Precision Tax Engine
+- Consumer Value 기본 기능

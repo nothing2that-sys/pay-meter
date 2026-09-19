@@ -4,35 +4,38 @@
 
 PayMeter는 시간을 돈의 흐름으로 보여주는 개인용 Money Timer다.
 
-정밀 근태 시스템을 목표로 하지 않는다.
+정밀 근태 시스템보다 "오늘이 얼마나 진행됐고, 그 시간 중 얼마를 일했고 얼마를 루팡했는지"를 작은 위젯에서 바로 느끼게 하는 것이 목적이다.
 
-핵심 경험은 다음과 같다.
+핵심 경험:
 
-- 지금 얼마가 채워지고 있는지 본다.
-- 오늘 목표 급여 중 얼마나 진행됐는지 본다.
-- 루팡 시간을 한 번의 버튼으로 기록한다.
-- 퇴근 후 남아 있는 시간을 무료봉사 가치로 본다.
-- 필요할 때만 추가근무를 유급으로 전환한다.
-- 작은 PiP 위젯으로 화면 구석에 계속 띄워둔다.
-- 소비재 가격과 비교하며 돈이 쌓이는 체감을 유지한다.
-- 잘못 누르거나 늦게 누른 기록은 하루 Timeline에서 간단히 고친다.
+- 화면 외곽만 봐도 오늘 진행률을 알 수 있음
+- 외곽선의 색 구간으로 정상근무와 LOAFING 시간 흐름을 알 수 있음
+- 오늘 지금까지 번 돈을 확인
+- 그중 루팡 상태에서 번 돈을 별도로 확인
+- Current Rate는 작은 보조 계측값으로 확인
+- 정규 종료 후에는 무료봉사 Wallet이 실시간으로 증가
+- 앱이 무료봉사 상황을 가볍게 비꼬는 캐릭터를 가짐
+- 작은 PiP로 화면 구석에 계속 띄울 수 있음
+- 잘못 기록한 시간은 Timeline에서 간단히 보정
 
-## 2. Primary Product Principle
+## 2. Product Principle
 
-이 앱의 최대 리스크는 계산식의 복잡도가 아니라 사용자가 일주일 뒤에도 켜는가이다.
+이 앱의 최대 리스크는 계산식 복잡도가 아니라 계속 띄워둘 가치가 있는가이다.
 
-따라서 V1은 다음을 우선한다.
+따라서 V1은:
 
+- 한눈에 읽히는 상태
+- 적은 숫자
+- 적은 설정
 - 적은 조작
-- 항상 보이는 Money Timer
-- 짧은 재미 피드백
-- 간단한 사후 보정
-- Local First
-- 이해 가능한 계산
+- 강한 시각적 진행감
+- 유머가 있는 상태 피드백
+
+을 우선한다.
 
 ## 3. Supported Pay Types
 
-V1 급여 입력:
+V1:
 
 - ANNUAL
 - MONTHLY
@@ -48,21 +51,7 @@ V1 급여 입력:
 
 DAILY pay basis는 V1에서 제외한다.
 
-## 4. FIXED_PERIOD Experience
-
-FIXED_PERIOD는 오늘 목표 금액을 채우는 경험으로 표현한다.
-
-예:
-
-- 오늘 목표 200,000원
-- 현재 진행 175,000원
-- 진행률 87.5%
-
-사용자가 조기 퇴근하더라도 Clock Out 시 오늘 정규 Daily Target은 100% 확정한다.
-
-이는 법적 일당 판정이 아니라 PayMeter의 기간 급여 시각화 규칙이다.
-
-## 5. FIXED_PERIOD Allocation
+## 4. FIXED_PERIOD Allocation
 
 기간 급여를 단순 근무일 수로 나누지 않는다.
 
@@ -74,20 +63,29 @@ FIXED_PERIOD는 오늘 목표 금액을 채우는 경험으로 표현한다.
 
 각 Day Target은 해당 날짜의 Planned Paid Duration 비율로 배정한다.
 
+Daily Target은 계산에 필요하지만 기본 화면에는 보여주지 않는다.
+
+## 5. FIXED_PERIOD Experience
+
+정규 근무 중 사용자가 보는 핵심 금액:
+
+### 오늘 번 돈
+
+현재까지 유급 진행시간에 대응하는 정규 진행 금액.
+
+### 루팡으로 번 돈
+
+오늘 Activity Eligible Time 중 LOAFING으로 기록된 유급시간에 대응하는 금액.
+
+이 값은 오늘 번 돈의 일부이며 추가로 더하는 돈이 아니다.
+
+Clock Out 시 FIXED_PERIOD의 해당 Day 정규 급여는 Daily Target 100%로 확정한다.
+
 ## 6. TIME_BASED Experience
 
 HOURLY 사용자는 Clock In과 Clock Out을 사용한다.
 
 Clock In 이후 실제 정규 유급시간만 Base Pay에 포함한다.
-
-Schedule은 다음 용도로 사용한다.
-
-- 예정 시작/종료 표시
-- Break 자동 적용
-- 정규 종료 후 무료봉사 경계
-- Overtime 경계
-
-Clock In 없이 Schedule만으로 실제 유급시간을 생성하지 않는다.
 
 ## 7. Work Schedule
 
@@ -96,228 +94,275 @@ V1 지원:
 - 요일별 근무 여부
 - 출근 시각
 - 퇴근 시각
-- unpaid break 0개 이상
+- unpaid break
 - 날짜별 간단 Override
 - 자정을 넘기지 않는 Schedule
 
-지원하지 않음:
-
-- paid break
-- overnight shift
-- rotating shift
-- holiday calendar
-- paid leave
-
 ## 8. Activity
-
-Activity는 최소 조작을 목표로 한다.
 
 기본 상태는 Inferred WORKING이다.
 
-사용자가 명시적으로 기록하는 것은 LOAFING뿐이다.
+Persist하는 Activity는 LOAFING interval뿐이다.
 
 Money Timer에서:
 
 - 루팡 시작
 - 업무 복귀
 
-버튼을 한 번 누르면 된다.
+한 번의 Action으로 전환한다.
 
-WORKING Session은 별도로 저장하지 않는다.
-
-LOAFING 시간은 실제 급여 차감에 사용하지 않는다.
+LOAFING은 FIXED_PERIOD 급여를 중단시키지 않는다.
 
 ## 9. Break
 
-Scheduled Break는 자동 적용한다.
+Scheduled unpaid break는 자동 적용한다.
 
 Break 중:
 
-- 정규 FIXED_PERIOD 진행은 unpaid break이므로 정지
-- TIME_BASED 정규급여도 정지
-- Activity 통계에서 제외
+- 정규 급여 진행 정지
+- 외곽 Progress 정지
+- Activity 집계 제외
 - Activity Toggle 비활성
 
-Break 직전에 LOAFING이었다면 Break 종료 후 다시 LOAFING 의도를 이어간다.
+LOAFING intent는 Break 이후 이어질 수 있다.
 
-## 10. Post Work and Free Work
+## 10. Perimeter Workday Timeline
 
-V1에는 AUTO_OVERTIME이 없다.
+기본 Money Timer 화면의 외곽 전체를 오늘 Planned Paid Duration 100%로 사용한다.
 
-Scheduled End가 지나고 Clock Out하지 않았으며 유급 Overtime Session이 없다면 무료봉사다.
+권장 시작점:
 
-무료봉사:
+- 화면 상단 중앙
+- 시계 방향 진행
 
-- 실제 Pay Total에 포함하지 않음
-- 시간 표시
-- Base Visualization Rate 기준 참고 가치 표시
+시간 Segment는 실제 순서대로 외곽선에 표현한다.
 
-## 11. Manual Overtime
+예:
+
+- WORKING
+- WORKING
+- LOAFING
+- WORKING
+- 현재 위치
+
+WORKING과 LOAFING은 서로 다른 Design Token 색상을 사용한다.
+
+Break는 외곽선에 별도 길이를 차지하지 않는다.
+
+현재 위치는 얇은 glow 또는 marker로 강조할 수 있다.
+
+## 11. Default Money Timer Information
+
+기본 화면:
+
+- Pay State
+- 진행률 %
+- 퇴근까지 남은 시간
+- 오늘 번 돈
+- 루팡으로 번 돈
+- 작은 Current Rate
+- Activity Toggle
+- Privacy Toggle
+
+기본 화면에서 제거:
+
+- Today Target 금액
+- "200,000원 중 175,000원" 형태
+- Consumer Value
+- 루팡률 숫자
+- Week/Month Card
+- 상세 Rate Breakdown
+
+루팡률과 상세 통계는 Dashboard에서 본다.
+
+## 12. Free Work
+
+AUTO_OVERTIME은 없다.
+
+Scheduled End 이후 Clock Out 전까지 유급 Overtime이 없다면 무료봉사 상태다.
+
+정규 급여 진행은 멈춘다.
+
+무료봉사 시간과 Base Visualization Rate 기준 환산 가치만 별도로 증가한다.
+
+## 13. Free Work Wallet
+
+무료봉사 상태에서는 기본 화면의 주인공을 Free Work Wallet으로 바꾼다.
+
+필수:
+
+- 외곽 Workday Progress = 100%
+- 오늘 번 돈은 완료된 정규 금액으로 작게 유지
+- Free Work Wallet을 크게 표시
+- 무료봉사 시간
+- 무료봉사 환산 가치
+- 무상 제공 Rate
+- 실제 지급액이 아니라는 의미
+- 퇴근 Action
+- 이후 Manual Overtime Action
+
+Wallet 예:
+
+무료봉사 WALLET
+₩ 18,742
+00:44:58
++ ₩6.944 / sec 상당 무상 제공
+
+무료봉사 금액은 실제 급여 총액에 포함하지 않는다.
+
+## 14. Free Work Voice
+
+무료봉사 화면은 단순 경고가 아니라 PayMeter의 캐릭터가 드러나는 상태다.
+
+톤:
+
+- 약간 냉소적
+- 상황을 비꼼
+- 짧음
+- 같은 문구를 계속 반복하지 않음
+
+금지:
+
+- 사용자 개인 비하
+- 능력/성격 조롱
+- 모욕
+- 공격적인 욕설
+
+예:
+
+- 정규 근무는 끝났는데 아직 여기 계시네요.
+- 회사 입장에서는 아주 좋은 시간대입니다.
+- 월급은 멈췄지만 당신의 시간은 계속 나가고 있습니다.
+- 무료봉사 Wallet이 건강하게 자라고 있습니다.
+- 퇴근 버튼은 아직 정상 작동합니다.
+
+카피는 매초/매분 바꾸지 않는다.
+
+금액 또는 시간 Threshold를 넘을 때 대표 문구가 바뀌는 방식을 권장한다.
+
+## 15. Manual Overtime
 
 V1 Overtime은 사용자 명시적 시작만 지원한다.
 
-정책은 multiplier 하나다.
+Policy는 multiplier 하나다.
 
-예:
+무료봉사 중 Overtime 시작 시:
 
-- 1.0x
-- 1.5x
-- 2.0x
-
-사용자가 Scheduled End 이후 늦게 Overtime을 시작하면:
-
-- 지금부터 시작
+- 지금부터
 - Scheduled End부터 소급
 
-중 하나를 빠르게 선택할 수 있다.
+중 하나를 선택할 수 있다.
 
-Timeline에서 이후 5분 단위로 보정할 수 있다.
+소급 전환 시 같은 구간의 Free Work Wallet 가치는 재계산되어 줄거나 0이 된다.
 
-## 12. Timeline Correction
+## 16. Money Timer Rate
 
-사용자는 오늘 또는 최근 Day의 핵심 시간 기록을 5분 단위로 수정할 수 있다.
+Current Rate는 보조 정보다.
 
-대상:
+작은 폰트로 화면 가장자리 또는 하단 구석에 둔다.
+
+REGULAR_WORK일 때만 정규 증가율을 표시한다.
+
+비유급 상태에서는 0 또는 비활성 표현을 사용한다.
+
+## 17. Document PiP
+
+지원 데스크톱에서 동일 Money Timer를 Always-on-top 위젯으로 제공한다.
+
+PiP에서도:
+
+- 외곽 Progress 개념
+- 진행률
+- 오늘 번 돈
+- 루팡으로 번 돈
+- Activity Toggle
+- Privacy
+- 작은 Rate
+
+를 유지한다.
+
+공간이 부족하면 상태 문구와 남은 시간을 축약할 수 있다.
+
+## 18. Privacy Mode
+
+Money Timer와 PiP에서 즉시 금액을 숨길 수 있어야 한다.
+
+Progress와 시간은 유지할 수 있다.
+
+## 19. Milestone
+
+10,000원 단위 하나만 지원한다.
+
+PiP에서는 Effect를 비활성화한다.
+
+Background catch-up Effect는 재생하지 않는다.
+
+새 외곽 Timeline을 방해하지 않는 짧은 Highlight만 사용한다.
+
+## 20. Settings
+
+Settings는 세 그룹만 기본 노출한다.
+
+### 급여 / 근무
+
+- 급여
+- 근무요일
+- 출근
+- 퇴근
+- 휴게
+
+### 화면
+
+- Privacy
+- Milestone
+
+### 데이터
+
+- Export
+- Reset
+
+금액 소수점 표시를 사용자 설정으로 두지 않는다.
+
+제품이 화면별 기본 Precision을 결정한다.
+
+## 21. Consumer Value
+
+초기 P1의 Consumer Value는 PAUSED_EXPERIMENT로 변경한다.
+
+이유:
+
+- 기본 Money Timer의 핵심 메시지와 연결이 약함
+- 설정이 복잡해짐
+- 오늘 진행 / 루팡 / 무료봉사보다 우선순위가 낮음
+
+V1 기본 UI와 Settings에서 제거한다.
+
+향후 Retention Test에서 필요성이 다시 확인될 때만 재검토한다.
+
+## 22. Timeline Correction
+
+오늘 또는 최근 Day의:
 
 - Clock In
 - Clock Out
-- LOAFING start/end
-- Overtime start/end
-
-목적은 정밀 근태 편집이 아니라 버튼을 늦게 누른 실수를 빠르게 복구하는 것이다.
-
-하루 Session 목록과 간단한 앞/뒤 이동 UI 정도로 제한한다.
-
-## 13. Unclosed Day
-
-Clock Out하지 않은 채 날짜가 바뀌면 PayMeter는 전날을 다음날까지 자동 연장하지 않는다.
-
-전날 Day는 midnight에서 임시 종료된 것처럼 계산하고:
-
-- 시간 확인 필요
-
-배지를 표시한다.
-
-사용자가 Timeline Correction으로 실제 종료시간을 정한다.
-
-## 14. Information Architecture
-
-### Money Timer
-
-필수:
-
-- 현재 진행 금액
-- 오늘 목표 금액
-- Today Progress
-- 현재 초당 Rate
-- 작은 Timer
-- Pay State
-- Activity Toggle
-- Privacy Mode
-- Dashboard 진입
-
-### Document PiP
-
-지원 브라우저의 데스크톱에서 Money Timer를 Always-on-top 형태로 제공한다.
-
-API 지원 여부를 feature detection으로 확인한다.
-
-PiP는 사용자의 명시적 Action으로 연다.
-
-### Full Dashboard
-
-필수:
-
-- Today
-- Week
-- Month
-- Working Time
-- Loafing Time
-- Loafing Ratio
-- Free Work
+- LOAFING
 - Overtime
-- Consumer Value
-- Timeline
-- History
 
-Year 통계는 V1에서 제외한다.
+시간을 5분 단위로 수정할 수 있다.
 
-## 15. Milestone
+## 23. Statistics
 
-V1 Milestone은 10,000원 단위 하나만 지원한다.
-
-조건:
-
-- foreground Money Timer에서만 Effect
-- PiP에서는 Effect 비활성
-- background 복귀 시 지나간 수십 개 Effect 재생 금지
-- 같은 threshold 중복 재생 금지
-- Reduced Motion 지원
-
-## 16. Consumer Value
-
-사용자는 소비재 이름과 금액을 직접 등록할 수 있다.
-
-예:
-
-- 커피 5,000원
-- 점심 12,000원
-- 치킨 25,000원
-
-표현 예:
-
-- 점심값 벌었음
-- 치킨까지 3,420원
-
-Consumer Value는 Pay Domain에 영향을 주지 않는 Presentation Derived Feature다.
-
-## 17. Privacy Mode
-
-Money Timer와 PiP에서 빠르게 금액을 숨길 수 있어야 한다.
-
-Privacy Mode에서도 Timer와 상태는 선택적으로 유지할 수 있다.
-
-상시 띄워놓는 화면의 어깨너머 노출을 주요 개인정보 위험으로 본다.
-
-## 18. Estimated Net
-
-정밀 세금 엔진은 만들지 않는다.
-
-선택적으로 사용자가 단일 예상 공제율을 설정할 수 있다.
-
-Estimated Net은 Presentation Derived Value이며 Gross Pay 원본을 변경하지 않는다.
-
-## 19. Statistics
-
-V1 기간 통계:
+V1:
 
 - Today
 - Week
 - Month
 
-제외:
+Year는 제외한다.
 
-- Year
+Rate Detail은 Dashboard에서 hour/minute/second를 지원할 수 있으나 기본 Money Timer에는 Current Rate 하나만 작게 표시한다.
 
-Rate Detail:
-
-- hour
-- minute
-- second
-
-제외:
-
-- millisecond
-
-## 20. Export
-
-V1은 JSON Export를 지원한다.
-
-Local First 제품에서 브라우저 데이터 삭제나 기기 변경에 대비하기 위한 신뢰 기능이다.
-
-JSON Import는 Migration 안정성이 확보되는 후반 V1 Phase에서 제공한다.
-
-## 21. Non Goals
+## 24. Non Goals
 
 - 정밀 근태 증명
 - 법적 임금 계산

@@ -11,30 +11,27 @@
 - IndexedDB
 - BroadcastChannel
 - Document Picture-in-Picture feature detection
-- CSS Variables
-
-정확한 라이브러리 버전은 구현 시작 시 Stable Version으로 고정한다.
+- SVG based perimeter visualization
+- CSS Variables Design Token
 
 ## 2. Architecture Goal
 
 UI와 계산을 분리한다.
 
-구조:
-
-UI Surfaces
+UI Surfaces:
 - Money Timer
 - Document PiP
 - Full Dashboard
 - Timeline
 - Settings
 
-Application
+Application:
 - Commands
 - Reconciliation
 - Snapshot Query
 - Export/Import
 
-Domain
+Domain:
 - Money
 - Schedule
 - Pay
@@ -43,13 +40,13 @@ Domain
 - Aggregation
 - Integrity
 
-Repositories
-- Settings
-- WorkDay
-- Session
-- History
+Presentation:
+- Perimeter Timeline Mapper
+- Money Timer View Model
+- Free Work Wallet Presenter
+- Free Work Copy Selector
 
-Infrastructure
+Infrastructure:
 - Device Clock
 - Time Zone Adapter
 - localStorage
@@ -60,140 +57,163 @@ Infrastructure
 
 ## 3. Pure Snapshot API
 
-대표 Query:
-
 buildPaySnapshot(input) -> PaySnapshot
 
-이 함수는 저장을 변경하지 않는다.
-
-금지:
-
-- Session 생성
-- DB write
-- Settings 변경
-- Migration
-- Broadcast
+저장 부작용 금지.
 
 ## 4. Command API
 
 예:
 
-- clockIn(workDayId, at)
-- clockOut(workDayId, at)
-- startLoafing(workDayId, at)
-- stopLoafing(workDayId, at)
-- startOvertime(workDayId, at, multiplier)
-- stopOvertime(workDayId, at)
-- correctTimeline(workDayId, patch)
+- clockIn
+- clockOut
+- startLoafing
+- stopLoafing
+- startOvertime
+- stopOvertime
+- correctTimeline
 
-각 Command는 Repository transaction 안에서 현재 상태를 다시 읽고 invariant를 검증한다.
+Command는 transaction 안에서 invariant를 검증한다.
 
-## 5. Reconciliation
-
-Reconciliation은 Snapshot Query와 다르다.
-
-용도:
-
-- 미마감 이전 Day 감지
-- integrityStatus 업데이트
-- stale cache invalidate
-- migration 후 projection 보정
-
-V1에는 AUTO_OVERTIME 생성 Reconciliation이 없다.
-
-## 6. Device Clock
-
-Clock interface:
-
-- nowEpochMs
-- localTimeZone
+## 5. Device Clock
 
 Production:
 
-- DeviceClock
+DeviceClock
 
 Test:
 
-- FakeClock
+FakeClock
 
-UI refresh loop가 Clock SSOT가 되어서는 안 된다.
+UI refresh loop는 시간 SSOT가 아니다.
 
-## 7. Time Zone
+## 6. Time Zone
 
-WorkDay materialization 시 localDate와 timeZoneSnapshot을 고정한다.
+WorkDay materialization 시 timeZoneSnapshot을 고정한다.
 
-과거 Day 계산은 저장된 timeZoneSnapshot을 사용한다.
+과거 Day를 현재 Time Zone으로 재해석하지 않는다.
 
-현재 기기 Time Zone으로 과거 Day를 다시 해석하지 않는다.
+## 7. Money
 
-DST 전용 근태 엔진은 만들지 않는다.
+integer micro-KRW BigInt 또는 동등한 exact arithmetic을 사용한다.
 
-V1은 WorkDay Snapshot과 epoch boundary를 기준으로 계산하며 DST 및 Time Zone 변경 Edge Case는 경고와 테스트로 관리한다.
+Rate를 Tick 누적하지 않는다.
 
-## 8. Money
-
-내부 금액은 integer micro-KRW BigInt를 권장한다.
-
-Rate를 Number float으로 Tick 누적하지 않는다.
-
-Period Allocation은 integer/rational 계산으로 구현한다.
-
-## 9. Schedule Engine
+## 8. Schedule Engine
 
 책임:
 
-- 유효 SalaryRevision과 ScheduleRevision 선택
-- Daily Override 적용
-- local civil time -> epoch boundary 변환
+- SalaryRevision / ScheduleRevision 선택
+- Daily Override
+- civil time -> epoch
 - unpaid break normalization
-- plannedPaidDuration 계산
-- WorkDayContext 생성
+- plannedPaidDuration
+- WorkDayContext
 
-V1 overnight Schedule은 validation에서 거부한다.
-
-## 10. Pay Engine
+## 9. Pay Engine
 
 책임:
 
 - FIXED_PERIOD target/progress
-- TIME_BASED clocked interval
-- Scheduled End
-- free work derived duration
+- TIME_BASED paid interval
+- todayEarned
+- loafingEarnedValue
+- scheduledProgressRatio
+- current/base rate
+- free work derived duration/value
 - overtime pay
-- Clock Out settlement
-- currentDisplayPay
+- settlement
 
-UI가 정규 금액과 Overtime을 직접 조합하지 않는다.
+UI가 Today Earned 또는 Loafing Earned를 재계산하지 않는다.
 
-## 11. Activity Engine
+## 10. Activity Engine
 
-기본 WORKING을 추론한다.
-
-Persisted Activity:
+Persist:
 
 - LOAFING interval only
 
-workingDuration은 eligible duration에서 loafing duration을 뺀 파생값이다.
+Derive:
 
-## 12. Overtime Engine
+- WORKING
+- loafingDuration
+- workingDuration
+- loafing ratio
+
+## 11. Perimeter Timeline Mapper
+
+Domain은 화면 외곽 SVG 좌표를 알지 않는다.
+
+Domain 또는 Query가 normalized time segment를 제공한다.
+
+Presentation은:
+
+- Workday path length
+- startRatio/endRatio
+- WORKING/LOAFING token
+
+을 SVG stroke segment로 변환한다.
+
+권장:
+
+- 하나의 rounded-rectangle path
+- pathLength=1 또는 100
+- segment별 stroke-dasharray / dashoffset
+- current marker 별도 layer
+
+이 구조로 Timeline Correction 후 Segment만 다시 계산하면 UI를 재사용할 수 있다.
+
+## 12. Free Work Wallet Presenter
+
+입력:
+
+- payState
+- freeWorkDuration
+- freeWorkReferenceValue
+- todayEarned
+- baseVisualizationRate
+
+출력:
+
+- Wallet view model
+- 실제 급여 아님 label
+- threshold bucket
+- sarcasm copy key
+
+Wallet 금액을 Storage SSOT로 만들지 않는다.
+
+## 13. Free Work Copy Selector
+
+Copy Selector는 Domain과 분리한다.
+
+입력:
+
+- duration/value threshold bucket
+
+출력:
+
+- deterministic or stable copy
+
+매 render마다 랜덤 문구를 선택하지 않는다.
+
+사용자를 비하하는 문구는 금지한다.
+
+## 14. Overtime Engine
 
 V1:
 
 - manual start/stop
 - multiplier only
-- current or retroactive-to-scheduled-end start
+- retroactive to Scheduled End
 - session calculation snapshot
 
-별도 Policy Engine은 만들지 않는다.
+AUTO_OVERTIME 없음.
 
-## 13. Persistence
+## 15. Persistence
 
 localStorage:
 
-- display preferences
-- privacy
-- consumer items
-- lightweight app setting pointers
+- lightweight preferences
+- prototype-only data when applicable
 
 IndexedDB:
 
@@ -204,75 +224,69 @@ IndexedDB:
 - summary cache
 - migration metadata
 
-## 14. Multi-tab Coordinator
+Consumer Items는 V1 저장구조에서 제외한다.
 
-V1:
+## 16. Multi-tab Coordinator
 
 - IndexedDB transaction
 - unique indexes
 - deterministic IDs
 - BroadcastChannel invalidation
 
-BroadcastChannel 수신 시 메모리 상태를 그대로 합치지 않는다.
-
-Repository를 다시 읽는다.
-
 Web Locks는 기본 의존성이 아니다.
 
-## 15. Document PiP
+## 17. Document PiP
 
-Document PiP adapter는 UI feature layer에 둔다.
+PiP와 본문은 같은 Store/Snapshot Query를 사용한다.
 
-원칙:
+PiP open/close가 Session lifecycle에 영향 없음.
 
-- API feature detection
-- user gesture로 open
-- PiP와 본문이 동일 Store/Snapshot Query 사용
-- PiP open/close가 Session lifecycle에 영향 없음
-- PiP에서는 Milestone Effect disabled
+## 18. State Management
 
-지원하지 않으면 일반 Compact Money Timer로 fallback.
-
-## 16. State Management
-
-공유할 최소 상태:
+공유 최소 상태:
 
 - current WorkDay
 - current PaySnapshot
 - display preferences
-- active UI commands state
-
-DB 원본 전체를 거대한 UI Store에 복제하지 않는다.
+- active command state
 
 Money Timer, PiP, Dashboard가 같은 Query 결과를 사용한다.
 
-## 17. Timeline Correction
+## 19. Settings Architecture
 
-Application Command가 수정 전후 invariant를 검증한다.
+Settings Model과 화면 노출을 분리한다.
+
+V1 기본 Settings Surface는:
+
+- Pay/Work
+- Display
+- Data
+
+세 그룹만 노출한다.
+
+Advanced 후보는 실제 필요성이 확인되기 전까지 숨긴다.
+
+## 20. Timeline Correction
 
 Correction 후:
 
-- affected WorkDay reload
+- WorkDay reload
 - cache invalidate
 - Snapshot rebuild
 - Broadcast invalidate
 
-## 18. PWA
+Perimeter Timeline은 새 Segment 결과를 그대로 다시 렌더링한다.
 
-목표:
+## 21. PWA
 
 - install
 - offline app shell
-- local data calculation
+- local calculation
 - versioned migration
 
 Service Worker는 Clock 또는 Pay Engine SSOT가 아니다.
 
-업데이트된 앱과 오래 열린 탭이 동시에 존재할 수 있음을 고려한다.
-
-## 19. Error Handling
-
-분류:
+## 22. Error Handling
 
 - Validation Error
 - Storage Error
@@ -282,55 +296,10 @@ Service Worker는 Clock 또는 Pay Engine SSOT가 아니다.
 
 자동 전체 reset 금지.
 
-사용자 수정 가능한 문제는 Timeline 또는 Data Recovery UI로 연결한다.
+## 23. Performance
 
-## 20. Security and Privacy
+Today Snapshot과 Perimeter Segment 계산은 현재 Day 데이터만 사용한다.
 
-- CSP 권장
-- third-party script 최소화
-- 원격 analytics 기본 없음
-- 금액 숨김
-- JSON Export
+SVG path geometry는 매 Tick 재생성하지 않고 layout 변경 시 재사용할 수 있다.
 
-Local Only는 물리적 화면 노출까지 해결하지 않으므로 Privacy Mode를 별도 제공한다.
-
-## 21. Performance
-
-Money Timer는 자주 재계산되므로 Today Snapshot은 현재 Day 데이터만 사용해 빠르게 계산한다.
-
-Week/Month는 Daily Summary Cache를 사용할 수 있다.
-
-Cache는 항상 재생성 가능해야 한다.
-
-## 22. Suggested Source Layout
-
-src/
-- app/
-- domain/
-  - money/
-  - schedule/
-  - pay/
-  - activity/
-  - overtime/
-  - integrity/
-  - aggregation/
-- application/
-  - commands/
-  - queries/
-  - reconciliation/
-  - timeline/
-- infrastructure/
-  - clock/
-  - timezone/
-  - storage/
-  - broadcast/
-  - pip/
-  - pwa/
-- features/
-  - money-timer/
-  - dashboard/
-  - timeline/
-  - settings/
-  - privacy/
-  - consumer-value/
-- tests/
+금액/marker position만 Snapshot에 따라 갱신한다.

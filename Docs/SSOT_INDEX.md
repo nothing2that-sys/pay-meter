@@ -22,15 +22,13 @@
 
 PayMeter는 정밀 근태 도구가 아니라 상시 띄워두는 캐주얼 Money Timer다.
 
-우선순위는 다음과 같다.
+우선순위:
 
 1. 계속 켜두고 싶은가
-2. 조작이 적은가
-3. 실수해도 쉽게 보정 가능한가
-4. 같은 원본 데이터에서 같은 금액이 재현되는가
-5. 세부 통계가 이해하기 쉬운가
-
-법적 급여 계산, 회사 근태 시스템 대체, 생산성 감시는 목표가 아니다.
+2. 현재 하루 진행상태가 한눈에 보이는가
+3. 돈 정보가 과하지 않고 재미를 주는가
+4. 조작이 적은가
+5. 같은 원본 데이터에서 같은 결과가 재현되는가
 
 ## 3. 핵심 Surface
 
@@ -41,8 +39,6 @@ PayMeter는 정밀 근태 도구가 아니라 상시 띄워두는 캐주얼 Mone
 - Settings
 
 Money Timer가 기본 화면이며 Full Dashboard는 삭제하지 않는다.
-
-Document PiP는 지원 브라우저의 데스크톱 상시 표시 수단이다. 지원하지 않는 환경에서는 일반 Money Timer를 사용한다.
 
 ## 4. 시간 SSOT
 
@@ -70,13 +66,9 @@ Document PiP는 지원 브라우저의 데스크톱 상시 표시 수단이다. 
 - PAID_OVERTIME
 - CLOCKED_OUT
 
-AWAITING_CLOCK_IN은 TIME_BASED에서만 사용한다.
-
-시간 오류나 데이터 손상은 Pay State에 섞지 않고 별도 integrityStatus로 표시한다.
+시간 오류나 데이터 손상은 별도 integrityStatus로 표시한다.
 
 ## 6. Activity Contract
-
-V1 Activity 의미는 단순화한다.
 
 - 유급 활동 가능 시간의 기본 상태는 WORKING
 - 사용자는 LOAFING만 명시적으로 기록
@@ -86,90 +78,134 @@ V1 Activity 의미는 단순화한다.
 - 휴게가 끝나면 휴게 직전의 LOAFING 의도를 유지
 - LOAFING은 FIXED_PERIOD 급여를 중단시키지 않음
 
-## 7. FIXED_PERIOD 핵심 Contract
+## 7. FIXED_PERIOD Contract
 
 ANNUAL, MONTHLY, WEEKLY는 기본 FIXED_PERIOD다.
 
 기간 급여를 근무일 수로 나누지 않는다.
 
-기간의 예정 유급시간 총합을 기준으로 일정한 Visualization Rate를 만든다.
-
 - Period Visualization Rate = Period Pay / Planned Paid Duration Of Period
 - Daily Target Pay = Period Pay × Planned Paid Duration Of Day / Planned Paid Duration Of Period
 
-퇴근 처리 시 FIXED_PERIOD의 해당 날짜 정규 Daily Target은 100% 확정한다.
+Daily Target Pay는 계산용 Domain 값이다.
 
-조기퇴근 차감 옵션은 V1에 없다.
+기본 Money Timer에 목표 금액 자체를 표시하지 않는다.
 
-ANNUAL은 V1에서 월 단위 배분을 위해 Annual / 12의 월 급여로 정규화한다.
+Clock Out 시 해당 날짜의 정규 Daily Target은 100% 확정한다.
 
-## 8. TIME_BASED 핵심 Contract
+## 8. TIME_BASED Contract
 
 HOURLY는 기본 TIME_BASED다.
 
 실제 정규 유급시간은 Clock In과 Clock Out을 기준으로 한다.
 
-Clock In 없이 Schedule만으로 실제 유급시간을 추정하지 않는다.
+## 9. Money Timer Presentation Contract
 
-## 9. 정규 종료 후 Contract
+기본 화면의 정보 우선순위:
+
+1. 화면 외곽 Progress Timeline
+2. 현재 상태
+3. 오늘 진행률
+4. 퇴근까지 남은 시간
+5. 오늘 번 돈
+6. 루팡으로 번 돈
+7. 작은 Current Rate
+8. Activity Toggle
+
+기본 화면에서 다음은 제거한다.
+
+- Today Target 금액 표시
+- Consumer Value
+- 과도한 Rate 상세
+- 카드형 통계 나열
+
+## 10. Perimeter Timeline Contract
+
+화면 외곽 한 바퀴는 해당 Day의 Planned Paid Duration 100%를 뜻한다.
+
+- 정상근무 구간과 LOAFING 구간은 서로 다른 색으로 표시
+- 시간 순서대로 Segment가 외곽선에 누적
+- unpaid break는 100% 분모와 Segment 진행에서 제외
+- Break 동안 Timeline 진행이 멈춤
+- Scheduled End에 도달하면 100% 완료
+- Presentation은 SVG 또는 동등한 normalized path 기반 구현 권장
+
+색상 값 자체는 UX 구현에서 조정 가능하지만 두 상태는 명확히 구분되어야 한다.
+
+## 11. Money Semantics
+
+기본 화면의 돈 정보는 두 개를 핵심으로 한다.
+
+### Today Earned
+
+현재 시점까지 정규/유급 규칙에 따라 인정되는 오늘의 진행 금액.
+
+### Loafing Earned Value
+
+Activity Eligible Time 중 LOAFING 구간에 대응하는 급여 가치.
+
+이는 Today Earned 안에 포함되는 참고 Breakdown이며 추가수당이나 별도 급여가 아니다.
+
+## 12. Current Rate
+
+Current Rate는 보조 계측값이다.
+
+- REGULAR_WORK: Base Visualization Rate
+- BEFORE_WORK: 0
+- UNPAID_BREAK: 0
+- AFTER_SCHEDULE_UNPAID: 0 regular rate
+- OFF_DAY: 0
+
+기본 화면 구석에 작게 표시한다.
+
+## 13. Free Work Contract
 
 AUTO_OVERTIME은 V1에 없다.
 
-Scheduled End 이후 Clock Out 전까지 기본 상태는 AFTER_SCHEDULE_UNPAID다.
+Scheduled End 이후 Clock Out 전까지 유급 Overtime이 없으면 AFTER_SCHEDULE_UNPAID다.
 
 무료봉사는 저장 Session이 아니라 Schedule End, Clock Out, Overtime Session에서 파생한다.
 
-사용자가 추가근무를 시작하면 단일 multiplier가 적용된 PAID_OVERTIME이 된다.
+무료봉사 금액은 실제 지급 급여가 아니다.
 
-추가근무 시작 시 사용자는 현재 시각 또는 정규 종료 시각부터 소급 시작을 선택할 수 있다.
+## 14. Free Work Wallet Contract
 
-## 10. Overtime Contract
+AFTER_SCHEDULE_UNPAID에서는 일반 Money Timer를 그대로 연장하지 않는다.
 
-V1 추가근무 정책은 multiplier 하나뿐이다.
+- 외곽 Progress Timeline은 100% 완료 상태 유지
+- Today Earned의 정규 증가 정지
+- Free Work Wallet을 주요 UI로 전환
+- Wallet에 freeWorkDuration과 freeWorkReferenceValue 표시
+- freeWorkReferenceValue는 Base Visualization Rate 기준
+- 실제 지급액과 명확히 분리
+- 상황을 비꼬는 짧은 카피를 함께 표시
 
-예:
+조롱의 대상은 사용자가 아니라 "정규 근무가 끝났는데 무상 노동 가치가 쌓이는 상황"이다.
 
-- 1.0x
-- 1.5x
-- 2.0x
+개인 비하, 모욕, 공격적 표현은 사용하지 않는다.
 
-별도 Policy Version 시스템은 두지 않는다.
+## 15. Overtime Contract
 
-다만 Overtime Session에는 과거 금액 불변성을 위해 다음 계산 Snapshot을 저장한다.
+V1 추가근무는 multiplier 하나만 지원한다.
+
+Overtime Session에는:
 
 - multiplierBasisPointsSnapshot
 - baseRateSnapshot
 
-설정을 바꿔도 종료된 Session의 금액은 바뀌지 않는다.
+을 저장한다.
 
-## 11. Day and Time Zone Contract
+무료봉사 구간을 Overtime으로 소급 전환하면 Free Work Wallet은 원본 Segment 재계산 결과에 따라 줄어들거나 0이 된다.
 
-Schedule은 Local Civil Time 기준이다.
+## 16. Day and Time Zone Contract
 
-Work Day가 materialize될 때 timeZoneSnapshot과 해당 Day의 Schedule Snapshot을 고정한다.
+Work Day가 materialize될 때 timeZoneSnapshot과 Schedule Snapshot을 고정한다.
 
-이후 디바이스 Time Zone이 바뀌어도 이미 존재하는 과거 Day를 다시 해석하지 않는다.
+과거 Day는 현재 Device Time Zone으로 재해석하지 않는다.
 
-V1은 자정을 넘기는 Schedule을 지원하지 않는다.
+V1은 Overnight Schedule을 지원하지 않는다.
 
-이전 Day가 Clock Out 없이 자정을 넘기면 자동으로 다음날까지 연장 계산하지 않는다.
-
-- 계산 구간은 해당 Day의 local midnight에서 임시 clamp
-- integrityStatus = NEEDS_TIME_REVIEW
-- Timeline Correction으로 실제 종료 시각을 보정
-
-## 12. 과거 데이터 불변성
-
-다음은 과거 결과를 바꾸면 안 된다.
-
-- 급여 설정 변경
-- Weekly Schedule 변경
-- Overtime multiplier 변경
-- Time Zone 변경
-
-이를 위해 Salary와 Schedule은 effective history를 유지하고, materialized Work Day는 해당 날짜의 계산 Snapshot을 가진다.
-
-## 13. 저장 원칙
+## 17. 저장 원칙
 
 - 현재 표시 금액을 Tick마다 저장하지 않는다.
 - 무료봉사 Session을 저장하지 않는다.
@@ -177,74 +213,64 @@ V1은 자정을 넘기는 Schedule을 지원하지 않는다.
 - 원본 Event와 계산에 필요한 Snapshot만 저장한다.
 - Daily Summary는 Cache이며 SSOT가 아니다.
 - Snapshot 계산 함수는 저장 부작용이 없는 Pure Function이어야 한다.
-- 상태 변경 Command는 IndexedDB transaction 안에서 검증과 쓰기를 함께 수행한다.
 
-## 14. Multi-tab Contract
+## 18. Multi-tab Contract
 
-V1은 Web Locks를 필수로 하지 않는다.
-
-우선 사용:
+V1 우선 도구:
 
 - deterministic natural key
 - IndexedDB unique index
 - IndexedDB readwrite transaction
 - BroadcastChannel invalidation
 
-동일 Day에서 서로 충돌하는 Command는 같은 transaction 안에서 현재 상태를 검증한다.
+Web Locks는 필수가 아니다.
 
-## 15. UI 핵심 Contract
+## 19. Settings Contract
 
-Money Timer:
+V1 Settings는 다음 세 그룹으로 제한한다.
 
-- 큰 현재 금액
-- 오늘 목표와 진행률
-- 초당 Rate
-- Timer
-- Activity Toggle
+### 급여 / 근무
+
+- 급여
+- 근무요일
+- 출근
+- 퇴근
+- unpaid break
+
+### 화면
+
 - Privacy Mode
-- Full Dashboard 진입
+- Milestone On/Off
 
-Full Dashboard:
+### 데이터
 
-- Today
-- Week
-- Month
-- Activity
-- Free Work
-- Overtime
-- Consumer Value
-- Timeline and History
+- Export
+- Reset
 
-Year와 ms당 Rate는 V1에서 제외한다.
+Consumer Item과 금액 소수 표시 같은 저가치 설정은 기본 Settings에서 제거한다.
 
-## 16. Retention Features
+## 20. Paused Experiment
 
-V1의 재미와 지속 사용을 위해 다음을 핵심 기능으로 취급한다.
+Consumer Value는 초기 Prototype 실사용에서 제품 흐름과 어울림이 낮다는 피드백으로 PAUSED_EXPERIMENT 상태다.
 
-- 10,000원 Milestone
-- 소비재 환산
-- Document PiP
-- Privacy Mode
-- Today Progress
-- LOAFING Toggle
+기본 UI, Settings, V1 Release Scope에서 제외한다.
 
-Milestone은 PiP에서 비활성화한다.
-
-## 17. 핵심 불변 조건
+## 21. 핵심 불변 조건
 
 - 같은 입력과 같은 now에는 같은 Snapshot
 - UI refresh 빈도는 금액에 영향 없음
-- FIXED_PERIOD 조기퇴근은 Daily Target 100% 확정
-- TIME_BASED는 Clock In 없는 시간을 실제 유급시간으로 만들지 않음
-- 무료봉사는 실제 급여 합계에 포함하지 않음
-- Overtime은 사용자가 명시적으로 시작
-- 과거 종료 Overtime은 현재 multiplier 변경으로 변하지 않음
-- 이전 Day 미마감은 다음날로 자동 연장하지 않음
+- Today Earned와 Loafing Earned Value는 중복 합산하지 않음
+- Free Work Wallet은 실제 급여 합계에 포함하지 않음
+- 무료봉사 중 정규 Current Rate는 0
+- 외곽 Timeline의 100%는 Planned Paid Duration 기준
+- unpaid break는 외곽 진행률에서 제외
 - 과거 Day는 현재 Time Zone으로 재해석하지 않음
 - 손상 데이터는 정상 숫자로 조용히 표시하지 않음
 
-## 18. 현재 설계 상태
+## 22. 현재 설계 상태
 
-DESIGN REWORK BASELINE
+P1 UX REWORK BASELINE
 
-Retention Prototype을 먼저 구현해 제품 지속 사용 가능성을 확인한 뒤 V1 전체를 확장한다.
+P1 Closeout 후 실제 사용 피드백을 반영해 기본 Money Timer UX를 재구성하는 단계다.
+
+P2 착수 전에 P1 UX Rework 화면을 구현하고 다시 Retention Test를 수행한다.
