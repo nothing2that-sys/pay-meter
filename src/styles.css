@@ -63,6 +63,7 @@ button:disabled {
 .money-timer-frame {
   --active-state: #7f8a96;
   --active-soft: #313942;
+  --perimeter-color: #48b8ad;
   position: relative;
   width: 100dvw;
   height: 100dvh;
@@ -93,6 +94,7 @@ button:disabled {
 .money-timer-frame.state-freework {
   --active-state: var(--state-freework-strong);
   --active-soft: var(--state-freework-soft);
+  --perimeter-color: #d45a66;
   background:
     radial-gradient(circle at 50% 32%, rgba(240, 90, 103, 0.12), transparent 44%),
     linear-gradient(180deg, #211216 0%, #0d1117 80%);
@@ -106,7 +108,7 @@ button:disabled {
   height: 100%;
   overflow: visible;
   pointer-events: none;
-  color: var(--active-state);
+  color: var(--perimeter-color);
 }
 .perimeter path {
   fill: none;
@@ -144,11 +146,10 @@ button:disabled {
 .brand-block {
   position: absolute;
   top: 3px;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 2px;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
   white-space: nowrap;
 }
@@ -346,6 +347,15 @@ button:disabled {
   border-radius: 18px;
   font-weight: 820;
 }
+.loaf-button {
+  min-height: 76px;
+  border-radius: 23px;
+  font-size: 17px;
+}
+.loaf-button svg {
+  width: 25px;
+  height: 25px;
+}
 .loaf-button,
 .clockout-button {
   border: 1px solid color-mix(in srgb, var(--active-state) 72%, #1a2229);
@@ -447,6 +457,9 @@ button:disabled {
   .brand {
     font-size: 24px;
   }
+  .header-actions {
+    gap: 6px;
+  }
   .round-icon-button {
     width: 36px;
     height: 36px;
@@ -461,7 +474,10 @@ button:disabled {
   .wallet-duration-row {
     margin-top: 22px;
   }
-  .loaf-button,
+  .loaf-button {
+    min-height: 68px;
+    font-size: 16px;
+  }
   .clockout-button,
   .detail-button {
     min-height: 50px;
@@ -479,7 +495,7 @@ button:disabled {
   }
   .timer-layout,
   .freework-wallet {
-    grid-template-columns: minmax(0, 1.25fr) minmax(230px, 0.75fr);
+    grid-template-columns: minmax(0, 1.42fr) minmax(230px, 0.58fr);
     grid-template-rows: minmax(0, 1fr);
     gap: 30px;
   }
@@ -488,10 +504,14 @@ button:disabled {
     justify-content: center;
   }
   .main-money strong {
-    font-size: clamp(82px, 11vw, 142px);
+    font-size: clamp(104px, 15vw, 184px);
   }
   .wallet-money {
-    font-size: clamp(86px, 11.5vw, 148px);
+    font-size: clamp(108px, 15.5vw, 190px);
+  }
+  .loaf-button {
+    min-height: 82px;
+    font-size: 18px;
   }
   .loafing-inline-card {
     width: min(72%, 330px);
@@ -514,10 +534,13 @@ button:disabled {
     height: 34px;
   }
   .main-money strong {
-    font-size: clamp(74px, 10vw, 114px);
+    font-size: clamp(88px, 13vw, 138px);
   }
   .wallet-money {
-    font-size: clamp(78px, 10.5vw, 120px);
+    font-size: clamp(92px, 13.5vw, 144px);
+  }
+  .loaf-button {
+    min-height: 66px;
   }
   .loafing-inline-card,
   .wallet-duration-row {
