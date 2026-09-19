@@ -100,7 +100,10 @@ test('LOAFING preserves elapsed working color and paints only the later range am
   await freshApp(page, new Date(2026, 8, 21, 9, 48).getTime());
   await setupSalary(page);
 
-  await expect(page.getByTestId('perimeter-timeline')).toHaveAttribute('data-progress-ratio', '0.1');
+  await expect(page.getByTestId('perimeter-timeline')).toHaveAttribute(
+    'data-progress-ratio',
+    '0.1',
+  );
   const workingPathAtSwitch = await page
     .locator('.perimeter-segment-working .perimeter-segment-core')
     .getAttribute('d');

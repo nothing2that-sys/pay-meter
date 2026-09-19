@@ -59,8 +59,7 @@ function pointOnStep(step: PathStep, fraction: number): { x: number; y: number }
     };
   }
 
-  const angle =
-    (step.startDeg + (step.endDeg - step.startDeg) * clamped) * (Math.PI / 180);
+  const angle = (step.startDeg + (step.endDeg - step.startDeg) * clamped) * (Math.PI / 180);
   return {
     x: step.cx + R * Math.cos(angle),
     y: step.cy + R * Math.sin(angle),
@@ -113,11 +112,7 @@ export function buildPerimeterProgressPath(progressRatio: number): string {
   return buildPerimeterRangePath(0, progressRatio);
 }
 
-export function PerimeterTimeline({
-  progressRatio,
-  segments,
-  complete = false,
-}: Props) {
+export function PerimeterTimeline({ progressRatio, segments, complete = false }: Props) {
   const progress = complete ? 1 : Math.min(1, Math.max(0, progressRatio));
   const visibleSegments =
     segments.length > 0
