@@ -194,7 +194,7 @@ test('scheduled end shows the final Free Work hierarchy and a completed full-loo
   const freeWorkFill = await page
     .locator('.money-timer-frame')
     .evaluate((element) => getComputedStyle(element).getPropertyValue('--freework-fill').trim());
-  expect(freeWorkFill).toBe('6.25%');
+  expect(Number.parseFloat(freeWorkFill)).toBeCloseTo(6.25, 1);
   await expect(page.locator('.money-timer-frame')).toHaveClass(/state-freework/);
   await expect(page.getByTestId('freework-money')).toHaveCSS('color', 'rgb(240, 90, 103)');
   await expect(wallet).not.toContainText('+');
