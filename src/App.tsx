@@ -464,6 +464,7 @@ export default function App() {
       onTogglePrivacy={togglePrivacy}
       onClockOut={clockOut}
       onDetails={() => setScreen('dashboard')}
+      onSettings={() => setScreen('settings')}
       onOpenPiP={openPiP}
       pipSupported={supportsDocumentPiP()}
     />
