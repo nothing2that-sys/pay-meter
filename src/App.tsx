@@ -496,7 +496,6 @@ export default function App() {
     };
   }, []);
 
-
   useEffect(() => {
     const currentDate = localDateFromEpoch(nowEpochMs);
     if (dayControl?.localDate !== currentDate) setDayControl(loadPrototypeDayControl(currentDate));

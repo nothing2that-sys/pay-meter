@@ -168,7 +168,6 @@ export function MoneyTimer({
                     </strong>
                   </div>
                 </div>
-
               </div>
             </section>
 

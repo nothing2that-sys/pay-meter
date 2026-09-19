@@ -800,9 +800,6 @@ button:disabled {
   color: #071817;
 }
 
-
-
-
 @media (max-width: 480px) {
   .schedule-input-row {
     grid-template-columns: 1fr 1fr;
