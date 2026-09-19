@@ -174,6 +174,8 @@ P2는 이 결과를 보기 전에 시작하지 않는다.
 
 ## 8. Current Status
 
-**P1_UX_REWORK_REQUIRED**
+**P1R_DESIGN_READY**
 
-P1 기능 구현 실패가 아니라 실제 사용을 통해 기본 화면의 정보 구조를 수정해야 한다는 의미다.
+상세 설계는 `Docs/P1R_RETENTION_UX_REWORK_DESIGN.md`에 확정되어 있다.
+
+다음 단계는 P1R 구현이며, 구현 완료 후 `P1R_IMPLEMENTED_READY_FOR_RETENTION` 상태로 다시 실제 업무 중 Retention Test를 수행한다. P2는 그 결과 전까지 착수하지 않는다.

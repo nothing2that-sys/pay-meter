@@ -376,3 +376,30 @@ Badge를 표시한다.
 - Reduced Motion
 - Screen Reader label
 - tabular nums
+
+
+## 23. P1R Detailed Design Binding
+
+P1R 구현은 `Docs/P1R_RETENTION_UX_REWORK_DESIGN.md`를 상세 기준으로 사용한다.
+
+추가 확정 사항:
+
+- Timeline은 browser viewport 전체가 아니라 MoneyTimerFrame 외곽을 따른다.
+- Desktop Frame 권장 크기는 width 520~580px, height 600~720px.
+- Perimeter 시작점은 상단 중앙, 진행 방향은 시계 방향.
+- 100%에서는 moving current marker를 제거한다.
+- 상태별 시간 Label:
+  - BEFORE_WORK: 출근까지
+  - REGULAR_WORK / LOAFING: 퇴근까지
+  - UNPAID_BREAK: 휴게 종료까지
+- 비유급 상태의 regular rate는 숨기지 않고 0 값으로 Dimmed 표시한다.
+- Free Work Copy Bucket은 금액이 아니라 duration 기준을 사용한다:
+  - FW0: 0~15분
+  - FW1: 15~30분
+  - FW2: 30~60분
+  - FW3: 60분 이상
+- 같은 날짜/같은 Bucket에서는 deterministic하게 같은 문구를 유지한다.
+- P1R functional gate는 Clock Out까지다.
+- P1R에서는 Overtime multiplier source를 임의로 만들지 않는다.
+- 따라서 P1R Test Build에서는 작동하지 않는 [추가근무] CTA를 노출하지 않는다.
+- 이 문서의 Overtime Conversion UX는 정식 V1/P6 구현 방향이며 P1R에서 기능 구현하지 않는다.

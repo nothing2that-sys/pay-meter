@@ -55,7 +55,7 @@ Closeout HEAD 이후 실제 사용 피드백이 발생했다.
 
 상태:
 
-REQUIRED_BEFORE_P2
+DESIGN_READY_IMPLEMENTATION_REQUIRED
 
 목적:
 
@@ -89,6 +89,8 @@ REQUIRED_BEFORE_P2
 - Remaining Time
 - small Current Rate
 
+상세 설계 정본: `Docs/P1R_RETENTION_UX_REWORK_DESIGN.md`
+
 ## P1R-3 Free Work Wallet
 
 정규 종료 후:
@@ -101,7 +103,7 @@ REQUIRED_BEFORE_P2
 - 실제 지급액 아님 label
 - threshold based sarcasm copy
 
-실제 사용을 위해 Free Work Wallet을 멈출 수 있는 최소 Clock Out marker/action을 Prototype 범위에 포함할 수 있다.
+Free Work Wallet을 실제로 종료할 수 있는 최소 Clock Out action은 P1R 필수 범위다.
 
 정식 History/Settlement 구조는 이후 Phase에서 교체한다.
 
@@ -146,9 +148,11 @@ PAUSED_EXPERIMENT
 - PiP에서도 핵심 정보가 유지
 - Mobile/Compact에서 외곽 path가 깨지지 않음
 
+P1R에서는 Overtime multiplier source를 새로 만들지 않으며 실제 Overtime 금액 기능과 작동하지 않는 CTA를 구현하지 않는다. Overtime은 P6에서 정식 구현한다.
+
 P1R 완료 후 Retention Test를 다시 시작한다.
 
-P2는 이 Retention Test 이전에 착수하지 않는다.
+P2는 이 Retention Test 결과 이전에 착수하지 않는다.
 
 ---
 

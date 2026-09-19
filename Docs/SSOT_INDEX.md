@@ -16,6 +16,8 @@
 8. 07_TEST_AND_ACCEPTANCE.md
 9. 08_OPEN_DECISIONS.md
 
+P1R 단계의 상세 구현 정본은 `P1R_RETENTION_UX_REWORK_DESIGN.md`다. 이 문서는 P1R 범위에서 `04_UI_UX_SPEC.md`를 구체화하며, 00~04 상위 SSOT를 덮어쓸 수 없다. P1R 구현 중 05~08의 일반 표현과 상세 설계가 충돌하면 P1R 범위에서는 상세 설계를 따른다.
+
 충돌하거나 해석할 수 없는 계산 Contract는 코드에서 임의 결정하지 않고 문서를 먼저 수정한다.
 
 ## 2. 제품 정의
@@ -269,8 +271,8 @@ Consumer Value는 초기 Prototype 실사용에서 제품 흐름과 어울림이
 
 ## 22. 현재 설계 상태
 
-P1 UX REWORK BASELINE
+P1R_DESIGN_READY
 
-P1 Closeout 후 실제 사용 피드백을 반영해 기본 Money Timer UX를 재구성하는 단계다.
+상세 설계는 `Docs/P1R_RETENTION_UX_REWORK_DESIGN.md`에 확정되어 있다.
 
-P2 착수 전에 P1 UX Rework 화면을 구현하고 다시 Retention Test를 수행한다.
+P2 착수 전에 P1R을 구현하고 실제 업무 중 Retention Test를 다시 수행한다.

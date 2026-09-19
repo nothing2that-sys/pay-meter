@@ -165,13 +165,19 @@ Clock Out 이후:
 
 P1R Prototype에서는 최소 stop marker로 검증 가능.
 
-## 14. Manual Overtime
+## 14. Overtime Scope Boundary
 
-소급 전환 시:
+정식 V1/P6에서는 소급 Overtime 계약을 검증한다.
 
-- 겹치는 Free Work 구간 제거
-- Wallet reference value 재계산
-- Overtime pay 별도 증가
+P1R 구현 Gate에서는 실제 Overtime 금액 기능을 구현하거나 테스트하지 않는다.
+
+P1R에서는:
+
+- 작동하지 않는 Overtime CTA 비노출
+- Clock Out까지 실제 기능 검증
+- Free Work Wallet과 실제 급여 분리 검증
+
+을 수행한다.
 
 ## 15. Reload
 
@@ -264,3 +270,26 @@ Consumer Item Editor 없음.
 - Mobile Smoke PASS
 - Desktop Smoke PASS
 - Documentation Match PASS
+
+
+## 25. P1R Detailed Test Matrix
+
+상세 Matrix는 `Docs/P1R_RETENTION_UX_REWORK_DESIGN.md`를 구현 기준으로 사용한다.
+
+P1R 추가 필수:
+
+- Frame perimeter 0 / 25 / 50 / 100 percent
+- Break paid-coordinate freeze
+- one/multiple LOAFING segment mapping
+- 100 percent current marker hidden
+- state-specific time label
+- Free Work duration buckets FW0/FW1/FW2/FW3
+- same day + same bucket deterministic copy
+- idempotent Prototype Clock Out
+- reload after Clock Out does not resume Wallet
+- legacy consumerItems/showDecimals data does not crash
+- 360x440 PiP overflow none
+- 320x568 mobile safe-area smoke
+- 560x680 desktop frame smoke
+
+P1R Gate에서 Overtime settlement는 제외한다.

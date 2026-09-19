@@ -303,3 +303,40 @@ Today Snapshot과 Perimeter Segment 계산은 현재 Day 데이터만 사용한�
 SVG path geometry는 매 Tick 재생성하지 않고 layout 변경 시 재사용할 수 있다.
 
 금액/marker position만 Snapshot에 따라 갱신한다.
+
+
+## 24. P1R Implementation File Plan
+
+P1R 상세 파일 경계는 `Docs/P1R_RETENTION_UX_REWORK_DESIGN.md`를 따른다.
+
+권장 신규 Presentation 모듈:
+
+- `src/presentation/PerimeterTimeline.tsx`
+- `src/presentation/MoneyTimer.tsx`
+- `src/presentation/FreeWorkWallet.tsx`
+- `src/presentation/freeWorkCopy.ts`
+- `src/presentation/moneyTimerViewModel.ts`
+
+기존 `src/App.tsx`는 다음 책임으로 축소한다.
+
+- shared settings
+- DeviceClock now
+- Snapshot Query
+- persistence command wiring
+- Main/PiP portal
+- screen state
+
+P1R Prototype Domain은 기존 `src/domain/prototype.ts`를 확장한다.
+
+P1R에서 새 npm dependency를 추가하지 않는다. SVG/CSS/React로 구현한다.
+
+Prototype Storage에는 최소 `PrototypeDayControl`을 추가할 수 있다.
+
+- localDate
+- clockOutAtEpochMs
+
+Clock Out은 idempotent해야 하며 정식 WorkDay/IndexedDB 구조를 P1R에서 미리 만들지 않는다.
+
+Perimeter SVG Geometry는 layout resize 시에만 갱신하고 매 Tick 재생성하지 않는다.
+
+Free Work Copy Selector는 Presentation Pure Function으로 구현한다.

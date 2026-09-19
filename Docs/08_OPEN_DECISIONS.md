@@ -248,15 +248,50 @@ Consumer Editor와 decimal precision toggle 제거.
 
 를 검토한다.
 
-## O3. Rate Zero Presentation
+# P1R Additional Decisions
 
-비유급 상태에서:
+## D28. MoneyTimerFrame Boundary
 
-- 0.000/s 표시
-- dimmed 표시
-- 숨김
+상태: DECIDED
 
-중 실제 화면에서 가장 자연스러운 방식을 결정한다.
+Perimeter Timeline은 browser viewport 전체가 아니라 MoneyTimerFrame 외곽을 사용한다.
+
+Desktop 권장 Frame은 width 520~580px, height 600~720px다.
+
+## D29. Free Work Copy Threshold
+
+상태: DECIDED
+
+Free Work Copy는 급여 수준의 영향을 피하기 위해 금액이 아니라 Duration Bucket을 사용한다.
+
+- FW0: 0~15분
+- FW1: 15~30분
+- FW2: 30~60분
+- FW3: 60분 이상
+
+같은 localDate와 같은 Bucket에서는 deterministic한 같은 Copy를 유지한다.
+
+## D30. Rate Zero Presentation
+
+상태: DECIDED
+
+비유급 상태에서 regular current rate를 숨기지 않는다.
+
+0 값을 Dimmed 상태로 표시한다.
+
+Free Work Wallet의 reference rate와 regular current rate는 다른 의미로 표현한다.
+
+## D31. P1R Overtime Scope
+
+상태: DECIDED
+
+P1R functional gate는 Clock Out까지다.
+
+P1R에서는 Overtime multiplier source를 새로 만들지 않는다.
+
+작동하지 않는 Overtime CTA를 노출하지 않는다.
+
+Overtime Interaction 방향은 설계로 보존하고 실제 금액 산정/Settlement는 P6에서 구현한다.
 
 # Decision Process
 
