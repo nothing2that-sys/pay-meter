@@ -55,6 +55,7 @@ describe('P1R prototype storage', () => {
 
     expect(loaded.salaryKrw).toBe(4_000_000);
     expect(loaded.display.showDecimals).toBe(false);
+    expect(loaded.display.milestoneEnabled).toBe(false);
     expect(loaded.consumerItems).toEqual([]);
   });
 
