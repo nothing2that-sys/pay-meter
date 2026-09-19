@@ -55,7 +55,7 @@ Closeout HEAD 이후 실제 사용 피드백이 발생했다.
 
 상태:
 
-DESIGN_READY_IMPLEMENTATION_REQUIRED
+P1R_RETENTION_TEST_READY
 
 목적:
 
@@ -150,7 +150,11 @@ PAUSED_EXPERIMENT
 
 P1R에서는 Overtime multiplier source를 새로 만들지 않으며 실제 Overtime 금액 기능과 작동하지 않는 CTA를 구현하지 않는다. Overtime은 P6에서 정식 구현한다.
 
-P1R 완료 후 Retention Test를 다시 시작한다.
+P1R 구현과 최종 Verification Gate는 완료됐다.
+
+검증 근거는 `Docs/P1R_VERIFICATION_CLOSEOUT.md`를 따른다.
+
+다음 단계는 실제 업무 중 P1R Retention Test다.
 
 P2는 이 Retention Test 결과 이전에 착수하지 않는다.
 

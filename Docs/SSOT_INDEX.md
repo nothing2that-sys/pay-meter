@@ -269,10 +269,12 @@ Consumer Value는 초기 Prototype 실사용에서 제품 흐름과 어울림이
 - 과거 Day는 현재 Time Zone으로 재해석하지 않음
 - 손상 데이터는 정상 숫자로 조용히 표시하지 않음
 
-## 22. 현재 설계 상태
+## 22. 현재 P1R 상태
 
-P1R_DESIGN_READY
+P1R_RETENTION_TEST_READY
 
-상세 설계는 `Docs/P1R_RETENTION_UX_REWORK_DESIGN.md`에 확정되어 있다.
+P1R 상세 설계 구현과 최종 Verification Gate를 완료했다.
 
-P2 착수 전에 P1R을 구현하고 실제 업무 중 Retention Test를 다시 수행한다.
+검증 근거는 `Docs/P1R_VERIFICATION_CLOSEOUT.md`를 따른다.
+
+다음 단계는 실제 업무 중 `P1R_RETENTION_TEST`다. Retention 결과가 확인되기 전까지 P2는 착수하지 않는다.

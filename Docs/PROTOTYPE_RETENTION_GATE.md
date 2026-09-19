@@ -174,8 +174,12 @@ P2는 이 결과를 보기 전에 시작하지 않는다.
 
 ## 8. Current Status
 
-**P1R_DESIGN_READY**
+**P1R_RETENTION_TEST_READY**
 
-상세 설계는 `Docs/P1R_RETENTION_UX_REWORK_DESIGN.md`에 확정되어 있다.
+P1R 상세 설계 구현과 최종 Verification Gate를 완료했다.
 
-다음 단계는 P1R 구현이며, 구현 완료 후 `P1R_IMPLEMENTED_READY_FOR_RETENTION` 상태로 다시 실제 업무 중 Retention Test를 수행한다. P2는 그 결과 전까지 착수하지 않는다.
+검증 근거는 `Docs/P1R_VERIFICATION_CLOSEOUT.md`에 기록한다.
+
+다음 단계는 실제 업무 중 `P1R_RETENTION_TEST`다. 이 단계에서 `RETENTION_CONFIRMED`, `RETENTION_MIXED`, `RETENTION_NOT_CONFIRMED` 중 하나를 기록한다.
+
+P2는 Retention Test 결과 전까지 착수하지 않는다.
