@@ -21,6 +21,10 @@ function money(value: bigint, privacy: boolean): string {
   return privacy ? '₩ ••••••' : `₩${formatMicroKrw(value)}`;
 }
 
+function moneyDigits(value: bigint, privacy: boolean): string {
+  return privacy ? '••••••' : formatMicroKrw(value);
+}
+
 function EyeOffIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -148,7 +152,10 @@ export function MoneyTimer({
               <div className="amount-stage">
                 <div className={`main-money ${milestoneKrw && !isPiP ? 'milestone-pulse' : ''}`}>
                   <strong data-testid="current-money">
-                    {money(snapshot.todayEarnedMicroKrw, settings.display.privacy)}
+                    <span className="currency-symbol">₩</span>
+                    <span className="currency-digits">
+                      {moneyDigits(snapshot.todayEarnedMicroKrw, settings.display.privacy)}
+                    </span>
                   </strong>
                 </div>
 
