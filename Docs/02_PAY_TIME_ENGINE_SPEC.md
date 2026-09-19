@@ -2,170 +2,191 @@
 
 ## 1. 목적
 
-이 문서는 PayMeter의 급여 계산 결과를 결정하는 정본 규칙을 정의한다.
+이 문서는 PayMeter의 급여 계산, 근무 타이머, 활동 타이머 결과를 결정하는 정본 규칙을 정의한다.
 
-화면 애니메이션, 렌더링 주기, 브라우저 성능과 관계없이 동일한 입력과 동일한 시각에는 동일한 금액이 나와야 한다.
+동일한 입력과 동일한 시각에는 화면 갱신 주기와 관계없이 동일한 결과가 나와야 한다.
 
 ---
 
-## 2. 핵심 개념
+## 2. 두 개의 독립 축
 
-PayMeter는 시간을 Segment로 나누고 각 Segment에 급여 규칙을 적용한다.
+PayMeter는 상태를 하나로 합치지 않는다.
+
+### Pay State
+
+급여와 근무 일정에 영향을 주는 상태.
+
+- BEFORE_WORK
+- REGULAR_WORK
+- PAID_BREAK
+- UNPAID_BREAK
+- AFTER_SCHEDULE_UNPAID
+- PAID_OVERTIME
+- CLOCKED_OUT
+- OFF_DAY
+
+### Activity State
+
+사용자가 직접 기록하는 활동 상태.
+
+- WORKING
+- LOAFING
+
+향후 MEETING, LEARNING, PERSONAL, CUSTOM으로 확장 가능하다.
+
+중요:
+
+Activity State는 기본적으로 Pay State를 변경하지 않는다.
+
+월급쟁이가 LOAFING 상태라고 해서 계약 급여가 멈추지 않는다.
+
+---
+
+## 3. 시간 Segment
 
 예:
 
 ```
-09:00 ~ 12:00  Regular Paid
-12:00 ~ 13:00  Unpaid Break
-13:00 ~ 18:00  Regular Paid
-18:00 ~ 18:25  Unpaid Overtime
-18:25 ~ 20:10  Paid Overtime 1.5x
-20:10          Clocked Out
+09:00 ~ 10:20  REGULAR_WORK + WORKING
+10:20 ~ 10:45  REGULAR_WORK + LOAFING
+10:45 ~ 12:00  REGULAR_WORK + WORKING
+12:00 ~ 13:00  UNPAID_BREAK
+13:00 ~ 18:00  REGULAR_WORK + WORKING
+18:00 ~ 18:25  AFTER_SCHEDULE_UNPAID
+18:25 ~ 20:10  PAID_OVERTIME
+20:10          CLOCKED_OUT
 ```
 
-총 급여는 유급 Segment의 합이다.
-
-```
-Total Earned
-= Sum(Regular Paid Segments)
-+ Sum(Paid Overtime Segments)
-+ Sum(Fixed Allowances)
-```
-
-무급 초과시간은 별도 통계이며 Earned에는 포함하지 않는다.
+급여와 활동 통계는 같은 시간축을 사용하지만 서로 다른 의미를 가진다.
 
 ---
 
-## 3. 급여 입력 기준
+## 4. 급여 누적 방식
 
-지원 Pay Basis:
+### FIXED_PERIOD
+
+기본 대상:
 
 - ANNUAL
 - MONTHLY
 - WEEKLY
-- DAILY
+
+정규 근무일에는 하루에 배정된 계약 급여가 존재한다.
+
+근무 중에는 사용자가 체감할 수 있도록 일당을 예정 유급시간에 배분하여 실시간 진행 금액을 보여준다.
+
+퇴근 완료 시 해당 날짜의 정규 급여는 배정 일당 100%로 확정한다.
+
+즉 실시간 진행 금액은 진행 표시이고, 퇴근 후 확정 금액은 계약상 일일 배분이다.
+
+### TIME_BASED
+
+기본 대상:
+
 - HOURLY
 
-### 3.1 Period Allocation Mode
+실제 유급 Segment의 시간만큼 정규 급여가 확정된다.
 
-ANNUAL, MONTHLY, WEEKLY, DAILY 입력의 기본 계산 방식은 해당 기간의 급여를 그 기간의 예정 유급 정규 근무시간에 배분하는 방식이다.
-
-예:
-
-월급 4,000,000원이고 해당 월의 예정 유급 정규 근무시간이 160시간이면:
-
-```
-Base Hour Value = 4,000,000 / 160
-                = 25,000 KRW/hour
-```
-
-이 방식의 목적은 해당 기간의 정상 스케줄을 모두 수행했을 때 설정 급여와 누적 합계가 일치하게 만드는 것이다.
-
-주의:
-
-이 값은 법률상 통상임금 또는 법정 시급을 의미하지 않는다.
-
-PayMeter 내부의 시각화 기준값이다.
-
-### 3.2 Hourly Mode
-
-HOURLY 입력은 입력값 자체를 기본 시간급으로 사용한다.
-
-### 3.3 Manual Hourly Override
-
-향후 Advanced Option으로 Period Allocation 결과와 별개로 기준 시급을 직접 지정할 수 있다.
-
-V1에서는 필요 시 구현하되 기본값은 OFF다.
+일급은 사용자 정책에 따라 FIXED_PERIOD 또는 TIME_BASED로 확장 가능하다.
 
 ---
 
-## 4. 예정 유급시간
-
-예정 유급시간은 Schedule과 Break Policy로 계산한다.
+## 5. Period Allocation
 
 예:
 
-```
-Schedule 09:00 ~ 18:00
-Break    12:00 ~ 13:00
-Break    Unpaid
-```
-
-예정 유급시간:
+월급 4,000,000원이고 해당 월의 예정 정규 근무일이 20일이면:
 
 ```
-8 hours
+Allocated Daily Pay = 4,000,000 / 20
+                    = 200,000 KRW
 ```
 
-Break가 Paid라면:
+해당 날짜의 예정 유급시간이 8시간이면 실시간 시각화 Rate는:
 
 ```
-9 hours
+Visualization Rate = 200,000 / 8h
+                   = 25,000 KRW/hour
 ```
 
-휴게시간의 UI 표기와 급여 반영 여부는 반드시 분리한다.
+이 Rate는 법률상 통상임금을 뜻하지 않는다.
+
+PayMeter의 실시간 시각화 기준이다.
 
 ---
 
-## 5. Work State
+## 6. FIXED_PERIOD 퇴근 확정 규칙
 
-도메인 상태는 최소 다음을 가진다.
+예정 일당:
+
+```
+200,000 KRW
+```
+
+17:00 시점 실시간 진행 금액:
+
+```
+175,000 KRW
+```
+
+사용자가 17:00에 퇴근 처리하면:
+
+```
+Realtime Progress = 종료
+Final Regular Daily Pay = 200,000 KRW
+```
+
+따라서 오늘 누적과 주, 월, 연 누적에는 200,000원이 반영된다.
+
+조기퇴근 시간 자체는 별도 Attendance 통계로 보존할 수 있다.
+
+이 규칙은 FIXED_PERIOD에만 적용한다.
+
+---
+
+## 7. TIME_BASED 퇴근 확정 규칙
+
+TIME_BASED에서는 퇴근 처리 시점까지 실제 유급 Segment를 합산한 값이 확정 금액이다.
+
+조기퇴근으로 예정 시간이 줄었다면 그만큼 정규 급여도 줄어든다.
+
+---
+
+## 8. Work State
 
 ### BEFORE_WORK
 
-해당 날짜 근무 시작 전.
-
-급여 증가:
-
-```
-0
-```
+급여 증가 0.
 
 ### REGULAR_WORK
 
-정규 유급 근무 Segment.
+FIXED_PERIOD:
 
-급여 증가:
+실시간 진행 금액은 Visualization Rate로 증가.
 
-```
-Base Rate
-```
+TIME_BASED:
+
+실제 Earned가 Base Rate로 증가.
 
 ### PAID_BREAK
 
-유급 휴게 Segment.
-
-급여 증가:
-
-```
-Base Rate
-```
+설정에 따라 유급시간으로 포함.
 
 ### UNPAID_BREAK
 
-무급 휴게 Segment.
-
-급여 증가:
-
-```
-0
-```
+실시간 증가 0.
 
 ### AFTER_SCHEDULE_UNPAID
 
 정규 근무 종료 후 유급 추가근무가 시작되지 않았고 퇴근 처리도 하지 않은 상태.
 
-UI 기본 표시:
+UI 기본:
 
 ```
 무료봉사 중
 ```
 
-급여 증가:
-
-```
-0
-```
+정규 급여 진행 증가 0.
 
 별도 통계:
 
@@ -174,70 +195,91 @@ UI 기본 표시:
 
 ### PAID_OVERTIME
 
-유급 추가근무 중.
-
-급여 증가:
-
-설정된 Overtime Policy에 따름.
+설정된 Overtime Policy에 따라 추가급여 증가.
 
 ### CLOCKED_OUT
 
-사용자가 해당 날짜 근무 종료를 확정한 상태.
+정규급여 및 활동 타이머 종료.
 
-급여 증가:
+FIXED_PERIOD는 해당 날짜 정규 배정 일당을 확정한다.
 
-```
-0
-```
-
-무료봉사 시간 증가:
-
-```
-0
-```
+TIME_BASED는 실제 유급시간을 확정한다.
 
 ### OFF_DAY
 
-기본 비근무일 또는 일일 Override 휴무일.
-
-급여 증가:
-
-```
-0
-```
+급여 증가 0.
 
 ---
 
-## 6. 상태 전이
+## 9. Activity Timer
 
-대표 전이:
+Activity Session은 사용자의 명시적 입력으로 시작 및 종료한다.
+
+예:
 
 ```
-BEFORE_WORK
-  -> REGULAR_WORK
-
-REGULAR_WORK
-  -> PAID_BREAK
-  -> UNPAID_BREAK
-  -> REGULAR_WORK
-  -> AFTER_SCHEDULE_UNPAID
-
-AFTER_SCHEDULE_UNPAID
-  -> PAID_OVERTIME
-  -> CLOCKED_OUT
-
-PAID_OVERTIME
-  -> AFTER_SCHEDULE_UNPAID
-  -> CLOCKED_OUT
+09:00 WORKING start
+10:20 LOAFING start
+10:45 WORKING return
 ```
 
-사용자가 예정 퇴근시각 전에 명시적으로 퇴근 처리하는 기능은 향후 Early Clock Out으로 확장 가능하다.
+각 전환은 이전 Session을 종료하고 새 Session을 시작한다.
 
-V1에서 구현하는 경우 그 시점 이후 정규 급여를 실제 근무액에서 제외할지, 예정 급여 전망만 변경할지를 별도 옵션으로 정의해야 한다.
+계산:
+
+```
+workingDuration
+= Sum(WORKING session durations)
+
+loafingDuration
+= Sum(LOAFING session durations)
+```
+
+루팡률 기본 정의:
+
+```
+loafingRatio
+= loafingDuration
+  / (workingDuration + loafingDuration)
+```
+
+정규 휴게시간은 분모에서 제외한다.
+
+루팡 환산 가치:
+
+```
+loafingReferenceValue
+= Visualization Base Rate
+  * loafingDuration
+```
+
+이는 급여에서 차감하지 않는다.
 
 ---
 
-## 7. 정규 근무 종료 규칙
+## 10. Activity State 전이
+
+기본:
+
+```
+WORKING
+  -> LOAFING
+
+LOAFING
+  -> WORKING
+```
+
+정규 무급 휴게가 시작되면 Activity Session은 일시 종료하거나 BREAK로 분리한다.
+
+휴게 종료 후 기본 복귀 상태는 WORKING으로 한다.
+
+퇴근 시 진행 중 Activity Session은 종료한다.
+
+무료봉사 구간에서 루팡 Activity를 기록하지 않는 것을 V1 기본으로 한다.
+
+---
+
+## 11. 정규 근무 종료
 
 예정 근무:
 
@@ -245,74 +287,42 @@ V1에서 구현하는 경우 그 시점 이후 정규 급여를 실제 근무액
 09:00 ~ 18:00
 ```
 
-18:00:00부터 기본 급여 증가는 중지된다.
+18:00:00부터 정규 실시간 진행 Rate는 0.
 
-18:00:00 이후 다음 중 하나가 발생하기 전까지 AFTER_SCHEDULE_UNPAID 상태다.
+다음 중 하나가 발생할 때까지 AFTER_SCHEDULE_UNPAID:
 
 - 유급 추가근무 시작
 - 퇴근 처리
-- Daily Override로 정규 퇴근시각 변경
+- Daily Override로 정규 종료 변경
 
-예:
+FIXED_PERIOD 사용자가 18:00 이후 18:30에 퇴근하더라도 정규 일당은 동일하다.
 
-18:00 정규 급여:
-
-```
-240,000 KRW
-```
-
-18:30에도 유급 추가근무가 없다면:
-
-```
-Earned = 240,000 KRW
-Unpaid After Hours = 30 minutes
-```
+18:00~18:30은 무료봉사 시간으로 별도 기록한다.
 
 ---
 
-## 8. 추가수당 정책
+## 12. 추가수당 정책
 
-OvertimePolicy는 다음 유형을 지원한다.
+OvertimePolicy:
+
+- MULTIPLIER
+- CUSTOM_HOURLY
+- FIXED
+- HOURLY_PLUS_FIXED
 
 ### MULTIPLIER
 
 ```
-Overtime Rate = Base Rate * Multiplier
+Overtime Rate = Base Visualization Rate * Multiplier
 ```
 
-예:
-
-```
-1.5x
-```
-
-### CUSTOM_HOURLY
-
-```
-Overtime Rate = Configured Hourly Rate
-```
-
-### FIXED
-
-해당 추가근무 세션이 조건을 만족하면 고정 금액을 1회 반영한다.
-
-고정수당 반영 시점은 정책으로 정의한다.
-
-V1 권장:
-
-추가근무 종료 시 반영.
-
-### HOURLY_PLUS_FIXED
-
-시간급 계산 결과와 고정수당을 모두 반영한다.
+법적 자동판정이 아니라 사용자 지정 정책이다.
 
 ---
 
-## 9. Overtime Session
+## 13. Overtime Session
 
-유급 추가근무는 명시적 Session으로 저장한다.
-
-필수 필드 개념:
+필수 개념:
 
 ```
 id
@@ -324,248 +334,163 @@ rateSnapshot
 fixedAllowanceSnapshot
 ```
 
-중요:
-
-향후 사용자가 기본 수당 설정을 변경하더라도 과거 결과가 바뀌지 않도록 Session 시작 시 적용 규칙 Snapshot을 저장한다.
+과거 결과가 현재 설정 변경으로 바뀌지 않도록 Session 시작 시 Snapshot을 저장한다.
 
 ---
 
-## 10. 급여 계산 단위
+## 14. 금액 정밀도
 
-금액 계산은 화면 tick에 따라 더하지 않는다.
+금액을 UI tick마다 더하지 않는다.
 
-개념식:
-
-```
-segmentEarned = ratePerMillisecond * payableDurationMilliseconds
-```
-
-하지만 구현에서는 반복적인 floating point 누적을 피한다.
-
-권장 내부 표현:
+권장:
 
 ```
 1 KRW = 1,000,000 micro-won
 ```
 
-입력 급여는 정수 KRW로 보존한다.
-
-Segment 계산 결과를 micro-won 수준으로 계산하고 최종 표시 단계에서 포맷한다.
+Segment 또는 기간 계산 결과를 timestamp 차이와 Rate로 계산하고 표시 단계에서 포맷한다.
 
 ---
 
-## 11. Snapshot Calculation
-
-Dashboard는 현재 시각 `now`를 받아 다음 Snapshot을 만든다.
+## 15. Dashboard Snapshot
 
 ```
 PaySnapshot {
   now
-  state
-  earnedToday
+  payState
+  activityState
+
+  realtimeProgressToday
+  finalizedRegularPayToday
+  overtimeEarnedToday
+  totalRecognizedToday
+
   earnedWeek
   earnedMonth
   earnedYear
-  regularEarnedToday
-  overtimeEarnedToday
+
   currentRate
-  elapsedRegularWork
-  remainingRegularWork
+  elapsedScheduledTime
+  remainingScheduledTime
+
+  workingDuration
+  loafingDuration
+  loafingRatio
+  loafingReferenceValue
+
   unpaidAfterHoursDuration
   unpaidAfterHoursReferenceValue
 }
 ```
 
-Snapshot은 저장된 결과를 계속 더하는 객체가 아니라 현재 데이터에서 재계산 가능한 결과다.
+### realtimeProgressToday
+
+현재 시점의 타이머형 급여 진행 표시.
+
+### finalizedRegularPayToday
+
+퇴근 완료 후 확정된 정규급여.
+
+### totalRecognizedToday
+
+확정 정규급여 + 추가수당.
+
+퇴근 전에는 UI에서 예상 또는 진행값으로 표시할 수 있다.
 
 ---
 
-## 12. 기간 누적 정의
+## 16. 기간 누적
 
-### Today
+Today, Week, Month, Year는 로컬 Calendar 기준이다.
 
-사용자 로컬 시간대의 현재 날짜 00:00~24:00 범위.
+FIXED_PERIOD에서는 퇴근 완료된 근무일의 배정 일당을 정규 누적에 사용한다.
 
-### Week
-
-기본:
-
-월요일 시작.
-
-향후 설정 가능.
-
-### Month
-
-사용자 로컬 달력 기준 월.
-
-### Year
-
-사용자 로컬 달력 기준 연도.
+현재 진행 중인 오늘은 Dashboard에서 별도 실시간 진행값으로 합성해 보여줄 수 있다.
 
 ---
 
-## 13. 현재 증가율
+## 17. Timer Independence
 
-Dashboard의 `+ KRW / sec`는 현재 Work State에서 적용되는 실시간 Rate다.
+화면에서는 ms 단위로 움직여도 계산은 timestamp 기반이다.
 
-예:
+다음 refresh 주기가 모두 같은 now에서 같은 결과를 내야 한다.
 
-REGULAR_WORK:
-
-```
-+ 8.333333 KRW/sec
-```
-
-UNPAID_BREAK:
-
-```
-+ 0 KRW/sec
-```
-
-AFTER_SCHEDULE_UNPAID:
-
-```
-+ 0 KRW/sec
-```
-
-PAID_OVERTIME 1.5x:
-
-```
-+ 12.5 KRW/sec
-```
+- 16ms
+- 50ms
+- 100ms
+- 1000ms
+- background 후 복귀
 
 ---
 
-## 14. 무료봉사 환산 가치
-
-무료봉사 환산 가치는 실제 급여가 아니다.
-
-계산:
+## 18. 무료봉사 환산 가치
 
 ```
-Reference Value
-= Base Regular Rate
-* Unpaid After Hours Duration
+unpaidAfterHoursReferenceValue
+= Visualization Base Rate
+* unpaidAfterHoursDuration
 ```
 
-UI에서는 반드시 실제 Earned와 구분한다.
-
-예:
-
-```
-무료봉사 00:32:14
-기준 급여 환산 가치 16,117원
-```
-
-이 금액은 실제 누적급여에 더하지 않는다.
+실제 급여에는 더하지 않는다.
 
 ---
 
-## 15. Daily Override 우선순위
-
-특정 날짜의 스케줄 계산 우선순위:
-
-1. Daily Override
-2. 기본 Weekly Schedule
-3. 기본 Off Day
-
-수당 정책 우선순위:
-
-1. 해당 Overtime Session Snapshot
-2. 해당 날짜 Override Policy
-3. 기본 Overtime Policy
-
-과거 Session은 현재 설정값을 다시 참조하지 않는다.
-
----
-
-## 16. 새로고침 및 백그라운드
-
-새로고침 또는 브라우저 백그라운드 상태에서도 돈을 tick별로 놓치지 않는다.
-
-예:
-
-10:00에 화면을 닫고 11:30에 다시 열었을 때:
-
-```
-11:30 Snapshot
-= 11:30까지의 유효 Segment를 다시 계산
-```
-
-90분 동안 setInterval이 실행되지 않았어도 결과는 동일해야 한다.
-
----
-
-## 17. 시스템 시간 변경
-
-절대 이벤트는 timestamp로 기록한다.
-
-현재 시각이 과거 이벤트보다 비정상적으로 뒤로 이동하는 경우:
-
-- 음수 Duration을 만들지 않는다.
-- 계산 오류 상태를 생성한다.
-- 사용자 데이터는 자동 수정하지 않는다.
-
-Clock 관련 비정상 케이스는 Unit Test 대상이다.
-
----
-
-## 18. 월급 예시
+## 19. 예시
 
 설정:
 
 ```
 월급 4,000,000원
-월~금
+근무일 20일
 09:00~18:00
 12:00~13:00 무급 휴게
 ```
 
-해당 월 예정 유급시간:
+배정 일당:
 
 ```
-160 hours
+200,000원
 ```
 
-Base Rate:
+시각화 Rate:
 
 ```
-25,000 KRW/hour
-416.666666 KRW/min
-6.944444 KRW/sec
-0.006944 KRW/ms
+25,000원/hour
+416.666666원/min
+6.944444원/sec
+0.006944원/ms
 ```
 
-17:00까지 실제 정규 유급 근무가 7시간이라면:
+오늘:
 
 ```
-175,000 KRW
+09:00~10:30 업무
+10:30~11:00 루팡
+11:00~12:00 업무
+12:00~13:00 휴게
+13:00~17:00 업무
+17:00 퇴근
 ```
 
-18:00:
+17:00 직전 실시간 진행값은 예정 유급시간 기준 일부 값이지만 퇴근 처리 후:
 
 ```
-200,000 KRW
+Final Regular Daily Pay = 200,000원
+Loafing Duration = 30m
+Loafing Reference Value = 12,500원
 ```
 
-18:00 이후 기본 정규급여는 멈춘다.
-
-18:30에 1.5x 추가근무를 시작하면 이후 Rate:
-
-```
-37,500 KRW/hour
-```
+루팡 환산 12,500원은 급여에서 차감하지 않는다.
 
 ---
 
-## 19. 계산 Contract
+## 20. 계산 Contract
 
-다음은 절대 깨지면 안 된다.
-
-- 동일 입력 + 동일 now = 동일 Snapshot
-- 렌더링 FPS는 계산 결과에 영향 없음
-- 새로고침은 계산 결과에 영향 없음
-- 과거 Overtime Session은 현재 설정 변경으로 변하지 않음
-- 무급 초과시간은 Earned에 포함되지 않음
-- 유급 추가근무는 명시적으로 시작된 구간만 계산
-- 정규 근무 종료 경계 시각부터 정규 Rate는 0
+- Pay State와 Activity State는 분리한다.
+- 루팡 상태는 FIXED_PERIOD 급여 진행을 중지하지 않는다.
+- FIXED_PERIOD는 퇴근 처리 시 예정 일당 100%를 정규급여로 확정한다.
+- TIME_BASED는 실제 유급시간만 확정한다.
+- 정규 종료 이후 추가수당 미등록 시간은 무료봉사다.
+- 과거 Overtime Session은 현재 설정 변경으로 변하지 않는다.
+- UI refresh 주기는 계산 결과에 영향을 주지 않는다.
+- 모든 타이머는 timestamp에서 재계산 가능해야 한다.
