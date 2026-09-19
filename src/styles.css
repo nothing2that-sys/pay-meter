@@ -108,7 +108,6 @@ button:disabled {
   height: 100%;
   overflow: visible;
   pointer-events: none;
-  color: var(--perimeter-color);
 }
 .perimeter path {
   fill: none;
@@ -120,16 +119,28 @@ button:disabled {
   stroke-width: 4.5px;
   opacity: 0.9;
 }
-.perimeter-progress-glow {
-  stroke: url(#perimeter-ambient-gradient);
+.perimeter-segment-core {
+  stroke-width: 6.5px;
+}
+.perimeter-segment-glow {
   stroke-width: 13px;
   opacity: 0.18;
-  filter: drop-shadow(0 0 8px currentColor);
 }
-.perimeter-progress {
-  stroke: url(#perimeter-ambient-gradient);
-  stroke-width: 6.5px;
-  filter: drop-shadow(0 0 4px currentColor);
+.perimeter-segment-working .perimeter-segment-core {
+  stroke: var(--state-working);
+  filter: drop-shadow(0 0 4px rgba(53, 183, 170, 0.72));
+}
+.perimeter-segment-working .perimeter-segment-glow {
+  stroke: var(--state-working);
+  filter: drop-shadow(0 0 8px rgba(53, 183, 170, 0.52));
+}
+.perimeter-segment-loafing .perimeter-segment-core {
+  stroke: var(--state-loafing);
+  filter: drop-shadow(0 0 4px rgba(216, 147, 53, 0.72));
+}
+.perimeter-segment-loafing .perimeter-segment-glow {
+  stroke: var(--state-loafing);
+  filter: drop-shadow(0 0 8px rgba(216, 147, 53, 0.5));
 }
 .state-freework .perimeter-base {
   stroke: #3a2529;
