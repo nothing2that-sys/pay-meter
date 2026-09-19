@@ -549,3 +549,101 @@ Detail
 
 PayMeter의 기본 인상은 Dashboard가 아니라 Money Timer여야 한다.
 
+## 20. Two-Level Surface Contract
+
+PayMeter는 기본 화면과 상세 Dashboard를 둘 다 유지한다.
+
+### Money Timer
+
+항상 띄워두는 최소 화면.
+
+필수 요소:
+
+- 큰 실시간 누적 금액
+- 현재 Rate
+- 작은 Timer
+- 현재 Activity 상태
+- Activity Toggle
+- Full Dashboard 진입 Action
+
+WORKING:
+
+```
+돈 버는 중
+
+₩142,381.72
++₩6.944 / sec
+
+05:37:18
+
+[루팡 시작]  [상세]
+```
+
+LOAFING:
+
+```
+루팡 중
+
+₩143,022.14
++₩6.944 / sec
+
+루팡 00:13:42
+
+[업무 복귀]  [상세]
+```
+
+LOAFING 전환은 급여 Counter를 멈추지 않는다.
+
+### Full Dashboard
+
+기존 상세 Dashboard는 삭제하지 않는다.
+
+다음 정보를 한 화면 또는 섹션별로 제공한다.
+
+- 오늘 급여 진행
+- 오늘 예상 또는 확정 일당
+- 근무 진행률
+- 업무시간
+- 루팡시간
+- 루팡률
+- 루팡 환산 가치
+- 무료봉사 시간 및 환산 가치
+- 추가수당
+- 오늘, 주, 월, 연 누적
+- 시간당, 분당, 초당, ms당 Rate
+- History 진입
+
+사용자는 Money Timer에서 한 번의 Action으로 Full Dashboard에 진입하고 다시 Timer로 돌아올 수 있어야 한다.
+
+### Compact Mode Activity Toggle
+
+Corner Display처럼 작은 폭에서도 Activity Toggle은 숨기지 않는다.
+
+공간이 매우 좁으면 Label을 단축할 수 있다.
+
+```
+[루팡]
+[복귀]
+```
+
+상태 변경은 최대 한 번의 Tap 또는 Click으로 완료되어야 한다.
+
+## 21. Default Navigation
+
+기본 진입 화면:
+
+```
+Money Timer
+```
+
+주요 이동:
+
+```
+Money Timer
+  -> Full Dashboard
+  -> History
+  -> Settings
+```
+
+Full Dashboard는 보조 기능이 아니라 PayMeter의 정식 주요 화면으로 유지한다.
+
