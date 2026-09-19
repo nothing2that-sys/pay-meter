@@ -409,3 +409,143 @@ TIME_BASED:
 - Touch Target 확보
 - Reduced Motion
 - Screen Reader Label
+
+## 16. Primary Screen Simplification
+
+기본 화면은 상세 Dashboard가 아니다.
+
+PayMeter를 장시간 켜두는 사용 패턴을 우선하여 기본 화면에는 최소 정보만 표시한다.
+
+### 기본 레이아웃
+
+```
+          돈 버는 중
+
+       ₩ 142,381.72
+       + ₩ 6.944 / sec
+
+  05:37:18      퇴근까지 02:22
+```
+
+시각적 비중:
+
+1. 현재 누적 금액
+2. 현재 상태
+3. 현재 증가율
+4. 근무 경과시간 또는 퇴근까지 남은 시간
+
+그 외 정보는 기본 화면에서 작은 보조 정보 또는 Detail 진입 후 표시한다.
+
+기본 화면에서 다음 정보를 동시에 카드 형태로 펼쳐놓지 않는다.
+
+- 주 누적
+- 월 누적
+- 연 누적
+- 업무시간 상세
+- 루팡률
+- 루팡 환산 가치
+- 무료봉사 환산 가치
+- 추가수당 세부 Breakdown
+
+이 정보는 화면 Tap, Detail Button, Sheet 또는 별도 Statistics 화면에서 확인한다.
+
+---
+
+## 17. Compact and Corner Display
+
+PayMeter는 브라우저를 작은 크기로 줄여 화면 한쪽에 계속 띄워두는 사용을 지원해야 한다.
+
+좁은 폭에서는 자동으로 Compact Layout으로 전환한다.
+
+예:
+
+```
+₩142,381.72
++₩6.944/s
+05:37:18
+```
+
+최소 폭에서도 가로 Scroll이 생기지 않아야 한다.
+
+Compact Mode에서는 Navigation과 상세 Card를 숨기고 필요한 경우 한 개의 Menu Action만 제공한다.
+
+모바일에서도 첫 화면의 대부분을 큰 금액 숫자가 차지하도록 한다.
+
+---
+
+## 18. Milestone Effects
+
+누적 금액이 특정 Threshold를 처음 통과하는 순간 짧은 효과를 보여준다.
+
+V1 기본 Threshold 후보:
+
+```
+5,000 KRW
+10,000 KRW
+```
+
+구현 방식은 Threshold의 배수 Crossing으로 판정한다.
+
+예:
+
+```
+49,998 -> 50,003
+```
+
+일 경우 50,000원 Milestone을 1회 발생시킨다.
+
+화면 Refresh가 느려 여러 Threshold를 한 번에 통과한 경우 동일 금액 Milestone을 중복 재생하지 않는다.
+
+권장 효과:
+
+- 금액 숫자 짧은 Scale Pulse
+- 주변 Ring 확산
+- 작은 Particle 또는 Spark
+- 짧은 Highlight
+
+금지:
+
+- 긴 전체 화면 Animation
+- 실제 금액 표시를 가리는 효과
+- Threshold마다 Sound 강제 재생
+- 백그라운드 복귀 시 지나간 Milestone을 연속 재생
+
+설정:
+
+- Effect On/Off
+- Threshold: 5,000 / 10,000 / Custom 향후 지원
+- Reduced Motion에서는 최소 Highlight 또는 효과 없음
+
+---
+
+## 19. Detail Disclosure
+
+기본 화면에서 한 번의 Tap 또는 Detail Action으로 다음을 확인한다.
+
+- 오늘 예상 또는 확정 일당
+- 업무시간
+- 루팡시간
+- 루팡률
+- 무료봉사
+- 추가수당
+- 주, 월, 연 누적
+
+즉 정보 구조는 다음과 같다.
+
+```
+Default
+  Current Money
+  Current State
+  Current Rate
+  Small Timer
+
+Detail
+  Today
+  Activity
+  Overtime
+  Free Work
+  Period Statistics
+```
+
+PayMeter의 기본 인상은 Dashboard가 아니라 Money Timer여야 한다.
+
