@@ -1,81 +1,67 @@
 import type { PaySnapshot } from '../domain/prototype';
 
+export type MoneyTimerTheme = 'neutral' | 'working' | 'loafing' | 'freework';
+
 export interface MoneyTimerViewModel {
   stateLabel: string;
-  timeLabel: string | null;
-  timeRemainingMs: number;
+  stateTheme: MoneyTimerTheme;
+  mainSupportLabel: string | null;
   freeWorkMode: boolean;
   clockedOut: boolean;
-  rateDimmed: boolean;
 }
 
 export function buildMoneyTimerViewModel(snapshot: PaySnapshot): MoneyTimerViewModel {
-  const { context } = snapshot;
   if (snapshot.payState === 'OFF_DAY') {
     return {
       stateLabel: '오늘은 휴무',
-      timeLabel: null,
-      timeRemainingMs: 0,
+      stateTheme: 'neutral',
+      mainSupportLabel: null,
       freeWorkMode: false,
       clockedOut: false,
-      rateDimmed: true,
     };
   }
   if (snapshot.payState === 'CLOCKED_OUT') {
     return {
       stateLabel: '퇴근 완료',
-      timeLabel: null,
-      timeRemainingMs: 0,
+      stateTheme: 'neutral',
+      mainSupportLabel: null,
       freeWorkMode: false,
       clockedOut: true,
-      rateDimmed: true,
     };
   }
   if (snapshot.payState === 'AFTER_SCHEDULE_UNPAID') {
     return {
-      stateLabel: '오늘 근무 완료',
-      timeLabel: null,
-      timeRemainingMs: 0,
+      stateLabel: '무료봉사 중',
+      stateTheme: 'freework',
+      mainSupportLabel: null,
       freeWorkMode: true,
       clockedOut: false,
-      rateDimmed: true,
     };
   }
   if (snapshot.payState === 'BEFORE_WORK') {
     return {
       stateLabel: '출근 전',
-      timeLabel: '출근까지',
-      timeRemainingMs: Math.max(
-        0,
-        (context.scheduledStart ?? snapshot.nowEpochMs) - snapshot.nowEpochMs,
-      ),
+      stateTheme: 'neutral',
+      mainSupportLabel: null,
       freeWorkMode: false,
       clockedOut: false,
-      rateDimmed: true,
     };
   }
   if (snapshot.payState === 'UNPAID_BREAK') {
     return {
       stateLabel: '휴게 중',
-      timeLabel: '휴게 종료까지',
-      timeRemainingMs: Math.max(
-        0,
-        (context.unpaidBreak?.end ?? snapshot.nowEpochMs) - snapshot.nowEpochMs,
-      ),
+      stateTheme: 'neutral',
+      mainSupportLabel: '적립 일시정지',
       freeWorkMode: false,
       clockedOut: false,
-      rateDimmed: true,
     };
   }
+  const loafing = snapshot.activityState === 'LOAFING';
   return {
-    stateLabel: snapshot.activityState === 'LOAFING' ? '루팡 중' : '업무 중',
-    timeLabel: '퇴근까지',
-    timeRemainingMs: Math.max(
-      0,
-      (context.scheduledEnd ?? snapshot.nowEpochMs) - snapshot.nowEpochMs,
-    ),
+    stateLabel: loafing ? '루팡 모드' : '업무 중',
+    stateTheme: loafing ? 'loafing' : 'working',
+    mainSupportLabel: loafing ? null : '정상 적립 중',
     freeWorkMode: false,
     clockedOut: false,
-    rateDimmed: false,
   };
 }

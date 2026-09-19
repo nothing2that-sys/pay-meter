@@ -13,7 +13,11 @@ import { crossedMilestone } from '../features/milestone';
 import { FakeClock } from '../infrastructure/clock';
 import { freeWorkBucket, freeWorkCopy } from '../presentation/freeWorkCopy';
 import { buildMoneyTimerViewModel } from '../presentation/moneyTimerViewModel';
-import { PERIMETER_PATH_D, shouldShowPerimeterMarker } from '../presentation/PerimeterTimeline';
+import {
+  PERIMETER_PATH_D,
+  perimeterSegmentStyle,
+  shouldShowPerimeterMarker,
+} from '../presentation/PerimeterTimeline';
 
 const settings: PrototypeSettings = {
   salaryKrw: 4_000_000,
@@ -129,6 +133,16 @@ describe('P1R perimeter and loafing money', () => {
     expect(snapshot.activityState).toBe('LOAFING');
     expect(snapshot.perimeterSegments.map((x) => x.type)).toEqual(['WORKING', 'LOAFING']);
   });
+
+  it('freezes the perimeter ratio and elapsed segment during unpaid break', () => {
+    const atBreakStart = buildPaySnapshot(settings, at(12), 'Asia/Seoul', []);
+    const atBreakMiddle = buildPaySnapshot(settings, at(12, 30), 'Asia/Seoul', []);
+
+    expect(atBreakStart.scheduledProgressRatio).toBe(0.375);
+    expect(atBreakMiddle.scheduledProgressRatio).toBe(0.375);
+    expect(atBreakStart.perimeterSegments.at(-1)?.endRatio).toBeCloseTo(0.375, 5);
+    expect(atBreakMiddle.perimeterSegments.at(-1)?.endRatio).toBeCloseTo(0.375, 5);
+  });
 });
 
 describe('P1R free work wallet and clock out', () => {
@@ -139,6 +153,7 @@ describe('P1R free work wallet and clock out', () => {
     expect(at1830.freeWorkReferenceValueMicroKrw).toBeGreaterThan(0n);
     expect(at1830.todayEarnedMicroKrw).toBe(at18.todayEarnedMicroKrw);
     expect(at1830.scheduledProgressRatio).toBe(1);
+    expect(at1830.perimeterSegments.at(-1)?.endRatio).toBe(1);
   });
   it('freezes values at idempotent clock-out timestamp', () => {
     const control = { localDate: '2026-09-21', clockOutAtEpochMs: at(18, 30) };
@@ -150,18 +165,35 @@ describe('P1R free work wallet and clock out', () => {
   });
 });
 
-describe('P1R view model and free-work copy', () => {
-  it('uses contextual wall-clock labels', () => {
-    expect(
-      buildMoneyTimerViewModel(buildPaySnapshot(settings, at(8), 'Asia/Seoul', [])).timeLabel,
-    ).toBe('출근까지');
-    expect(
-      buildMoneyTimerViewModel(buildPaySnapshot(settings, at(10), 'Asia/Seoul', [])).timeLabel,
-    ).toBe('퇴근까지');
-    expect(
-      buildMoneyTimerViewModel(buildPaySnapshot(settings, at(12, 30), 'Asia/Seoul', [])).timeLabel,
-    ).toBe('휴게 종료까지');
+describe('P1R final timer view model and free-work copy', () => {
+  it('maps working, loafing and free work to the final state labels and themes', () => {
+    const working = buildMoneyTimerViewModel(buildPaySnapshot(settings, at(10), 'Asia/Seoul', []));
+    const loafing = buildMoneyTimerViewModel(
+      buildPaySnapshot(settings, at(10), 'Asia/Seoul', [
+        { id: 'open', startAtEpochMs: at(9, 30), endAtEpochMs: null },
+      ]),
+    );
+    const freeWork = buildMoneyTimerViewModel(
+      buildPaySnapshot(settings, at(18, 30), 'Asia/Seoul', []),
+    );
+
+    expect(working).toMatchObject({
+      stateLabel: '업무 중',
+      stateTheme: 'working',
+      mainSupportLabel: '정상 적립 중',
+    });
+    expect(loafing).toMatchObject({
+      stateLabel: '루팡 모드',
+      stateTheme: 'loafing',
+      mainSupportLabel: null,
+    });
+    expect(freeWork).toMatchObject({
+      stateLabel: '무료봉사 중',
+      stateTheme: 'freework',
+      freeWorkMode: true,
+    });
   });
+
   it.each([
     [0, 'FW0'],
     [14, 'FW0'],
@@ -180,8 +212,18 @@ describe('P1R view model and free-work copy', () => {
 });
 
 describe('P1R perimeter presentation contract', () => {
-  it('starts the normalized rounded path at top center and proceeds toward the right edge', () => {
+  it('starts the normalized rounded path at top center and proceeds clockwise toward the right edge', () => {
     expect(PERIMETER_PATH_D.startsWith('M 50 1.5 H 91.5')).toBe(true);
+  });
+
+  it('maps one full normalized segment to one full perimeter loop', () => {
+    const style = perimeterSegmentStyle({
+      type: 'WORKING',
+      startRatio: 0,
+      endRatio: 1,
+    });
+    expect(style.strokeDasharray).toBe('1 0');
+    expect(style.strokeDashoffset).toBe(-0);
   });
 
   it('shows the moving marker only for incomplete non-zero progress', () => {

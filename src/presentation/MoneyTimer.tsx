@@ -1,7 +1,6 @@
 import {
   formatDuration,
   formatMicroKrw,
-  formatRateMilliKrw,
   type PaySnapshot,
   type PrototypeSettings,
 } from '../domain/prototype';
@@ -39,10 +38,18 @@ export function MoneyTimer({
   onOpenPiP,
 }: Props) {
   const vm = buildMoneyTimerViewModel(snapshot);
-  const complete = snapshot.scheduledProgressRatio >= 1 || snapshot.payState === 'CLOCKED_OUT';
+  const complete =
+    snapshot.scheduledProgressRatio >= 1 ||
+    snapshot.payState === 'AFTER_SCHEDULE_UNPAID' ||
+    snapshot.payState === 'CLOCKED_OUT';
+  const showActivityAction =
+    snapshot.payState === 'REGULAR_WORK' || snapshot.payState === 'UNPAID_BREAK';
 
   return (
-    <main className={`money-timer-frame ${isPiP ? 'pip-timer' : ''}`} aria-live="polite">
+    <main
+      className={`money-timer-frame state-${vm.stateTheme} ${isPiP ? 'pip-timer' : ''}`}
+      aria-live="polite"
+    >
       <PerimeterTimeline
         progressRatio={snapshot.scheduledProgressRatio}
         segments={snapshot.perimeterSegments}
@@ -50,105 +57,90 @@ export function MoneyTimer({
       />
 
       <div className="timer-topline">
-        {!isPiP ? (
-          <button className="text-button" onClick={onDetails}>
-            상세
-          </button>
-        ) : (
-          <span />
-        )}
         <button className="text-button" onClick={onTogglePrivacy} aria-label="금액 숨김 전환">
           {settings.display.privacy ? '금액 보기' : '금액 숨김'}
         </button>
       </div>
 
-      <section className="timer-core">
-        <div className="state-line">{vm.stateLabel}</div>
-        <div className="progress-value" data-testid="progress-value">
-          {(snapshot.scheduledProgressRatio * 100).toFixed(
-            snapshot.scheduledProgressRatio >= 1 ? 0 : 1,
-          )}
-          %
-        </div>
-        {vm.timeLabel ? (
-          <div className="remaining-time">
-            {vm.timeLabel} {formatDuration(vm.timeRemainingMs).slice(0, 5)}
-          </div>
-        ) : null}
-
+      <div className="timer-layout">
         {vm.freeWorkMode ? (
           <FreeWorkWallet
             snapshot={snapshot}
             privacy={settings.display.privacy}
             onClockOut={onClockOut}
+            onDetails={onDetails}
+            showDetails={!isPiP}
           />
-        ) : vm.clockedOut ? (
-          <section className="clocked-summary">
-            <div className="money-block">
-              <span>오늘 번 돈</span>
-              <strong data-testid="current-money">
-                {money(snapshot.todayEarnedMicroKrw, settings.display.privacy)}
-              </strong>
-            </div>
-            <div className="money-block secondary-money">
-              <span>그중 루팡으로 번 돈</span>
-              <strong data-testid="loafing-money">
-                {money(snapshot.loafingEarnedValueMicroKrw, settings.display.privacy)}
-              </strong>
-            </div>
-            {snapshot.freeWorkDurationMs > 0 ? (
-              <div className="freework-summary">
-                무료봉사 {formatDuration(snapshot.freeWorkDurationMs)} ·{' '}
-                {money(snapshot.freeWorkReferenceValueMicroKrw, settings.display.privacy)} 상당
-              </div>
-            ) : null}
-          </section>
         ) : (
           <>
-            <div className={`money-block ${milestoneKrw && !isPiP ? 'milestone-pulse' : ''}`}>
-              <span>오늘 번 돈</span>
-              <strong data-testid="current-money">
-                {money(snapshot.todayEarnedMicroKrw, settings.display.privacy)}
-              </strong>
-            </div>
-            <div className="money-block secondary-money">
-              <span>그중 루팡으로 번 돈</span>
-              <strong data-testid="loafing-money">
-                {money(snapshot.loafingEarnedValueMicroKrw, settings.display.privacy)}
-              </strong>
-            </div>
-            {milestoneKrw && !isPiP ? (
-              <div className="milestone-ring" role="status">
-                {milestoneKrw.toLocaleString('ko-KR')}원
+            <section className="timer-main-zone">
+              <div className="state-line">{vm.stateLabel}</div>
+              <div
+                className={`money-block main-money ${milestoneKrw && !isPiP ? 'milestone-pulse' : ''}`}
+              >
+                <strong data-testid="current-money">
+                  {money(snapshot.todayEarnedMicroKrw, settings.display.privacy)}
+                </strong>
+                {vm.mainSupportLabel ? (
+                  <span className="main-support-label">{vm.mainSupportLabel}</span>
+                ) : null}
               </div>
-            ) : null}
-            <button
-              className={`loaf-button ${snapshot.activityState === 'LOAFING' ? 'active' : ''}`}
-              disabled={!snapshot.activityToggleEnabled}
-              onClick={onToggleLoafing}
-              data-testid="loafing-toggle"
-            >
-              {snapshot.payState === 'UNPAID_BREAK'
-                ? '휴게 중'
-                : snapshot.activityState === 'LOAFING'
-                  ? '업무 복귀'
-                  : '루팡 시작'}
-            </button>
+
+              {milestoneKrw && !isPiP ? (
+                <div className="milestone-ring" role="status">
+                  {milestoneKrw.toLocaleString('ko-KR')}원
+                </div>
+              ) : null}
+            </section>
+
+            <aside className="timer-action-zone">
+              <div className="secondary-amount-card loafing-amount-card">
+                <span>루팡 누적액</span>
+                <strong data-testid="loafing-money">
+                  {money(snapshot.loafingEarnedValueMicroKrw, settings.display.privacy)}
+                </strong>
+              </div>
+
+              {vm.clockedOut && snapshot.freeWorkDurationMs > 0 ? (
+                <div className="secondary-amount-card freework-history-card">
+                  <span>무료봉사 기록</span>
+                  <strong data-testid="clocked-freework-money">
+                    {money(snapshot.freeWorkReferenceValueMicroKrw, settings.display.privacy)}
+                  </strong>
+                  <small>{formatDuration(snapshot.freeWorkDurationMs)}</small>
+                </div>
+              ) : null}
+
+              {showActivityAction ? (
+                <button
+                  className={`loaf-button ${snapshot.activityState === 'LOAFING' ? 'active' : ''}`}
+                  disabled={!snapshot.activityToggleEnabled}
+                  onClick={onToggleLoafing}
+                  data-testid="loafing-toggle"
+                >
+                  {snapshot.payState === 'UNPAID_BREAK'
+                    ? '휴게 중'
+                    : snapshot.activityState === 'LOAFING'
+                      ? '업무 복귀'
+                      : '루팡 모드'}
+                </button>
+              ) : null}
+
+              {!isPiP && onDetails ? (
+                <button className="detail-button" onClick={onDetails}>
+                  상세 보기
+                </button>
+              ) : null}
+
+              {!isPiP && pipSupported && onOpenPiP ? (
+                <button className="pip-button text-button" onClick={onOpenPiP}>
+                  위젯으로 열기
+                </button>
+              ) : null}
+            </aside>
           </>
         )}
-      </section>
-
-      <div className={`corner-rate ${vm.rateDimmed ? 'dimmed' : ''}`} data-testid="rate">
-        {settings.display.privacy
-          ? '+₩•••/s'
-          : `+₩${formatRateMilliKrw(snapshot.currentRateMilliKrwPerSecond)}/s`}
       </div>
-
-      {!isPiP && pipSupported && onOpenPiP ? (
-        <button className="pip-button text-button" onClick={onOpenPiP}>
-          위젯으로 열기
-        </button>
-      ) : null}
     </main>
   );
 }

@@ -7,15 +7,24 @@
     BlinkMacSystemFont,
     'Segoe UI',
     sans-serif;
-  color: #f8fafc;
-  background: #080d18;
+  color: #f2f5f7;
+  background: #0d1117;
   font-synthesis: none;
   font-variant-numeric: tabular-nums;
-  --timeline-working: #22c55e;
-  --timeline-loafing: #f59e0b;
-  --timeline-inactive: #1e293b;
-  --timeline-current: #e2e8f0;
-  --freework-wallet: #f97316;
+  --state-working: #35b7aa;
+  --state-working-soft: #1d6e68;
+  --state-loafing: #d89335;
+  --state-loafing-soft: #7a4d1f;
+  --state-freework: #d94c59;
+  --state-freework-strong: #f05a67;
+  --state-freework-soft: #742933;
+  --timeline-working: var(--state-working);
+  --timeline-loafing: var(--state-loafing);
+  --timeline-inactive: #28313a;
+  --timeline-current: #f2f5f7;
+  --surface: #151b22;
+  --surface-secondary: #1b222b;
+  --text-secondary: #929ba6;
 }
 * {
   box-sizing: border-box;
@@ -31,7 +40,7 @@ body {
   min-height: 100vh;
   min-height: 100dvh;
   background:
-    radial-gradient(circle at 50% 0%, rgba(34, 197, 94, 0.09), transparent 34rem), #080d18;
+    radial-gradient(circle at 50% 0%, rgba(53, 183, 170, 0.07), transparent 34rem), #0d1117;
 }
 button,
 input {
@@ -46,109 +55,181 @@ button:disabled {
 }
 
 .money-timer-frame {
+  --active-state: #7f8a96;
   position: relative;
-  width: min(calc(100% - 28px), 560px);
-  min-height: min(680px, calc(100dvh - 28px));
-  margin: 14px auto;
-  padding: 34px 38px 30px;
+  width: min(calc(100% - 16px), 580px);
+  height: min(680px, calc(100dvh - 16px));
+  min-height: min(520px, calc(100dvh - 16px));
+  margin: 8px auto;
+  padding: 30px 36px 26px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border-radius: 38px;
-  background: linear-gradient(180deg, rgba(15, 23, 42, 0.96), rgba(8, 13, 24, 0.98));
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.34);
+  border-radius: 36px;
+  background: linear-gradient(180deg, rgba(21, 27, 34, 0.98), rgba(13, 17, 23, 0.99));
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.32);
 }
+.money-timer-frame.state-working {
+  --active-state: var(--state-working);
+  background:
+    radial-gradient(circle at 50% 18%, rgba(53, 183, 170, 0.07), transparent 38%),
+    linear-gradient(180deg, rgba(21, 27, 34, 0.98), rgba(13, 17, 23, 0.99));
+}
+.money-timer-frame.state-loafing {
+  --active-state: var(--state-loafing);
+  background:
+    radial-gradient(circle at 50% 18%, rgba(216, 147, 53, 0.08), transparent 38%),
+    linear-gradient(180deg, rgba(21, 27, 34, 0.98), rgba(13, 17, 23, 0.99));
+}
+.money-timer-frame.state-freework {
+  --active-state: var(--state-freework);
+  background:
+    radial-gradient(circle at 50% 18%, rgba(217, 76, 89, 0.1), transparent 40%),
+    linear-gradient(180deg, rgba(24, 25, 31, 0.98), rgba(13, 17, 23, 0.99));
+}
+
 .perimeter {
   position: absolute;
-  inset: 7px;
-  width: calc(100% - 14px);
-  height: calc(100% - 14px);
+  inset: 0;
+  width: 100%;
+  height: 100%;
   pointer-events: none;
   overflow: visible;
 }
 .perimeter path {
   fill: none;
   vector-effect: non-scaling-stroke;
-  stroke-width: 3;
+  stroke-linecap: butt;
+  stroke-width: 8px;
 }
 .perimeter-base {
   stroke: var(--timeline-inactive);
 }
 .perimeter-working {
   stroke: var(--timeline-working);
+  stroke-width: 9px;
 }
 .perimeter-loafing {
   stroke: var(--timeline-loafing);
-  stroke-width: 3.6;
+  stroke-width: 9px;
 }
 .perimeter-current {
   stroke: var(--timeline-current);
-  stroke-width: 5;
-  filter: drop-shadow(0 0 4px rgba(226, 232, 240, 0.7));
+  stroke-width: 11px;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 3px rgba(242, 245, 247, 0.45));
 }
 
 .timer-topline {
   position: relative;
   z-index: 2;
   display: flex;
-  justify-content: space-between;
-  min-height: 36px;
+  justify-content: flex-end;
+  min-height: 34px;
 }
-.text-button {
+.text-button,
+.detail-button {
   border: 0;
   background: transparent;
-  color: #94a3b8;
+  color: var(--text-secondary);
+}
+.text-button {
   padding: 7px 8px;
 }
-.timer-core {
+.detail-button {
+  min-height: 42px;
+  width: 100%;
+  border: 1px solid #2e3741;
+  border-radius: 14px;
+  background: rgba(27, 34, 43, 0.72);
+  color: #d8dee4;
+  font-weight: 750;
+}
+
+.timer-layout {
   position: relative;
   z-index: 2;
   flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 20px;
+}
+.timer-main-zone {
+  min-width: 0;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 0;
   text-align: center;
 }
 .state-line {
-  color: #cbd5e1;
-  font-size: 15px;
-  font-weight: 750;
+  color: var(--active-state);
+  font-size: 16px;
+  font-weight: 800;
   letter-spacing: 0.02em;
 }
-.progress-value {
-  margin-top: 10px;
-  font-size: clamp(54px, 11vw, 68px);
+.main-money {
+  margin-top: 18px;
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+.main-money strong {
+  color: #f2f5f7;
+  font-size: clamp(46px, 13vw, 76px);
   line-height: 0.98;
   font-weight: 900;
-  letter-spacing: -0.05em;
+  letter-spacing: -0.055em;
+  white-space: nowrap;
 }
-.remaining-time {
-  margin-top: 10px;
-  color: #94a3b8;
-  font-size: 16px;
-}
-.money-block {
-  margin-top: 42px;
-  display: grid;
-  gap: 6px;
-}
-.money-block span {
-  color: #94a3b8;
+.main-support-label {
+  color: var(--text-secondary);
   font-size: 14px;
+  font-weight: 650;
 }
-.money-block strong {
-  font-size: clamp(29px, 7vw, 36px);
+
+.timer-action-zone,
+.freework-action-zone {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.secondary-amount-card {
+  min-width: 0;
+  padding: 14px 16px;
+  border: 1px solid #2a333d;
+  border-radius: 18px;
+  background: rgba(27, 34, 43, 0.72);
+  display: grid;
+  gap: 5px;
+}
+.secondary-amount-card span {
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 700;
+}
+.secondary-amount-card strong {
+  color: #f2f5f7;
+  font-size: clamp(20px, 6vw, 28px);
+  line-height: 1.1;
   letter-spacing: -0.035em;
+  white-space: nowrap;
 }
-.secondary-money {
-  margin-top: 24px;
+.secondary-amount-card small {
+  color: var(--text-secondary);
+  font-size: 12px;
 }
-.secondary-money strong {
-  font-size: clamp(20px, 5vw, 24px);
-  color: #fbbf24;
+.loafing-amount-card strong {
+  color: #e7b66a;
 }
+.freework-history-card strong {
+  color: var(--state-freework-strong);
+}
+
 .loaf-button,
 .clockout-button,
 .save,
@@ -158,99 +239,90 @@ button:disabled {
   border-radius: 16px;
   font-weight: 800;
 }
+.loaf-button,
+.clockout-button {
+  min-height: 52px;
+  width: 100%;
+}
 .loaf-button {
-  min-width: 210px;
-  min-height: 54px;
-  margin-top: 38px;
-  background: var(--timeline-working);
-  color: #06130a;
+  background: var(--state-working);
+  color: #071817;
 }
 .loaf-button.active {
-  background: var(--timeline-loafing);
-  color: #1c1300;
+  background: var(--state-loafing);
+  color: #211507;
 }
-.corner-rate {
-  position: relative;
-  z-index: 2;
-  align-self: flex-end;
-  color: #86efac;
-  font-size: 12px;
-  min-height: 18px;
-}
-.corner-rate.dimmed {
-  color: #64748b;
+.clockout-button {
+  background: var(--state-freework-strong);
+  color: #22080d;
 }
 .pip-button {
-  position: relative;
-  z-index: 2;
   align-self: center;
-  margin-top: 2px;
+  margin-top: -2px;
   font-size: 12px;
 }
 
 .freework-wallet {
-  width: min(100%, 390px);
-  margin-top: 30px;
-  padding: 24px 22px 20px;
-  border: 1px solid rgba(249, 115, 22, 0.42);
-  border-radius: 24px;
-  background: linear-gradient(180deg, rgba(249, 115, 22, 0.1), rgba(15, 23, 42, 0.5));
-  box-shadow: inset 0 0 30px rgba(249, 115, 22, 0.04);
+  grid-column: 1 / -1;
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 20px;
+}
+.freework-main-zone {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
 }
 .wallet-label {
-  color: #fdba74;
+  margin-top: 18px;
+  color: #c97a84;
   font-size: 13px;
   font-weight: 850;
   letter-spacing: 0.08em;
 }
 .wallet-money {
-  margin-top: 12px;
-  font-size: clamp(38px, 9vw, 52px);
+  margin-top: 10px;
+  color: var(--state-freework-strong);
+  font-size: clamp(48px, 13vw, 80px);
+  line-height: 0.98;
   font-weight: 900;
-  letter-spacing: -0.045em;
+  letter-spacing: -0.055em;
+  white-space: nowrap;
 }
-.wallet-duration {
-  margin-top: 5px;
-  color: #e2e8f0;
-  font-size: 18px;
+.wallet-duration-row {
+  margin-top: 16px;
+  display: grid;
+  gap: 4px;
 }
-.wallet-rate {
-  margin-top: 14px;
-  color: #fdba74;
-  font-size: 13px;
+.wallet-duration-row span {
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 700;
 }
-.wallet-warning {
-  margin-top: 4px;
-  color: #64748b;
-  font-size: 11px;
+.wallet-duration-row strong {
+  color: #dfe5ea;
+  font-size: 20px;
+  font-weight: 780;
+  letter-spacing: 0.02em;
 }
-.wallet-copy {
-  min-height: 42px;
-  margin: 20px 0 16px;
-  color: #cbd5e1;
-  line-height: 1.5;
+.regular-earned-card strong {
+  color: #f2f5f7;
 }
-.clockout-button {
-  min-height: 50px;
-  width: 100%;
-  background: #e2e8f0;
-  color: #0f172a;
-}
-.clocked-summary {
-  width: min(100%, 390px);
-}
-.freework-summary {
-  margin-top: 30px;
-  color: #fdba74;
-  font-size: 13px;
-}
+
 .milestone-ring {
   position: absolute;
   top: 43%;
   padding: 6px 10px;
   border-radius: 999px;
-  background: #dcfce7;
-  color: #14532d;
+  background: #d7f5f1;
+  color: #185d57;
   font-weight: 850;
   animation: ring 650ms ease-out both;
 }
@@ -333,9 +405,9 @@ button:disabled {
   color: #94a3b8;
 }
 .weekday-row button.selected {
-  background: #22c55e;
-  color: #06130a;
-  border-color: #22c55e;
+  background: var(--state-working);
+  color: #071817;
+  border-color: var(--state-working);
 }
 .time-grid {
   display: grid;
@@ -372,62 +444,14 @@ button:disabled {
   width: 100%;
   min-height: 54px;
   margin-top: 28px;
-  background: #22c55e;
-  color: #06130a;
-}
-
-.pip-body {
-  margin: 0;
-  background: #080d18;
-}
-.pip-body .money-timer-frame {
-  width: calc(100% - 12px);
-  min-height: calc(100dvh - 12px);
-  margin: 6px;
-  padding: 20px 22px 16px;
-  border-radius: 28px;
-}
-.pip-body .progress-value {
-  margin-top: 6px;
-  font-size: 44px;
-}
-.pip-body .money-block {
-  margin-top: 18px;
-}
-.pip-body .money-block strong {
-  font-size: 27px;
-}
-.pip-body .secondary-money {
-  margin-top: 10px;
-}
-.pip-body .secondary-money strong {
-  font-size: 19px;
-}
-.pip-body .loaf-button {
-  margin-top: 14px;
-  min-height: 44px;
-}
-.pip-body .freework-wallet {
-  margin-top: 12px;
-  padding: 14px 16px;
-}
-.pip-body .wallet-money {
-  margin-top: 8px;
-  font-size: 34px;
-}
-.pip-body .wallet-copy {
-  min-height: 0;
-  margin: 12px 0 10px;
-  font-size: 13px;
-}
-.pip-body .clockout-button {
-  min-height: 44px;
+  background: var(--state-working);
+  color: #071817;
 }
 
 @keyframes pulse {
   50% {
     transform: scale(1.018);
-    text-shadow: 0 0 22px rgba(134, 239, 172, 0.42);
+    text-shadow: 0 0 22px rgba(53, 183, 170, 0.36);
   }
 }
 @keyframes ring {
@@ -447,36 +471,56 @@ button:disabled {
 @media (max-width: 419px), (max-height: 559px) {
   .money-timer-frame {
     width: calc(100% - 12px);
-    min-height: calc(100dvh - 12px);
+    height: calc(100dvh - 12px);
+    min-height: 0;
     margin: 6px;
-    padding: 24px 22px 20px;
+    padding: 22px 22px 18px;
     border-radius: 28px;
   }
-  .progress-value {
-    font-size: 48px;
+  .timer-topline {
+    min-height: 30px;
   }
-  .money-block {
-    margin-top: 26px;
-  }
-  .money-block strong {
-    font-size: 27px;
-  }
-  .secondary-money {
-    margin-top: 16px;
-  }
-  .secondary-money strong {
-    font-size: 19px;
-  }
-  .loaf-button {
-    margin-top: 24px;
-    min-height: 48px;
-  }
+  .timer-layout,
   .freework-wallet {
-    margin-top: 18px;
-    padding: 18px;
+    gap: 12px;
+  }
+  .main-money {
+    margin-top: 12px;
+    gap: 6px;
+  }
+  .main-money strong {
+    font-size: clamp(42px, 13vw, 56px);
+  }
+  .secondary-amount-card {
+    padding: 10px 13px;
+    border-radius: 15px;
+  }
+  .secondary-amount-card strong {
+    font-size: 20px;
+  }
+  .loaf-button,
+  .clockout-button {
+    min-height: 46px;
+  }
+  .timer-action-zone,
+  .freework-action-zone {
+    gap: 8px;
+  }
+  .detail-button {
+    min-height: 38px;
+  }
+  .wallet-label {
+    margin-top: 10px;
   }
   .wallet-money {
-    font-size: 38px;
+    margin-top: 7px;
+    font-size: clamp(44px, 13vw, 58px);
+  }
+  .wallet-duration-row {
+    margin-top: 10px;
+  }
+  .wallet-duration-row strong {
+    font-size: 17px;
   }
   .time-grid {
     grid-template-columns: 1fr;
@@ -485,12 +529,133 @@ button:disabled {
     flex-direction: column;
   }
 }
-@media (max-width: 480px) {
+
+@media (orientation: landscape) and (min-width: 520px) {
   .money-timer-frame {
-    min-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 12px);
-    padding-bottom: calc(20px + env(safe-area-inset-bottom));
+    width: min(calc(100% - 16px), 900px);
+    height: min(540px, calc(100dvh - 16px));
+    min-height: 0;
+    padding: 24px 34px 22px;
+  }
+  .timer-layout {
+    grid-template-columns: minmax(0, 1.25fr) minmax(230px, 0.75fr);
+    grid-template-rows: minmax(0, 1fr);
+    align-items: stretch;
+    gap: 28px;
+  }
+  .timer-main-zone,
+  .freework-main-zone {
+    align-items: flex-start;
+    text-align: left;
+    padding-left: 16px;
+  }
+  .timer-action-zone,
+  .freework-action-zone {
+    justify-content: center;
+  }
+  .main-money strong {
+    font-size: clamp(46px, 8vw, 82px);
+  }
+  .freework-wallet {
+    grid-template-columns: minmax(0, 1.25fr) minmax(230px, 0.75fr);
+    grid-template-rows: minmax(0, 1fr);
+    align-items: stretch;
+    gap: 28px;
+  }
+  .wallet-money {
+    font-size: clamp(50px, 8vw, 86px);
   }
 }
+
+@media (orientation: landscape) and (min-width: 520px) and (max-height: 460px) {
+  .money-timer-frame {
+    padding: 18px 30px 16px;
+  }
+  .timer-topline {
+    min-height: 28px;
+  }
+  .timer-layout,
+  .freework-wallet {
+    gap: 22px;
+  }
+  .main-money {
+    margin-top: 12px;
+  }
+  .main-money strong {
+    font-size: clamp(42px, 8vw, 64px);
+  }
+  .wallet-label {
+    margin-top: 10px;
+  }
+  .wallet-money {
+    margin-top: 6px;
+    font-size: clamp(44px, 8vw, 66px);
+  }
+  .wallet-duration-row {
+    margin-top: 10px;
+  }
+  .secondary-amount-card {
+    padding: 10px 14px;
+  }
+  .loaf-button,
+  .clockout-button {
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 480px) {
+  .money-timer-frame {
+    height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 12px);
+    padding-bottom: calc(18px + env(safe-area-inset-bottom));
+  }
+}
+
+.pip-body {
+  margin: 0;
+  background: #0d1117;
+}
+.pip-body .money-timer-frame {
+  width: calc(100% - 12px);
+  height: calc(100dvh - 12px);
+  min-height: 0;
+  margin: 6px;
+  padding: 18px 20px 16px;
+  border-radius: 26px;
+}
+.pip-body .timer-topline {
+  min-height: 28px;
+}
+.pip-body .timer-layout,
+.pip-body .freework-wallet {
+  gap: 10px;
+}
+.pip-body .main-money {
+  margin-top: 10px;
+}
+.pip-body .main-money strong {
+  font-size: 42px;
+}
+.pip-body .secondary-amount-card {
+  padding: 10px 12px;
+}
+.pip-body .secondary-amount-card strong {
+  font-size: 19px;
+}
+.pip-body .loaf-button,
+.pip-body .clockout-button {
+  min-height: 44px;
+}
+.pip-body .wallet-label {
+  margin-top: 8px;
+}
+.pip-body .wallet-money {
+  margin-top: 5px;
+  font-size: 42px;
+}
+.pip-body .wallet-duration-row {
+  margin-top: 8px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
