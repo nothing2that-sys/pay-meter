@@ -13,6 +13,10 @@ import { crossedMilestone } from '../features/milestone';
 import { FakeClock } from '../infrastructure/clock';
 import { freeWorkBucket, freeWorkCopy } from '../presentation/freeWorkCopy';
 import { buildMoneyTimerViewModel } from '../presentation/moneyTimerViewModel';
+import {
+  PERIMETER_PATH_D,
+  shouldShowPerimeterMarker,
+} from '../presentation/PerimeterTimeline';
 
 const settings: PrototypeSettings = {
   salaryKrw: 4_000_000,
@@ -57,6 +61,7 @@ describe('P1R state and progress', () => {
   it.each([
     [at(8, 59, 59, 999), 'BEFORE_WORK', 0],
     [at(9), 'REGULAR_WORK', 0],
+    [at(11), 'REGULAR_WORK', 0.25],
     [at(12), 'UNPAID_BREAK', 0.375],
     [at(12, 30), 'UNPAID_BREAK', 0.375],
     [at(13), 'REGULAR_WORK', 0.375],
@@ -103,11 +108,29 @@ describe('P1R perimeter and loafing money', () => {
       withLoafing.todayEarnedMicroKrw,
     );
   });
-  it('excludes a crossed break from loafing duration', () => {
-    const crossed = [{ id: 'x', startAtEpochMs: at(11, 50), endAtEpochMs: at(13, 20) }];
-    expect(buildPaySnapshot(settings, at(13, 20), 'Asia/Seoul', crossed).loafingDurationMs).toBe(
-      30 * 60_000,
-    );
+  it('preserves separated multiple LOAFING segments in chronological order', () => {
+    const multiple: LoafingInterval[] = [
+      { id: 'a', startAtEpochMs: at(9, 30), endAtEpochMs: at(9, 45) },
+      { id: 'b', startAtEpochMs: at(10, 30), endAtEpochMs: at(10, 40) },
+    ];
+    const snapshot = buildPaySnapshot(settings, at(11), 'Asia/Seoul', multiple);
+    expect(snapshot.perimeterSegments.map((x) => x.type)).toEqual([
+      'WORKING',
+      'LOAFING',
+      'WORKING',
+      'LOAFING',
+      'WORKING',
+    ]);
+  });
+
+  it('excludes a crossed break from loafing duration and keeps open LOAFING intent after break', () => {
+    const crossed: LoafingInterval[] = [
+      { id: 'x', startAtEpochMs: at(11, 50), endAtEpochMs: null },
+    ];
+    const snapshot = buildPaySnapshot(settings, at(13, 20), 'Asia/Seoul', crossed);
+    expect(snapshot.loafingDurationMs).toBe(30 * 60_000);
+    expect(snapshot.activityState).toBe('LOAFING');
+    expect(snapshot.perimeterSegments.map((x) => x.type)).toEqual(['WORKING', 'LOAFING']);
   });
 });
 
@@ -126,6 +149,7 @@ describe('P1R free work wallet and clock out', () => {
     expect(later.payState).toBe('CLOCKED_OUT');
     expect(later.freeWorkDurationMs).toBe(30 * 60_000);
     expect(later.todayEarnedMicroKrw).toBe(later.dailyTargetMicroKrw);
+    expect(later.currentRateMilliKrwPerSecond).toBe(0n);
   });
 });
 
@@ -142,9 +166,13 @@ describe('P1R view model and free-work copy', () => {
     ).toBe('휴게 종료까지');
   });
   it.each([
-    [10, 'FW0'],
-    [20, 'FW1'],
-    [45, 'FW2'],
+    [0, 'FW0'],
+    [14, 'FW0'],
+    [15, 'FW1'],
+    [29, 'FW1'],
+    [30, 'FW2'],
+    [59, 'FW2'],
+    [60, 'FW3'],
     [70, 'FW3'],
   ])('maps %s minutes to %s', (minutes, bucket) => {
     expect(freeWorkBucket((minutes as number) * 60_000)).toBe(bucket);
@@ -154,11 +182,25 @@ describe('P1R view model and free-work copy', () => {
   });
 });
 
+describe('P1R perimeter presentation contract', () => {
+  it('starts the normalized rounded path at top center and proceeds toward the right edge', () => {
+    expect(PERIMETER_PATH_D.startsWith('M 50 1.5 H 91.5')).toBe(true);
+  });
+
+  it('shows the moving marker only for incomplete non-zero progress', () => {
+    expect(shouldShowPerimeterMarker(0)).toBe(false);
+    expect(shouldShowPerimeterMarker(0.25)).toBe(true);
+    expect(shouldShowPerimeterMarker(0.999)).toBe(true);
+    expect(shouldShowPerimeterMarker(1)).toBe(false);
+    expect(shouldShowPerimeterMarker(0.5, true)).toBe(false);
+  });
+});
+
 describe('existing P1 invariants', () => {
-  it('is tick independent', () => {
+  it('is tick independent for the complete Snapshot', () => {
     const now = at(15, 17, 23, 456);
-    expect(buildPaySnapshot(settings, now, 'Asia/Seoul', []).todayEarnedMicroKrw).toBe(
-      buildPaySnapshot(settings, now, 'Asia/Seoul', []).todayEarnedMicroKrw,
+    expect(buildPaySnapshot(settings, now, 'Asia/Seoul', [])).toEqual(
+      buildPaySnapshot(settings, now, 'Asia/Seoul', []),
     );
   });
   it('keeps milestone foreground-only and disabled in PiP', () => {
