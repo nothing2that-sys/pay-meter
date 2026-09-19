@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import type { PerimeterSegment } from '../domain/prototype';
 
 interface Props {
@@ -8,6 +9,14 @@ interface Props {
 
 export const PERIMETER_PATH_D =
   'M 50 1.5 H 91.5 A 7 7 0 0 1 98.5 8.5 V 91.5 A 7 7 0 0 1 91.5 98.5 H 8.5 A 7 7 0 0 1 1.5 91.5 V 8.5 A 7 7 0 0 1 8.5 1.5 H 50 Z';
+
+export function perimeterProgressStyle(progressRatio: number): CSSProperties {
+  const progress = Math.min(1, Math.max(0, progressRatio));
+  return {
+    strokeDasharray: `${progress} ${1 - progress}`,
+    strokeDashoffset: 0,
+  };
+}
 
 export function shouldShowPerimeterMarker(progressRatio: number, complete = false): boolean {
   const progress = Math.min(1, Math.max(0, progressRatio));
@@ -33,19 +42,7 @@ export function PerimeterTimeline({ progressRatio, complete = false }: Props) {
           className="perimeter-progress"
           d={PERIMETER_PATH_D}
           pathLength="1"
-          style={{
-            strokeDasharray: `${progress} ${1 - progress}`,
-            strokeDashoffset: 0,
-          }}
-        />
-      ) : null}
-      {shouldShowPerimeterMarker(progress, complete) ? (
-        <circle
-          className="perimeter-current-dot"
-          cx="50"
-          cy="1.5"
-          r="0"
-          data-progress={progress}
+          style={perimeterProgressStyle(progress)}
         />
       ) : null}
     </svg>
