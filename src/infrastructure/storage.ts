@@ -28,6 +28,7 @@ export function loadSettings(): PrototypeSettings {
         ...cloneDefaults().display,
         ...parsed.display,
         showDecimals: false,
+        milestoneEnabled: false,
       },
       consumerItems: [],
     };
@@ -41,7 +42,7 @@ export function saveSettings(settings: PrototypeSettings): void {
     SETTINGS_KEY,
     JSON.stringify({
       ...settings,
-      display: { ...settings.display, showDecimals: false },
+      display: { ...settings.display, showDecimals: false, milestoneEnabled: false },
       consumerItems: [],
     }),
   );
