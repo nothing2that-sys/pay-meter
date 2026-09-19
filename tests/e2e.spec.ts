@@ -143,8 +143,9 @@ test('open LOAFING survives reload without duplicate intervals', async ({ page }
   expect(stored[0].endAtEpochMs).toBeNull();
 });
 
-
-test('clock out closes an open LOAFING interval and reload does not reopen it', async ({ page }) => {
+test('clock out closes an open LOAFING interval and reload does not reopen it', async ({
+  page,
+}) => {
   await freshApp(page);
   await setupSalary(page);
   const loafingStart = new Date(2026, 8, 21, 17, 50).getTime();
@@ -171,7 +172,9 @@ test('clock out closes an open LOAFING interval and reload does not reopen it', 
   expect(reloaded[0].endAtEpochMs).toBe(clockOutAt);
 });
 
-test('background-style resume recomputes from wall clock without catch-up ticks', async ({ page }) => {
+test('background-style resume recomputes from wall clock without catch-up ticks', async ({
+  page,
+}) => {
   await freshApp(page, new Date(2026, 8, 21, 17, 50).getTime());
   await setupSalary(page);
 

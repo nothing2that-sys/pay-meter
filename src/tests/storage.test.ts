@@ -1,9 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import {
-  clockOutPrototypeDay,
-  loadSettings,
-  stopLoafing,
-} from '../infrastructure/storage';
+import { clockOutPrototypeDay, loadSettings, stopLoafing } from '../infrastructure/storage';
 
 class MemoryStorage implements Storage {
   private readonly data = new Map<string, string>();
@@ -85,8 +81,6 @@ describe('P1R prototype storage', () => {
       closedAt,
     );
 
-    expect(intervals).toEqual([
-      { id: 'open', startAtEpochMs: startAt, endAtEpochMs: closedAt },
-    ]);
+    expect(intervals).toEqual([{ id: 'open', startAtEpochMs: startAt, endAtEpochMs: closedAt }]);
   });
 });
