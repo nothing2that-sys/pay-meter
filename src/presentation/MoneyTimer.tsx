@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import { formatMicroKrw, type PaySnapshot, type PrototypeSettings } from '../domain/prototype';
 import { FreeWorkWallet } from './FreeWorkWallet';
 import { buildMoneyTimerViewModel } from './moneyTimerViewModel';
@@ -97,10 +98,18 @@ export function MoneyTimer({
     snapshot.payState === 'CLOCKED_OUT';
   const showActivityAction =
     snapshot.payState === 'REGULAR_WORK' || snapshot.payState === 'UNPAID_BREAK';
+  const freeWorkRatio =
+    snapshot.dailyTargetMicroKrw > 0n
+      ? Number(snapshot.freeWorkReferenceValueMicroKrw) / Number(snapshot.dailyTargetMicroKrw)
+      : 0;
+  const frameStyle = {
+    '--freework-fill': `${Math.min(100, Math.max(0, freeWorkRatio * 100))}%`,
+  } as CSSProperties;
 
   return (
     <main
       className={`money-timer-frame state-${vm.stateTheme} ${isPiP ? 'pip-timer' : ''}`}
+      style={frameStyle}
       aria-live="polite"
     >
       <PerimeterTimeline
