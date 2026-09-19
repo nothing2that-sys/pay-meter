@@ -1,24 +1,22 @@
 name: Format Once
 on:
   push:
-    branches: [main]
+    branches:
+      - main
 permissions:
   contents: write
 jobs:
   format:
-    if: github.event.head_commit.message == 'chore: run P1R formatter'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
       - run: npm ci
       - run: npm run format
-      - name: Commit formatted P1R source and remove one-shot workflow
+      - name: Commit formatted P1R source
         run: |
           rm .github/workflows/format-once.yml
           git config user.name "github-actions[bot]"
