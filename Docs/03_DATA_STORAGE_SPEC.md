@@ -327,3 +327,57 @@ V1 기본:
 - 브라우저 로컬 저장
 
 향후 Cloud Sync가 추가되면 Local Only와 명확히 구분한다.
+
+## 18. App Time and Transition Settings
+
+localStorage의 appSettings에는 최소 다음 설정을 보존한다.
+
+```ts
+AppSettings {
+  deviceTimeZoneMode: "DEVICE_LOCAL"
+  postWorkTransitionMode:
+    | "MANUAL_OVERTIME"
+    | "AUTO_OVERTIME"
+  defaultOvertimePolicyId: string | null
+}
+```
+
+기본값:
+
+```
+deviceTimeZoneMode = DEVICE_LOCAL
+postWorkTransitionMode = MANUAL_OVERTIME
+```
+
+AUTO_OVERTIME을 선택할 때는 유효한 defaultOvertimePolicyId가 필요하다.
+
+정책이 삭제되거나 손상된 경우 자동으로 유급시간을 생성하지 않고 무료봉사 상태로 Fail Safe한다.
+
+## 19. No Tick Persistence
+
+다음 값은 매 UI Tick마다 저장하지 않는다.
+
+- 현재 표시 금액
+- 현재 표시 Timer 숫자
+- ms 단위 경과값
+
+대신 다음 원본을 저장한다.
+
+- Schedule
+- Clock Out Event
+- Activity Session start/end
+- Overtime Session start/end
+- Daily Override
+- Policy Snapshot
+
+현재 값은 디바이스 시각에서 재계산한다.
+
+이 방식으로 페이지가 닫혀 있던 시간도 정확히 복원한다.
+
+## 20. Reconstructed Automatic Overtime
+
+AUTO_OVERTIME에서 앱이 정규 종료 시점에 실행 중이지 않았던 경우 다음 실행 시 Scheduled End를 시작 시각으로 하는 Overtime Session을 재구성할 수 있다.
+
+재구성 Session은 중복 생성되지 않아야 한다.
+
+Clock Out 기록이 Scheduled End 이전 또는 이후에 존재하면 Clock Out 이후 구간을 자동 Overtime으로 생성하지 않는다.
