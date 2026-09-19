@@ -189,7 +189,7 @@ test('scheduled end shows the final Free Work hierarchy and a completed full-loo
   await expect(page.getByText('봉사중')).toBeVisible();
   await expect(page.getByText('무료봉사 WALLET')).toHaveCount(0);
   await expect(page.getByText('무료봉사 시간')).toBeVisible();
-  await expect(page.getByText('일당')).toBeVisible();
+  await expect(page.getByText('일당', { exact: true })).toBeVisible();
   await expect(page.getByTestId('freework-ratio')).toContainText('일당의 6.3%');
   const freeWorkFill = await page
     .locator('.money-timer-frame')
