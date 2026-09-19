@@ -12,6 +12,39 @@ function money(value: bigint, privacy: boolean): string {
   return privacy ? '₩ ••••••' : `₩${formatMicroKrw(value)}`;
 }
 
+function ExitIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M10 4H5v16h5M14 8l4 4-4 4M18 12H9" />
+    </svg>
+  );
+}
+
+function ListIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M9 6h11M9 12h11M9 18h11" />
+      <path d="M4 6h.01M4 12h.01M4 18h.01" />
+    </svg>
+  );
+}
+
+function ChartIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M5 19V11M12 19V5M19 19v-8" />
+    </svg>
+  );
+}
+
+function ChevronIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M9 5l7 7-7 7" />
+    </svg>
+  );
+}
+
 export function FreeWorkWallet({
   snapshot,
   privacy,
@@ -22,32 +55,57 @@ export function FreeWorkWallet({
   return (
     <section className="freework-wallet" data-testid="freework-wallet">
       <div className="freework-main-zone">
-        <div className="state-line">무료봉사 중</div>
-        <div className="wallet-label">무료봉사 WALLET</div>
-        <div className="wallet-money" data-testid="freework-money">
-          {money(snapshot.freeWorkReferenceValueMicroKrw, privacy)}
-        </div>
-        <div className="wallet-duration-row">
-          <span>무료봉사 시간</span>
-          <strong data-testid="freework-duration">
-            {formatDuration(snapshot.freeWorkDurationMs)}
-          </strong>
+        <div className="meter-orb freework-orb">
+          <div className="state-pill">
+            <span className="state-dot" />
+            <span>무료봉사 중</span>
+          </div>
+
+          <div className="wallet-label">무료봉사 WALLET</div>
+
+          <div className="wallet-money" data-testid="freework-money">
+            {money(snapshot.freeWorkReferenceValueMicroKrw, privacy)}
+          </div>
+
+          <div className="wallet-duration-row">
+            <span>무료봉사 시간</span>
+            <strong data-testid="freework-duration">
+              {formatDuration(snapshot.freeWorkDurationMs)}
+            </strong>
+          </div>
         </div>
       </div>
 
       <div className="freework-action-zone">
         <div className="secondary-amount-card regular-earned-card">
-          <span>정상 적립 금액</span>
-          <strong data-testid="normal-earned-money">
-            {money(snapshot.todayEarnedMicroKrw, privacy)}
-          </strong>
+          <div className="mini-card-icon">
+            <ChartIcon />
+          </div>
+          <div>
+            <span>정상 적립 금액</span>
+            <strong data-testid="normal-earned-money">
+              {money(snapshot.todayEarnedMicroKrw, privacy)}
+            </strong>
+          </div>
+          <ChevronIcon />
         </div>
+
+        <div className="ambient-waves" aria-hidden="true">
+          <span />
+          <span />
+        </div>
+
         <button className="clockout-button" onClick={onClockOut} data-testid="clock-out">
-          퇴근
+          <ExitIcon />
+          <span>퇴근</span>
+          <ChevronIcon />
         </button>
+
         {showDetails && onDetails ? (
           <button className="detail-button" onClick={onDetails}>
-            상세 내역 보기
+            <ListIcon />
+            <span>상세 내역 보기</span>
+            <ChevronIcon />
           </button>
         ) : null}
       </div>
