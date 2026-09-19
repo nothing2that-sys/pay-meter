@@ -7,9 +7,17 @@ interface Props {
   complete?: boolean;
 }
 
+export const PERIMETER_PATH_D =
+  'M 50 1.5 H 91.5 A 7 7 0 0 1 98.5 8.5 V 91.5 A 7 7 0 0 1 91.5 98.5 H 8.5 A 7 7 0 0 1 1.5 91.5 V 8.5 A 7 7 0 0 1 8.5 1.5 H 50 Z';
+
 function segmentStyle(segment: PerimeterSegment): CSSProperties {
   const length = Math.max(0, segment.endRatio - segment.startRatio);
   return { strokeDasharray: `${length} ${1 - length}`, strokeDashoffset: -segment.startRatio };
+}
+
+export function shouldShowPerimeterMarker(progressRatio: number, complete = false): boolean {
+  const progress = Math.min(1, Math.max(0, progressRatio));
+  return !complete && progress > 0 && progress < 1;
 }
 
 export function PerimeterTimeline({ progressRatio, segments, complete = false }: Props) {
@@ -18,36 +26,20 @@ export function PerimeterTimeline({ progressRatio, segments, complete = false }:
   const markerStart = Math.max(0, Math.min(1 - markerLength, progress - markerLength / 2));
   return (
     <svg className="perimeter" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-      <rect
-        className="perimeter-base"
-        x="1.5"
-        y="1.5"
-        width="97"
-        height="97"
-        rx="7"
-        pathLength="1"
-      />
+      <path className="perimeter-base" d={PERIMETER_PATH_D} pathLength="1" />
       {segments.map((segment, index) => (
-        <rect
+        <path
           key={`${segment.type}:${segment.startRatio}:${index}`}
           className={segment.type === 'LOAFING' ? 'perimeter-loafing' : 'perimeter-working'}
-          x="1.5"
-          y="1.5"
-          width="97"
-          height="97"
-          rx="7"
+          d={PERIMETER_PATH_D}
           pathLength="1"
           style={segmentStyle(segment)}
         />
       ))}
-      {!complete && progress > 0 ? (
-        <rect
+      {shouldShowPerimeterMarker(progress, complete) ? (
+        <path
           className="perimeter-current"
-          x="1.5"
-          y="1.5"
-          width="97"
-          height="97"
-          rx="7"
+          d={PERIMETER_PATH_D}
           pathLength="1"
           style={{
             strokeDasharray: `${markerLength} ${1 - markerLength}`,
