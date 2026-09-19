@@ -14,8 +14,11 @@
 6. `05_TECHNICAL_ARCHITECTURE.md`
 7. `06_IMPLEMENTATION_ROADMAP.md`
 8. `07_TEST_AND_ACCEPTANCE.md`
+9. `08_OPEN_DECISIONS.md`
 
 충돌 또는 해석 불가능한 요구사항은 임의로 구현하지 않고 문서를 먼저 수정한다.
+
+`08_OPEN_DECISIONS.md`는 아직 확정되지 않은 항목의 기록이며, 확정된 계산 Contract보다 우선하지 않는다. 결정이 내려지면 관련 상위 SSOT 문서와 테스트 기준으로 승격한다.
 
 ## 현재 제품 정의
 
