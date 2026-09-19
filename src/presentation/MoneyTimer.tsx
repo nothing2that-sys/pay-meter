@@ -120,6 +120,11 @@ export function MoneyTimer({
           </div>
         </div>
         <div className="header-actions">
+          {!isPiP && onDetails ? (
+            <button className="round-icon-button" onClick={onDetails} aria-label="상세 보기">
+              <ListIcon />
+            </button>
+          ) : null}
           <button
             className="round-icon-button"
             onClick={onTogglePrivacy}
@@ -141,8 +146,6 @@ export function MoneyTimer({
             snapshot={snapshot}
             privacy={settings.display.privacy}
             onClockOut={onClockOut}
-            onDetails={onDetails}
-            showDetails={!isPiP}
           />
         ) : (
           <>
@@ -198,14 +201,6 @@ export function MoneyTimer({
                         ? '업무 복귀'
                         : '루팡 모드'}
                   </span>
-                  <ChevronIcon />
-                </button>
-              ) : null}
-
-              {!isPiP && onDetails ? (
-                <button className="detail-button" onClick={onDetails}>
-                  <ListIcon />
-                  <span>상세 보기</span>
                   <ChevronIcon />
                 </button>
               ) : null}
