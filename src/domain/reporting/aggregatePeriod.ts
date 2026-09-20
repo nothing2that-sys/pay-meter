@@ -10,6 +10,7 @@ export function aggregatePeriod(reports: DailyReport[]): PeriodReport {
   let freeWorkDurationMs = 0;
   let freeWorkReferenceValueMicroKrw = 0n;
   let overtimeDurationMs = 0;
+  let plannedPaidDurationMs = 0;
   let recordedDayCount = 0;
   let syntheticDayCount = 0;
   let integrityIssueCount = 0;
@@ -27,7 +28,11 @@ export function aggregatePeriod(reports: DailyReport[]): PeriodReport {
       hasProvisionalData = true;
     }
     if (report.source === 'SYNTHETIC_ALLOCATION') syntheticDayCount += 1;
-    if (report.source === 'LIVE_SNAPSHOT' && report.hasRecord) recordedDayCount += 1;
+    if (
+      (report.source === 'LIVE_SNAPSHOT' || report.source === 'ARCHIVED_SNAPSHOT') &&
+      report.hasRecord
+    )
+      recordedDayCount += 1;
     if (report.source === 'EMPTY') continue;
 
     recognizedPayMicroKrw += report.recognizedPayMicroKrw;
@@ -39,6 +44,7 @@ export function aggregatePeriod(reports: DailyReport[]): PeriodReport {
     freeWorkDurationMs += report.freeWorkDurationMs;
     freeWorkReferenceValueMicroKrw += report.freeWorkReferenceValueMicroKrw;
     overtimeDurationMs += report.overtimeDurationMs;
+    plannedPaidDurationMs += report.plannedPaidDurationMs;
   }
 
   return {
@@ -52,6 +58,7 @@ export function aggregatePeriod(reports: DailyReport[]): PeriodReport {
     freeWorkDurationMs,
     freeWorkReferenceValueMicroKrw,
     overtimeDurationMs,
+    plannedPaidDurationMs,
     recordedDayCount,
     syntheticDayCount,
     integrityIssueCount,

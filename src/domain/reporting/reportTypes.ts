@@ -1,6 +1,10 @@
 export type ReportPeriod = 'daily' | 'weekly' | 'monthly' | 'yearly';
 
-export type ReportSource = 'LIVE_SNAPSHOT' | 'SYNTHETIC_ALLOCATION' | 'EMPTY';
+export type ReportSource =
+  | 'LIVE_SNAPSHOT'
+  | 'ARCHIVED_SNAPSHOT'
+  | 'SYNTHETIC_ALLOCATION'
+  | 'EMPTY';
 
 export type ReportIntegrityStatus = 'OK' | 'PROVISIONAL' | 'NEEDS_REVIEW' | 'EXCLUDED';
 
@@ -44,6 +48,7 @@ export interface PeriodReport {
   freeWorkDurationMs: number;
   freeWorkReferenceValueMicroKrw: bigint;
   overtimeDurationMs: number;
+  plannedPaidDurationMs: number;
   recordedDayCount: number;
   syntheticDayCount: number;
   integrityIssueCount: number;

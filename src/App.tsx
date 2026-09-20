@@ -5,6 +5,7 @@ import {
   buildPaySnapshot,
   localDateFromEpoch,
   parseTimeToMinutes,
+  type PrototypeDayArchive,
   type PrototypeDayControl,
   type PrototypeSettings,
 } from './domain/prototype';
@@ -14,10 +15,12 @@ import {
   clockOutPrototypeDay,
   exportPrototypeData,
   loadLoafingIntervals,
+  loadPrototypeDayArchives,
   loadPrototypeDayControl,
   loadSettings,
   resetPrototypeData,
   saveLoafingIntervals,
+  savePrototypeDayArchive,
   saveSettings,
   startLoafing,
   stopLoafing,
@@ -218,62 +221,84 @@ function SettingsScreen({
           </div>
         </div>
 
-        <div className="schedule-block">
-          <div className="schedule-input-row">
-            <label>
-              휴게 시작
-              <input
-                aria-label="휴게 시작"
-                type="time"
-                value={draft.schedule.unpaidBreak?.start ?? ''}
-                onChange={(e) =>
-                  setDraft({
-                    ...draft,
-                    schedule: {
-                      ...draft.schedule,
-                      unpaidBreak: {
-                        start: e.target.value,
-                        end: draft.schedule.unpaidBreak?.end ?? '13:00',
-                      },
-                    },
-                  })
-                }
-              />
-            </label>
-            <label>
-              휴게 종료
-              <input
-                aria-label="휴게 종료"
-                type="time"
-                value={draft.schedule.unpaidBreak?.end ?? ''}
-                onChange={(e) =>
-                  setDraft({
-                    ...draft,
-                    schedule: {
-                      ...draft.schedule,
-                      unpaidBreak: {
-                        start: draft.schedule.unpaidBreak?.start ?? '12:00',
-                        end: e.target.value,
-                      },
-                    },
-                  })
-                }
-              />
-            </label>
-          </div>
-          <div className="quick-setting-row" aria-label="휴게시간 빠른 설정">
-            <span>휴게시간</span>
-            <button type="button" onClick={() => applyBreakDuration(30)}>
-              30분
-            </button>
-            <button type="button" onClick={() => applyBreakDuration(60)}>
-              1시간
-            </button>
-            <button type="button" onClick={() => applyBreakDuration(90)}>
-              1시간 30분
-            </button>
-          </div>
+        <div className="break-setting-heading">
+          <span>무급 휴게시간</span>
+          <label className="break-toggle">
+            <input
+              type="checkbox"
+              checked={draft.schedule.unpaidBreak !== null}
+              onChange={(event) =>
+                setDraft({
+                  ...draft,
+                  schedule: {
+                    ...draft.schedule,
+                    unpaidBreak: event.target.checked ? { start: '12:00', end: '13:00' } : null,
+                  },
+                })
+              }
+            />
+            <span>{draft.schedule.unpaidBreak ? '사용' : '없음'}</span>
+          </label>
         </div>
+        {draft.schedule.unpaidBreak ? (
+          <div className="schedule-block">
+            <div className="schedule-input-row">
+              <label>
+                휴게 시작
+                <input
+                  aria-label="휴게 시작"
+                  type="time"
+                  value={draft.schedule.unpaidBreak?.start ?? ''}
+                  onChange={(e) =>
+                    setDraft({
+                      ...draft,
+                      schedule: {
+                        ...draft.schedule,
+                        unpaidBreak: {
+                          start: e.target.value,
+                          end: draft.schedule.unpaidBreak?.end ?? '13:00',
+                        },
+                      },
+                    })
+                  }
+                />
+              </label>
+              <label>
+                휴게 종료
+                <input
+                  aria-label="휴게 종료"
+                  type="time"
+                  value={draft.schedule.unpaidBreak?.end ?? ''}
+                  onChange={(e) =>
+                    setDraft({
+                      ...draft,
+                      schedule: {
+                        ...draft.schedule,
+                        unpaidBreak: {
+                          start: draft.schedule.unpaidBreak?.start ?? '12:00',
+                          end: e.target.value,
+                        },
+                      },
+                    })
+                  }
+                />
+              </label>
+            </div>
+            <div className="quick-setting-row" aria-label="휴게시간 빠른 설정">
+              <span>휴게시간</span>
+              <button type="button" onClick={() => applyBreakDuration(30)}>
+                30분
+              </button>
+              <button type="button" onClick={() => applyBreakDuration(60)}>
+                1시간
+              </button>
+              <button type="button" onClick={() => applyBreakDuration(90)}>
+                1시간 30분
+              </button>
+            </div>
+          </div>
+          </div>
+        ) : null}
       </section>
 
       <section>
@@ -313,6 +338,12 @@ export default function App() {
   const [dayControl, setDayControl] = useState<PrototypeDayControl | null>(() =>
     loadPrototypeDayControl(localDateFromEpoch(clock.nowEpochMs())),
   );
+  const [dayArchives, setDayArchives] = useState<PrototypeDayArchive[]>(() =>
+    loadPrototypeDayArchives(),
+  );
+  const [activeLocalDate, setActiveLocalDate] = useState(() =>
+    localDateFromEpoch(clock.nowEpochMs()),
+  );
   const [pipWindow, setPipWindow] = useState<Window | null>(null);
 
   const snapshot = useMemo(
@@ -339,11 +370,59 @@ export default function App() {
 
   useEffect(() => {
     const currentDate = localDateFromEpoch(nowEpochMs);
-    if (dayControl?.localDate !== currentDate) setDayControl(loadPrototypeDayControl(currentDate));
-    if (loafingIntervals.some((x) => localDateFromEpoch(x.startAtEpochMs) !== currentDate)) {
-      setLoafingIntervals(loadLoafingIntervals(currentDate));
-    }
-  }, [nowEpochMs, dayControl, loafingIntervals]);
+    if (currentDate === activeLocalDate) return;
+
+    const midnight = new Date(nowEpochMs);
+    midnight.setHours(0, 0, 0, 0);
+    const previousDayEnd = midnight.getTime() - 1;
+    const closed = stopLoafing(loafingIntervals, previousDayEnd);
+    saveLoafingIntervals(closed, activeLocalDate);
+    setDayArchives(
+      savePrototypeDayArchive({
+        localDate: activeLocalDate,
+        timeZoneSnapshot: clock.localTimeZone(),
+        settingsSnapshot: structuredClone(settings),
+        lastObservedAtEpochMs: previousDayEnd,
+        clockOutAtEpochMs:
+          dayControl?.localDate === activeLocalDate ? dayControl.clockOutAtEpochMs : null,
+        loafingIntervals: closed,
+        integrityStatus:
+          dayControl?.localDate === activeLocalDate && dayControl.clockOutAtEpochMs !== null
+            ? 'OK'
+            : 'NEEDS_TIME_REVIEW',
+        updatedAtEpochMs: nowEpochMs,
+      }),
+    );
+
+    setActiveLocalDate(currentDate);
+    setDayControl(loadPrototypeDayControl(currentDate));
+    setLoafingIntervals(loadLoafingIntervals(currentDate));
+  }, [nowEpochMs, activeLocalDate, settings, dayControl, loafingIntervals]);
+
+  const archiveMinute = Math.floor(nowEpochMs / 60_000);
+  useEffect(() => {
+    if (settings.salaryKrw <= 0 || snapshot.localDate !== activeLocalDate) return;
+    setDayArchives(
+      savePrototypeDayArchive({
+        localDate: snapshot.localDate,
+        timeZoneSnapshot: clock.localTimeZone(),
+        settingsSnapshot: structuredClone(settings),
+        lastObservedAtEpochMs: nowEpochMs,
+        clockOutAtEpochMs: dayControl?.clockOutAtEpochMs ?? null,
+        loafingIntervals,
+        integrityStatus: 'OK',
+        updatedAtEpochMs: nowEpochMs,
+      }),
+    );
+  }, [
+    archiveMinute,
+    activeLocalDate,
+    snapshot.localDate,
+    settings,
+    dayControl,
+    loafingIntervals,
+    nowEpochMs,
+  ]);
 
   const updateSettings = (next: PrototypeSettings) => {
     setSettings(next);
@@ -362,7 +441,19 @@ export default function App() {
       ? stopLoafing(loafingIntervals, at)
       : startLoafing(loafingIntervals, at);
     setLoafingIntervals(next);
-    saveLoafingIntervals(next);
+    saveLoafingIntervals(next, snapshot.localDate);
+    setDayArchives(
+      savePrototypeDayArchive({
+        localDate: snapshot.localDate,
+        timeZoneSnapshot: clock.localTimeZone(),
+        settingsSnapshot: structuredClone(settings),
+        lastObservedAtEpochMs: at,
+        clockOutAtEpochMs: dayControl?.clockOutAtEpochMs ?? null,
+        loafingIntervals: next,
+        integrityStatus: 'OK',
+        updatedAtEpochMs: at,
+      }),
+    );
     setNowEpochMs(at);
   };
 
@@ -371,10 +462,22 @@ export default function App() {
     const closed = stopLoafing(loafingIntervals, at);
     if (closed !== loafingIntervals) {
       setLoafingIntervals(closed);
-      saveLoafingIntervals(closed);
+      saveLoafingIntervals(closed, snapshot.localDate);
     }
     const next = clockOutPrototypeDay(dayControl, snapshot.localDate, at);
     setDayControl(next);
+    setDayArchives(
+      savePrototypeDayArchive({
+        localDate: snapshot.localDate,
+        timeZoneSnapshot: clock.localTimeZone(),
+        settingsSnapshot: structuredClone(settings),
+        lastObservedAtEpochMs: at,
+        clockOutAtEpochMs: next.clockOutAtEpochMs,
+        loafingIntervals: closed,
+        integrityStatus: 'OK',
+        updatedAtEpochMs: at,
+      }),
+    );
     setNowEpochMs(at);
   };
 
@@ -412,6 +515,7 @@ export default function App() {
         snapshot={snapshot}
         settings={settings}
         loafingIntervals={loafingIntervals}
+        dayArchives={dayArchives}
         onBack={() => setScreen('timer')}
         onSettings={() => setScreen('settings')}
         onTogglePrivacy={togglePrivacy}

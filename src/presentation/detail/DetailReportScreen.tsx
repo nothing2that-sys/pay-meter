@@ -3,6 +3,7 @@ import {
   formatMicroKrw,
   type LoafingInterval,
   type PaySnapshot,
+  type PrototypeDayArchive,
   type PrototypeSettings,
 } from '../../domain/prototype';
 import { aggregatePeriod } from '../../domain/reporting/aggregatePeriod';
@@ -23,6 +24,7 @@ interface Props {
   snapshot: PaySnapshot;
   settings: PrototypeSettings;
   loafingIntervals: LoafingInterval[];
+  dayArchives: PrototypeDayArchive[];
   onBack: () => void;
   onSettings: () => void;
   onTogglePrivacy: () => void;
@@ -88,6 +90,7 @@ function sourceLabel(report: DailyReport): string {
   if (report.source === 'LIVE_SNAPSHOT') {
     return report.isFinalized ? '오늘 확정 Snapshot' : '현재 Snapshot';
   }
+  if (report.source === 'ARCHIVED_SNAPSHOT') return '저장된 실제 기록';
   if (report.source === 'SYNTHETIC_ALLOCATION') return '급여 기준 예상값';
   return '기록 없음';
 }
@@ -187,25 +190,6 @@ function DailyReportView({
         </span>
       </section>
 
-      <PeriodChart
-        title={report.localDate === todayLocalDate ? '오늘 누적' : '일간 누적'}
-        points={[
-          {
-            label:
-              report.localDate === todayLocalDate
-                ? '현재'
-                : String(Number(report.localDate.slice(-2))),
-            value: krwNumber(report.recognizedPayMicroKrw),
-            detailLabel: `${report.localDate} ${krwNumber(
-              report.recognizedPayMicroKrw,
-            ).toLocaleString('ko-KR')}원`,
-          },
-        ]}
-        mode="line"
-        privacy={privacy}
-        moneyMetric
-      />
-
       {synthetic ? (
         <section className="detail-integrity-notice">
           <p>
@@ -214,6 +198,8 @@ function DailyReportView({
           </p>
         </section>
       ) : null}
+
+      <DailyTimeline segments={report.timelineSegments} />
 
       <section className="detail-section detail-metrics">
         <div className="detail-section-heading">
@@ -258,8 +244,6 @@ function DailyReportView({
           </>
         )}
       </section>
-
-      <DailyTimeline segments={report.timelineSegments} />
     </div>
   );
 }
@@ -303,9 +287,7 @@ function WeeklyReportView({
       onSelect: future ? undefined : () => onSelectDay(report.localDate),
     };
   });
-  const plannedDurationMs = periodReport.reports
-    .filter((report) => report.source === 'SYNTHETIC_ALLOCATION')
-    .reduce((sum, report) => sum + report.plannedPaidDurationMs, 0);
+  const plannedDurationMs = periodReport.plannedPaidDurationMs;
 
   return (
     <div className="detail-report-view" data-testid="weekly-report-view">
@@ -386,18 +368,19 @@ function MonthlyReportView({
   let cumulative = 0n;
   const points: PeriodChartPoint[] = [];
   for (const report of periodReport.reports) {
-    if (report.source === 'EMPTY') continue;
-    cumulative += report.recognizedPayMicroKrw;
+    const future = compareLocalDates(report.localDate, todayLocalDate) > 0;
+    if (!future && report.source !== 'EMPTY') cumulative += report.recognizedPayMicroKrw;
     points.push({
       label: String(Number(report.localDate.slice(-2))),
       value: krwNumber(cumulative),
-      detailLabel: `${report.localDate} 누적 ${krwNumber(cumulative).toLocaleString('ko-KR')}원`,
+      disabled: future,
+      detailLabel: future
+        ? `${report.localDate} 미래 기간`
+        : `${report.localDate} 누적 ${krwNumber(cumulative).toLocaleString('ko-KR')}원`,
     });
   }
 
-  const plannedDurationMs = periodReport.reports
-    .filter((report) => report.source === 'SYNTHETIC_ALLOCATION')
-    .reduce((sum, report) => sum + report.plannedPaidDurationMs, 0);
+  const plannedDurationMs = periodReport.plannedPaidDurationMs;
 
   return (
     <div className="detail-report-view" data-testid="monthly-report-view">
@@ -580,6 +563,7 @@ export function DetailReportScreen({
   snapshot,
   settings,
   loafingIntervals,
+  dayArchives,
   onBack,
   onSettings,
   onTogglePrivacy,
@@ -596,9 +580,10 @@ export function DetailReportScreen({
           snapshot,
           settings,
           loafingIntervals,
+          dayArchives,
         }),
       ),
-    [range.dates, snapshot, settings, loafingIntervals],
+    [range.dates, snapshot, settings, loafingIntervals, dayArchives],
   );
   const periodReport = useMemo(() => aggregatePeriod(reports), [reports]);
   const current = isCurrentRange(period, anchorLocalDate, snapshot.localDate);

@@ -46,6 +46,17 @@ export interface PrototypeDayControl {
   localDate: string;
   clockOutAtEpochMs: number | null;
 }
+
+export interface PrototypeDayArchive {
+  localDate: string;
+  timeZoneSnapshot: string;
+  settingsSnapshot: PrototypeSettings;
+  lastObservedAtEpochMs: number;
+  clockOutAtEpochMs: number | null;
+  loafingIntervals: LoafingInterval[];
+  integrityStatus: 'OK' | 'NEEDS_TIME_REVIEW';
+  updatedAtEpochMs: number;
+}
 export interface EpochRange {
   start: number;
   end: number;

@@ -1,7 +1,9 @@
 import {
+  buildPaySnapshot,
   buildWorkDayContext,
   type LoafingInterval,
   type PaySnapshot,
+  type PrototypeDayArchive,
   type PrototypeSettings,
 } from '../prototype';
 import { compareLocalDates, dateFromLocalDate } from './reportRange';
@@ -170,11 +172,34 @@ export function buildSyntheticAllocationReport(
   };
 }
 
+export function buildArchivedDailyReport(archive: PrototypeDayArchive): DailyReport {
+  const observedAt = archive.clockOutAtEpochMs ?? archive.lastObservedAtEpochMs;
+  const dayControl = archive.clockOutAtEpochMs
+    ? { localDate: archive.localDate, clockOutAtEpochMs: archive.clockOutAtEpochMs }
+    : null;
+  const snapshot = buildPaySnapshot(
+    archive.settingsSnapshot,
+    observedAt,
+    archive.timeZoneSnapshot,
+    archive.loafingIntervals,
+    dayControl,
+  );
+  const report = buildDailyReportFromSnapshot(snapshot, archive.loafingIntervals);
+  return {
+    ...report,
+    localDate: archive.localDate,
+    source: 'ARCHIVED_SNAPSHOT',
+    integrityStatus: archive.integrityStatus === 'OK' ? 'OK' : 'NEEDS_REVIEW',
+    isFinalized: archive.clockOutAtEpochMs !== null,
+  };
+}
+
 export interface AvailableDailyReportInput {
   localDate: string;
   snapshot: PaySnapshot;
   settings: PrototypeSettings;
   loafingIntervals: LoafingInterval[];
+  dayArchives?: PrototypeDayArchive[];
 }
 
 export function buildAvailableDailyReport({
@@ -182,9 +207,12 @@ export function buildAvailableDailyReport({
   snapshot,
   settings,
   loafingIntervals,
+  dayArchives = [],
 }: AvailableDailyReportInput): DailyReport {
   if (compareLocalDates(localDate, snapshot.localDate) > 0) return emptyDailyReport(localDate);
   if (localDate === snapshot.localDate)
     return buildDailyReportFromSnapshot(snapshot, loafingIntervals);
+  const archive = dayArchives.find((candidate) => candidate.localDate === localDate);
+  if (archive) return buildArchivedDailyReport(archive);
   return buildSyntheticAllocationReport(settings, localDate, snapshot.context.timeZone);
 }
