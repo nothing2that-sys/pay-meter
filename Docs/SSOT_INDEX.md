@@ -22,6 +22,8 @@ P1R Retention Test 직전 확정된 Money Timer의 최신 Presentation 기준은
 
 상세보기의 일간/주간/월간/연간 보고, History 집계, 장기 데이터 누적 및 Cache 전략의 최신 상세 기준은 `DETAIL_REPORTING_AND_HISTORY_DESIGN.md`다. 이 문서는 Detail/History 범위에서 `P1R_FINAL_UI_DESIGN.md`의 임시 Detail Accumulation 규칙을 구체화한다. 정식 History Persistence가 없는 P1R의 synthetic accumulation은 실제 측정 History로 간주하지 않으며, Raw WorkDay/Event가 SSOT이고 DailySummaryCache는 rebuild 가능한 Cache라는 상위 원칙을 변경하지 않는다. 이 문서 추가만으로 P2 착수 조건이 해제되지는 않는다.
 
+상세보기 구현 및 검증 결과는 `DETAIL_REPORTING_IMPLEMENTATION_CLOSEOUT.md`를 따른다. Verified Code HEAD는 `742f3984aea841f0d4cdd5bce1a3dfee516de77a`, Verification CI Run ID는 `35479600760`이며 현재 상태는 `DETAIL_REPORTING_IMPLEMENTED`다. 이 완료 상태는 Detail Reporting의 현재 P1R 범위에 한하며 정식 P2 History Persistence 완료를 의미하지 않는다. P2는 기존 Gate에 따라 계속 BLOCKED 상태다.
+
 충돌하거나 해석할 수 없는 계산 Contract는 코드에서 임의 결정하지 않고 문서를 먼저 수정한다.
 
 ## 2. 제품 정의
