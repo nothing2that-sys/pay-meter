@@ -142,7 +142,7 @@ function SettingsScreen({
   };
 
   return (
-    <main className="panel-screen settings">
+    <main className={`panel-screen settings theme-${draft.display.theme ?? 'meter-dark'}`}>
       <header>
         {onCancel ? (
           <button className="text-button" onClick={onCancel}>
@@ -298,6 +298,83 @@ function SettingsScreen({
             </div>
           </div>
         ) : null}
+      </section>
+
+      <section>
+        <h2>화면 스타일</h2>
+        <div className="style-setting-group">
+          <span className="style-setting-label">테마</span>
+          <div className="theme-option-grid">
+            <button
+              type="button"
+              className={draft.display.theme !== 'mono' ? 'style-option selected' : 'style-option'}
+              aria-pressed={draft.display.theme !== 'mono'}
+              onClick={() =>
+                setDraft({
+                  ...draft,
+                  display: { ...draft.display, theme: 'meter-dark' },
+                })
+              }
+            >
+              <span className="theme-preview preview-meter">
+                <i />
+                <b />
+              </span>
+              <strong>Meter Dark</strong>
+              <small>정돈된 기본 테마</small>
+            </button>
+            <button
+              type="button"
+              className={draft.display.theme === 'mono' ? 'style-option selected' : 'style-option'}
+              aria-pressed={draft.display.theme === 'mono'}
+              onClick={() =>
+                setDraft({
+                  ...draft,
+                  display: { ...draft.display, theme: 'mono' },
+                })
+              }
+            >
+              <span className="theme-preview preview-mono">
+                <i />
+                <b />
+              </span>
+              <strong>Mono</strong>
+              <small>장식 없는 저자극 테마</small>
+            </button>
+          </div>
+        </div>
+
+        <div className="style-setting-group">
+          <span className="style-setting-label">레이아웃</span>
+          <div className="layout-option-row" aria-label="레이아웃 선택">
+            {[
+              ['auto', '자동'],
+              ['focus', '집중형'],
+              ['split', '분할형'],
+            ].map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                className={(draft.display.layout ?? 'auto') === value ? 'selected' : ''}
+                aria-pressed={(draft.display.layout ?? 'auto') === value}
+                onClick={() =>
+                  setDraft({
+                    ...draft,
+                    display: {
+                      ...draft.display,
+                      layout: value as 'auto' | 'focus' | 'split',
+                    },
+                  })
+                }
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          <p className="style-setting-help">
+            작은 화면과 위젯에서는 선택과 관계없이 안전한 세로 배치를 사용합니다.
+          </p>
+        </div>
       </section>
 
       <section>

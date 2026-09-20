@@ -10,6 +10,8 @@ export type PayState =
   | 'CLOCKED_OUT';
 export type ActivityState = 'WORKING' | 'LOAFING';
 export type PerimeterSegmentType = 'WORKING' | 'LOAFING';
+export type VisualTheme = 'meter-dark' | 'mono';
+export type TimerLayoutPreference = 'auto' | 'focus' | 'split';
 
 export interface TimeRangeSetting {
   start: string;
@@ -30,6 +32,8 @@ export interface DisplaySettings {
   showDecimals: boolean;
   milestoneEnabled: boolean;
   privacy: boolean;
+  theme?: VisualTheme;
+  layout?: TimerLayoutPreference;
 }
 export interface PrototypeSettings {
   salaryKrw: number;
@@ -115,7 +119,13 @@ export const DEFAULT_SETTINGS: PrototypeSettings = {
     end: '18:00',
     unpaidBreak: { start: '12:00', end: '13:00' },
   },
-  display: { showDecimals: false, milestoneEnabled: false, privacy: false },
+  display: {
+    showDecimals: false,
+    milestoneEnabled: false,
+    privacy: false,
+    theme: 'meter-dark',
+    layout: 'auto',
+  },
   consumerItems: [],
 };
 

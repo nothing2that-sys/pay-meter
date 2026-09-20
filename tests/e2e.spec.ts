@@ -74,6 +74,7 @@ test('P1R final timer hides percentage and remaining time while keeping main and
 
   await expect(page.getByTestId('current-money')).toBeVisible();
   await expect(page.getByTestId('loafing-money')).toBeVisible();
+  await expect(page.getByTestId('current-rate')).toContainText(/\+₩\d+\.\d{3}\/초/);
   await expect(page.getByText('루팡 누적액')).toBeVisible();
   await expect(page.locator('.money-timer-frame')).toHaveClass(/state-working/);
   await expect(page.getByRole('button', { name: '상세 보기' })).toBeVisible();
@@ -161,7 +162,7 @@ test('break freezes the real perimeter progress without exposing percentage or r
   await expect(page.getByTestId('loafing-toggle')).toBeDisabled();
   await expect(page.getByTestId('progress-value')).toHaveCount(0);
   await expect(page.getByText(/휴게 종료까지/)).toHaveCount(0);
-  await expect(page.getByTestId('rate')).toHaveCount(0);
+  await expect(page.getByTestId('current-rate')).toContainText('₩0.000/초');
 });
 
 test('Privacy masks main, loafing, free work and normal-earned summary money', async ({ page }) => {
@@ -260,10 +261,15 @@ test('settings provide work and break presets without duplicate privacy or miles
 
   await expect(page.getByRole('heading', { name: '급여 / 근무' })).toBeVisible();
   await expect(page.getByRole('heading', { name: '데이터' })).toBeVisible();
-  await expect(page.getByRole('heading', { name: '화면' })).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: '화면 스타일' })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Meter Dark/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Mono/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: '자동' })).toBeVisible();
+  await expect(page.getByRole('button', { name: '집중형' })).toBeVisible();
+  await expect(page.getByRole('button', { name: '분할형' })).toBeVisible();
   await expect(page.getByText('Privacy Mode')).toHaveCount(0);
   await expect(page.getByText(/Milestone/)).toHaveCount(0);
-  await expect(page.locator('.settings h2')).toHaveCount(2);
+  await expect(page.locator('.settings h2')).toHaveCount(3);
 
   await page.getByLabel('출근').fill('09:00');
   await page.getByRole('button', { name: '8시간' }).click();
@@ -375,6 +381,8 @@ test('legacy P1 settings data is normalized and does not reactivate Consumer Val
     JSON.parse(localStorage.getItem('paymeter:p1:settings') ?? '{}'),
   );
   expect(normalized.display.showDecimals).toBe(false);
+  expect(normalized.display.theme).toBe('meter-dark');
+  expect(normalized.display.layout).toBe('auto');
   expect(normalized.consumerItems).toEqual([]);
 });
 
@@ -461,4 +469,33 @@ test('settings supports a schedule without an unpaid break', async ({ page }) =>
   await page.getByRole('button', { name: '설정' }).click();
   await expect(page.getByRole('checkbox')).not.toBeChecked();
   await expect(page.getByText('없음')).toBeVisible();
+});
+
+
+test('theme, layout and current rate preferences persist without changing pay semantics', async ({
+  page,
+}) => {
+  await freshApp(page);
+  await setupSalary(page);
+
+  const amountBefore = await page.getByTestId('current-money').innerText();
+  await expect(page.locator('.money-timer-frame')).toHaveClass(/theme-meter-dark/);
+  await expect(page.locator('.money-timer-frame')).toHaveClass(/layout-auto/);
+
+  await page.getByRole('button', { name: '설정' }).click();
+  await page.getByRole('button', { name: /Mono/ }).click();
+  await page.getByRole('button', { name: '집중형' }).click();
+  await page.getByTestId('save-settings').click();
+
+  await expect(page.locator('.money-timer-frame')).toHaveClass(/theme-mono/);
+  await expect(page.locator('.money-timer-frame')).toHaveClass(/layout-focus/);
+  await expect(page.getByTestId('current-money')).toHaveText(amountBefore);
+  await expect(page.getByTestId('current-rate')).toContainText(/\+₩\d+\.\d{3}\/초/);
+
+  await page.reload();
+  await expect(page.locator('.money-timer-frame')).toHaveClass(/theme-mono/);
+  await expect(page.locator('.money-timer-frame')).toHaveClass(/layout-focus/);
+
+  await page.getByRole('button', { name: '금액 숨김 전환' }).click();
+  await expect(page.getByTestId('current-rate')).toContainText('₩••••/초');
 });

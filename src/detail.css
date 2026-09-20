@@ -782,3 +782,52 @@ button.detail-column:focus-visible .detail-column-plot {
     transition-duration: 0.001ms !important;
   }
 }
+
+
+.detail-screen.theme-mono {
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.025), transparent 24rem),
+    #0f1113;
+}
+
+.detail-screen.theme-mono .detail-topbar {
+  border-color: #2d3236;
+  background: rgba(15, 17, 19, 0.95);
+}
+
+.detail-screen.theme-mono .detail-sticky-controls {
+  background: linear-gradient(180deg, #0f1113 82%, rgba(15, 17, 19, 0));
+}
+
+.detail-screen.theme-mono .detail-period-tabs,
+.detail-screen.theme-mono .daily-timeline-track,
+.detail-screen.theme-mono .calendar-cell,
+.detail-screen.theme-mono .detail-column-plot {
+  border-color: #30353a;
+  background: #15181a;
+}
+
+.detail-screen.theme-mono .detail-period-tabs button.active {
+  background: #272b2e;
+  color: #f1f3f4;
+  box-shadow: inset 0 0 0 1px #60666b;
+}
+
+.detail-screen.theme-mono .detail-source-pill {
+  border-color: #555c61;
+  background: rgba(255, 255, 255, 0.04);
+  color: #c4c9cd;
+}
+
+.detail-screen.theme-mono .detail-chart-line {
+  stroke: #d0d5d9;
+}
+
+.detail-screen.theme-mono .detail-chart-area {
+  fill: rgba(255, 255, 255, 0.055);
+}
+
+.detail-screen.theme-mono .detail-chart-point {
+  fill: #0f1113;
+  stroke: #d0d5d9;
+}

@@ -1,5 +1,10 @@
 import type { CSSProperties } from 'react';
-import { formatMicroKrw, type PaySnapshot, type PrototypeSettings } from '../domain/prototype';
+import {
+  formatMicroKrw,
+  formatRateMilliKrw,
+  type PaySnapshot,
+  type PrototypeSettings,
+} from '../domain/prototype';
 import { FreeWorkWallet } from './FreeWorkWallet';
 import { buildMoneyTimerViewModel } from './moneyTimerViewModel';
 import { PerimeterTimeline } from './PerimeterTimeline';
@@ -112,10 +117,20 @@ export function MoneyTimer({
   const frameStyle = {
     '--freework-fill': `${Math.min(100, Math.max(0, freeWorkFillBasisPoints / 100))}%`,
   } as CSSProperties;
+  const visualTheme = settings.display.theme ?? 'meter-dark';
+  const layoutPreference = settings.display.layout ?? 'auto';
+  const currentRate =
+    settings.display.privacy
+      ? '₩••••/초'
+      : `${snapshot.currentRateMilliKrwPerSecond > 0n ? '+' : ''}₩${formatRateMilliKrw(
+          snapshot.currentRateMilliKrwPerSecond,
+        )}/초`;
 
   return (
     <main
-      className={`money-timer-frame state-${vm.stateTheme} ${isPiP ? 'pip-timer' : ''}`}
+      className={`money-timer-frame theme-${visualTheme} layout-${layoutPreference} state-${vm.stateTheme} ${
+        isPiP ? 'pip-timer' : ''
+      }`}
       style={frameStyle}
       aria-live="polite"
     >
@@ -130,9 +145,19 @@ export function MoneyTimer({
           <div className="brand">
             Pay<span>Meter</span>
           </div>
-          <div className="header-state state-line">
-            <span className="state-dot" />
-            <span>{vm.stateLabel}</span>
+          <div className="brand-meta">
+            <div className="header-state state-line">
+              <span className="state-dot" />
+              <span>{vm.stateLabel}</span>
+            </div>
+            <div
+              className="current-rate"
+              data-testid="current-rate"
+              aria-label="현재 초당 적립액"
+            >
+              <span>현재 적립</span>
+              <strong>{currentRate}</strong>
+            </div>
           </div>
         </div>
         <div className="header-actions">

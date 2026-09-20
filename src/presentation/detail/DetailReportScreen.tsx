@@ -617,7 +617,10 @@ export function DetailReportScreen({
   const daily = reports[0];
 
   return (
-    <main className="detail-screen" data-testid="detail-report-screen">
+    <main
+      className={`detail-screen theme-${settings.display.theme ?? 'meter-dark'}`}
+      data-testid="detail-report-screen"
+    >
       <div className="detail-topbar">
         <button type="button" className="detail-back-button" onClick={handleBack}>
           <span aria-hidden="true">‹</span>

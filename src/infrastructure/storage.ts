@@ -17,6 +17,14 @@ function cloneDefaults(): PrototypeSettings {
   return structuredClone(DEFAULT_SETTINGS);
 }
 
+function normalizeTheme(value: unknown): 'meter-dark' | 'mono' {
+  return value === 'mono' ? 'mono' : 'meter-dark';
+}
+
+function normalizeLayout(value: unknown): 'auto' | 'focus' | 'split' {
+  return value === 'focus' || value === 'split' ? value : 'auto';
+}
+
 export function loadSettings(): PrototypeSettings {
   try {
     const raw = localStorage.getItem(SETTINGS_KEY);
@@ -31,6 +39,8 @@ export function loadSettings(): PrototypeSettings {
         ...parsed.display,
         showDecimals: false,
         milestoneEnabled: false,
+        theme: normalizeTheme(parsed.display?.theme),
+        layout: normalizeLayout(parsed.display?.layout),
       },
       consumerItems: [],
     };
@@ -44,7 +54,13 @@ export function saveSettings(settings: PrototypeSettings): void {
     SETTINGS_KEY,
     JSON.stringify({
       ...settings,
-      display: { ...settings.display, showDecimals: false, milestoneEnabled: false },
+      display: {
+        ...settings.display,
+        showDecimals: false,
+        milestoneEnabled: false,
+        theme: normalizeTheme(settings.display.theme),
+        layout: normalizeLayout(settings.display.layout),
+      },
       consumerItems: [],
     }),
   );
