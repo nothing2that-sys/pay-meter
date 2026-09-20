@@ -66,8 +66,8 @@
 }
 
 .detail-icon-action {
-  min-width: 40px;
-  min-height: 36px;
+  min-width: 44px;
+  min-height: 44px;
   padding: 0 7px;
   border: 1px solid #303a44;
   border-radius: 999px;
@@ -123,8 +123,8 @@
 }
 
 .detail-period-navigation button {
-  width: 38px;
-  height: 38px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   font-size: 25px;
 }
@@ -439,6 +439,18 @@
   stroke-width: 3;
 }
 
+.detail-chart-current {
+  min-height: 20px;
+  margin: -4px 0 9px;
+  overflow: hidden;
+  color: #a9b2ba;
+  font-size: 11px;
+  font-weight: 720;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .detail-chart-label {
   fill: #76818c;
   font-size: 10px;
@@ -686,10 +698,10 @@ button.detail-column:focus-visible .detail-column-plot {
   }
 
   .detail-icon-action {
-    min-width: 36px;
-    min-height: 34px;
-    padding: 0 5px;
-    font-size: 9px;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0 7px;
+    font-size: 10px;
   }
 
   .detail-period-tabs {
@@ -725,8 +737,16 @@ button.detail-column:focus-visible .detail-column-plot {
   }
 
   .calendar-marker {
-    padding: 2px 3px;
-    font-size: 6.5px;
+    width: 7px;
+    height: 7px;
+    padding: 0;
+    border-radius: 50%;
+    font-size: 0;
+  }
+
+  .calendar-markers {
+    justify-content: flex-start;
+    gap: 4px;
   }
 }
 

@@ -6,6 +6,7 @@ import {
 } from '../domain/prototype';
 import { aggregatePeriod } from '../domain/reporting/aggregatePeriod';
 import {
+  buildArchivedDailyReport,
   buildAvailableDailyReport,
   buildDailyReportFromSnapshot,
   buildSyntheticAllocationReport,
@@ -109,6 +110,31 @@ describe('detail reporting daily mapping', () => {
     expect(report.timelineSegments).toEqual([]);
   });
 
+  it('rebuilds an archived day from its frozen settings and activity inputs', () => {
+    const observedAt = at(2026, 8, 18, 18);
+    const report = buildArchivedDailyReport({
+      localDate: '2026-09-18',
+      timeZoneSnapshot: 'Asia/Seoul',
+      settingsSnapshot: settings,
+      lastObservedAtEpochMs: observedAt,
+      clockOutAtEpochMs: observedAt,
+      loafingIntervals: [
+        {
+          id: 'archived-loaf',
+          startAtEpochMs: at(2026, 8, 18, 10),
+          endAtEpochMs: at(2026, 8, 18, 10, 30),
+        },
+      ],
+      integrityStatus: 'OK',
+      updatedAtEpochMs: observedAt,
+    });
+
+    expect(report.source).toBe('ARCHIVED_SNAPSHOT');
+    expect(report.isFinalized).toBe(true);
+    expect(report.loafingDurationMs).toBe(30 * 60_000);
+    expect(report.timelineSegments.map((segment) => segment.type)).toContain('LOAFING');
+  });
+
   it('excludes future dates instead of synthesizing pay', () => {
     const snapshot = buildPaySnapshot(settings, at(2026, 8, 21, 10), 'Asia/Seoul', []);
     const report = buildAvailableDailyReport({
@@ -163,6 +189,20 @@ describe('detail reporting period aggregation', () => {
     expect(total.regularPayMicroKrw).toBe(first.regularPayMicroKrw + second.regularPayMicroKrw);
     expect(total.hasProvisionalData).toBe(true);
     expect(total.syntheticDayCount).toBe(2);
+    expect(total.plannedPaidDurationMs).toBe(
+      first.plannedPaidDurationMs + second.plannedPaidDurationMs,
+    );
+  });
+
+  it('includes the live day in planned paid duration totals', () => {
+    const snapshot = buildPaySnapshot(settings, at(2026, 8, 21, 10), 'Asia/Seoul', []);
+    const live = buildDailyReportFromSnapshot(snapshot, []);
+    const synthetic = buildSyntheticAllocationReport(settings, '2026-09-18', 'Asia/Seoul');
+    const total = aggregatePeriod([synthetic, live]);
+
+    expect(total.plannedPaidDurationMs).toBe(
+      synthetic.plannedPaidDurationMs + live.plannedPaidDurationMs,
+    );
   });
 
   it('keeps loafing and free-work values as breakdown/reference totals only', () => {

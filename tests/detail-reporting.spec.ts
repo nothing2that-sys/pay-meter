@@ -44,7 +44,7 @@ test('detail reporting supports all periods, drill down and history back navigat
   await expect(page.getByTestId('daily-report-view')).toBeVisible();
   await expect(page.getByTestId('daily-timeline')).toBeVisible();
   await expect(page.locator('.detail-hero-money')).toHaveText(mainMoney);
-  await expect(page.getByTestId('cumulative-chart')).toContainText('오늘 누적');
+  await expect(page.getByTestId('daily-timeline')).toBeVisible();
 
   await page.getByRole('button', { name: '주간', exact: true }).click();
   await expect(page.getByTestId('weekly-report-view')).toBeVisible();
@@ -84,6 +84,7 @@ test('detail privacy uses the same setting as Money Timer and masks report money
 
   await page.getByRole('button', { name: '금액 숨김 전환' }).click();
   await expect(page.locator('.detail-hero-money')).toContainText('••••••');
+  await page.getByRole('button', { name: '월간', exact: true }).click();
   await expect(page.getByTestId('cumulative-chart')).toContainText('금액 숨김');
 
   await page.getByRole('button', { name: /뒤로/ }).click();

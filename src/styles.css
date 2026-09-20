@@ -297,6 +297,14 @@ button:disabled {
   flex: 0 0 auto;
   letter-spacing: -0.075em;
 }
+.main-money.amount-tight strong,
+.wallet-money.amount-tight {
+  font-size: clamp(64px, 18vw, 112px);
+}
+.main-money.amount-compact strong,
+.wallet-money.amount-compact {
+  font-size: clamp(48px, 14vw, 88px);
+}
 
 .loafing-inline-card {
   width: min(80%, 300px);
@@ -492,10 +500,10 @@ button:disabled {
   .perimeter-base {
     stroke-width: 4px;
   }
-  .perimeter-progress-glow {
+  .perimeter-segment-glow {
     stroke-width: 11px;
   }
-  .perimeter-progress {
+  .perimeter-segment-core {
     stroke-width: 6px;
   }
   .app-header {
@@ -508,14 +516,22 @@ button:disabled {
     gap: 6px;
   }
   .round-icon-button {
-    width: 36px;
-    height: 36px;
+    width: 44px;
+    height: 44px;
   }
   .main-money strong {
-    font-size: clamp(78px, 23vw, 108px);
+    font-size: clamp(72px, 22vw, 108px);
   }
   .wallet-money {
-    font-size: clamp(82px, 24vw, 112px);
+    font-size: clamp(76px, 23vw, 112px);
+  }
+  .main-money.amount-tight strong,
+  .wallet-money.amount-tight {
+    font-size: clamp(54px, 17vw, 78px);
+  }
+  .main-money.amount-compact strong,
+  .wallet-money.amount-compact {
+    font-size: clamp(42px, 13vw, 62px);
   }
   .loafing-inline-card,
   .wallet-duration-row {
@@ -820,6 +836,33 @@ button:disabled {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
 }
+.break-setting-heading {
+  margin-top: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: #cbd5e1;
+  font-size: 13px;
+  font-weight: 760;
+}
+.break-toggle {
+  display: inline-flex !important;
+  grid-template-columns: auto auto;
+  align-items: center;
+  gap: 8px !important;
+  min-height: 44px;
+  padding: 0 13px;
+  border: 1px solid #34404a;
+  border-radius: 999px;
+  background: #192129;
+}
+.break-toggle input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--state-working);
+}
 .quick-setting-row {
   margin-top: 12px;
   display: flex;
@@ -853,8 +896,10 @@ button:disabled {
 }
 .secondary,
 .danger-button {
-  min-height: 44px;
-  padding: 0 14px;
+  min-height: 46px;
+  padding: 0 16px;
+  border: 1px solid #34404a;
+  border-radius: 13px;
   background: #1e293b;
   color: #e2e8f0;
 }
@@ -868,8 +913,11 @@ button:disabled {
   width: 100%;
   min-height: 54px;
   margin-top: 28px;
+  border: 1px solid var(--state-working);
+  border-radius: 15px;
   background: var(--state-working);
   color: #071817;
+  font-weight: 820;
 }
 
 @media (max-width: 480px) {

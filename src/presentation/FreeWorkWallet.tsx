@@ -14,6 +14,13 @@ function moneyDigits(value: bigint, privacy: boolean): string {
   return privacy ? '••••••' : formatMicroKrw(value);
 }
 
+function amountDensityClass(value: bigint, privacy: boolean): string {
+  const length = moneyDigits(value, privacy).length;
+  if (length >= 11) return ' amount-compact';
+  if (length >= 9) return ' amount-tight';
+  return '';
+}
+
 function ExitIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -51,7 +58,13 @@ export function FreeWorkWallet({ snapshot, privacy, onClockOut }: Props) {
     <section className="freework-wallet" data-testid="freework-wallet">
       <div className="freework-main-zone">
         <div className="freework-amount-stage">
-          <div className="wallet-money" data-testid="freework-money">
+          <div
+            className={`wallet-money${amountDensityClass(
+              snapshot.freeWorkReferenceValueMicroKrw,
+              privacy,
+            )}`}
+            data-testid="freework-money"
+          >
             <span className="currency-symbol">₩</span>
             <span className="currency-digits">
               {moneyDigits(snapshot.freeWorkReferenceValueMicroKrw, privacy)}

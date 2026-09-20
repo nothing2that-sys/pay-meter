@@ -25,6 +25,13 @@ function moneyDigits(value: bigint, privacy: boolean): string {
   return privacy ? '••••••' : formatMicroKrw(value);
 }
 
+function amountDensityClass(value: bigint, privacy: boolean): string {
+  const length = moneyDigits(value, privacy).length;
+  if (length >= 11) return ' amount-compact';
+  if (length >= 9) return ' amount-tight';
+  return '';
+}
+
 function EyeOffIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -160,7 +167,12 @@ export function MoneyTimer({
           <>
             <section className="timer-main-zone">
               <div className="amount-stage">
-                <div className="main-money">
+                <div
+                  className={`main-money${amountDensityClass(
+                    snapshot.todayEarnedMicroKrw,
+                    settings.display.privacy,
+                  )}`}
+                >
                   <strong data-testid="current-money">
                     <span className="currency-symbol">₩</span>
                     <span className="currency-digits">

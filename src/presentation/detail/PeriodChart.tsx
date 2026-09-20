@@ -168,12 +168,22 @@ function ColumnChart({
 }
 
 export function PeriodChart({ title, points, mode, privacy = false, moneyMetric = false }: Props) {
+  const latestPoint = points.filter((point) => !point.disabled).at(-1);
+  const latestLabel = latestPoint
+    ? accessibleValue(latestPoint, privacy, moneyMetric)
+    : '표시할 데이터가 없습니다.';
+
   return (
     <section className="detail-section detail-period-chart" data-testid="cumulative-chart">
       <div className="detail-section-heading">
         <h2>{title}</h2>
         <span>{privacy && moneyMetric ? '금액 숨김' : moneyMetric ? '금액' : '시간 비교'}</span>
       </div>
+      {points.length > 0 ? (
+        <p className="detail-chart-current" aria-live="polite">
+          {latestLabel}
+        </p>
+      ) : null}
       {points.length === 0 ? (
         <p className="detail-empty-copy">표시할 데이터가 없습니다.</p>
       ) : mode === 'line' ? (

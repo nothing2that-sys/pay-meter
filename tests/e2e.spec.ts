@@ -243,7 +243,7 @@ test('detail view shows daily weekly monthly cumulative summaries and graph', as
   await expect(page.getByRole('button', { name: /일간/ })).toBeVisible();
   await expect(page.getByRole('button', { name: /주간/ })).toBeVisible();
   await expect(page.getByRole('button', { name: /월간/ })).toBeVisible();
-  await expect(page.getByTestId('cumulative-chart')).toBeVisible();
+  await expect(page.getByTestId('daily-timeline')).toBeVisible();
 
   await page.getByRole('button', { name: /주간/ }).click();
   await expect(page.getByTestId('cumulative-chart')).toContainText('이번 주 누적');
@@ -449,4 +449,17 @@ test('portrait, landscape and compact layouts keep final P1R content inside the 
   await expect(page.getByTestId('freework-wallet')).toBeVisible();
   await expectInsideViewport(page, '[data-testid="freework-money"]');
   await expectInsideViewport(page, '[data-testid="clock-out"]');
+});
+
+
+test('settings supports a schedule without an unpaid break', async ({ page }) => {
+  await freshApp(page);
+  await page.getByLabel('월급').fill('4000000');
+  await page.getByRole('checkbox').uncheck();
+  await page.getByTestId('save-settings').click();
+
+  await expect(page.getByText('업무중')).toBeVisible();
+  await page.getByRole('button', { name: '설정' }).click();
+  await expect(page.getByRole('checkbox')).not.toBeChecked();
+  await expect(page.getByText('없음')).toBeVisible();
 });
