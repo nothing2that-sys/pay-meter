@@ -1,13 +1,13 @@
-import type { CSSProperties } from "react";
+import type { CSSProperties } from 'react';
 import {
   formatMicroKrw,
   formatRateMilliKrw,
   type PaySnapshot,
   type PrototypeSettings,
-} from "../domain/prototype";
-import { FreeWorkWallet } from "./FreeWorkWallet";
-import { buildMoneyTimerViewModel } from "./moneyTimerViewModel";
-import { PerimeterTimeline } from "./PerimeterTimeline";
+} from '../domain/prototype';
+import { FreeWorkWallet } from './FreeWorkWallet';
+import { buildMoneyTimerViewModel } from './moneyTimerViewModel';
+import { PerimeterTimeline } from './PerimeterTimeline';
 
 interface Props {
   snapshot: PaySnapshot;
@@ -23,18 +23,18 @@ interface Props {
 }
 
 function money(value: bigint, privacy: boolean): string {
-  return privacy ? "₩ ••••••" : `₩${formatMicroKrw(value)}`;
+  return privacy ? '₩ ••••••' : `₩${formatMicroKrw(value)}`;
 }
 
 function moneyDigits(value: bigint, privacy: boolean): string {
-  return privacy ? "••••••" : formatMicroKrw(value);
+  return privacy ? '••••••' : formatMicroKrw(value);
 }
 
 function amountDensityClass(value: bigint, privacy: boolean): string {
   const length = moneyDigits(value, privacy).length;
-  if (length >= 11) return " amount-compact";
-  if (length >= 9) return " amount-tight";
-  return "";
+  if (length >= 11) return ' amount-compact';
+  if (length >= 9) return ' amount-tight';
+  return '';
 }
 
 function EyeOffIcon() {
@@ -106,33 +106,29 @@ export function MoneyTimer({
   const vm = buildMoneyTimerViewModel(snapshot);
   const complete =
     snapshot.scheduledProgressRatio >= 1 ||
-    snapshot.payState === "AFTER_SCHEDULE_UNPAID" ||
-    snapshot.payState === "CLOCKED_OUT";
+    snapshot.payState === 'AFTER_SCHEDULE_UNPAID' ||
+    snapshot.payState === 'CLOCKED_OUT';
   const showActivityAction =
-    snapshot.payState === "REGULAR_WORK" ||
-    snapshot.payState === "UNPAID_BREAK";
+    snapshot.payState === 'REGULAR_WORK' || snapshot.payState === 'UNPAID_BREAK';
   const freeWorkFillBasisPoints =
     snapshot.dailyTargetMicroKrw > 0n
-      ? Number(
-          (snapshot.freeWorkReferenceValueMicroKrw * 10_000n) /
-            snapshot.dailyTargetMicroKrw,
-        )
+      ? Number((snapshot.freeWorkReferenceValueMicroKrw * 10_000n) / snapshot.dailyTargetMicroKrw)
       : 0;
   const frameStyle = {
-    "--freework-fill": `${Math.min(100, Math.max(0, freeWorkFillBasisPoints / 100))}%`,
+    '--freework-fill': `${Math.min(100, Math.max(0, freeWorkFillBasisPoints / 100))}%`,
   } as CSSProperties;
-  const visualTheme = settings.display.theme ?? "meter-dark";
-  const layoutPreference = settings.display.layout ?? "auto";
+  const visualTheme = settings.display.theme ?? 'meter-dark';
+  const layoutPreference = settings.display.layout ?? 'auto';
   const currentRate = settings.display.privacy
-    ? "₩••••/초"
-    : `${snapshot.currentRateMilliKrwPerSecond > 0n ? "+" : ""}₩${formatRateMilliKrw(
+    ? '₩••••/초'
+    : `${snapshot.currentRateMilliKrwPerSecond > 0n ? '+' : ''}₩${formatRateMilliKrw(
         snapshot.currentRateMilliKrwPerSecond,
       )}/초`;
 
   return (
     <main
       className={`money-timer-frame theme-${visualTheme} layout-${layoutPreference} state-${vm.stateTheme} ${
-        isPiP ? "pip-timer" : ""
+        isPiP ? 'pip-timer' : ''
       }`}
       style={frameStyle}
       aria-live="polite"
@@ -153,11 +149,7 @@ export function MoneyTimer({
               <span className="state-dot" />
               <span>{vm.stateLabel}</span>
             </div>
-            <div
-              className="current-rate"
-              data-testid="current-rate"
-              aria-label="현재 초당 적립액"
-            >
+            <div className="current-rate" data-testid="current-rate" aria-label="현재 초당 적립액">
               <span>현재 적립</span>
               <strong>{currentRate}</strong>
             </div>
@@ -165,11 +157,7 @@ export function MoneyTimer({
         </div>
         <div className="header-actions">
           {!isPiP && onDetails ? (
-            <button
-              className="round-icon-button"
-              onClick={onDetails}
-              aria-label="상세 보기"
-            >
+            <button className="round-icon-button" onClick={onDetails} aria-label="상세 보기">
               <ListIcon />
             </button>
           ) : null}
@@ -181,11 +169,7 @@ export function MoneyTimer({
             <EyeOffIcon />
           </button>
           {!isPiP && onSettings ? (
-            <button
-              className="round-icon-button"
-              onClick={onSettings}
-              aria-label="설정"
-            >
+            <button className="round-icon-button" onClick={onSettings} aria-label="설정">
               <GearIcon />
             </button>
           ) : null}
@@ -212,10 +196,7 @@ export function MoneyTimer({
                   <strong data-testid="current-money">
                     <span className="currency-symbol">₩</span>
                     <span className="currency-digits">
-                      {moneyDigits(
-                        snapshot.todayEarnedMicroKrw,
-                        settings.display.privacy,
-                      )}
+                      {moneyDigits(snapshot.todayEarnedMicroKrw, settings.display.privacy)}
                     </span>
                   </strong>
                 </div>
@@ -227,10 +208,7 @@ export function MoneyTimer({
                   <div>
                     <span>루팡 누적액</span>
                     <strong data-testid="loafing-money">
-                      {money(
-                        snapshot.loafingEarnedValueMicroKrw,
-                        settings.display.privacy,
-                      )}
+                      {money(snapshot.loafingEarnedValueMicroKrw, settings.display.privacy)}
                     </strong>
                   </div>
                 </div>
@@ -243,10 +221,7 @@ export function MoneyTimer({
                   <div>
                     <span>무료봉사 기록</span>
                     <strong data-testid="clocked-freework-money">
-                      {money(
-                        snapshot.freeWorkReferenceValueMicroKrw,
-                        settings.display.privacy,
-                      )}
+                      {money(snapshot.freeWorkReferenceValueMicroKrw, settings.display.privacy)}
                     </strong>
                   </div>
                 </div>
@@ -254,18 +229,18 @@ export function MoneyTimer({
 
               {showActivityAction ? (
                 <button
-                  className={`loaf-button ${snapshot.activityState === "LOAFING" ? "active" : ""}`}
+                  className={`loaf-button ${snapshot.activityState === 'LOAFING' ? 'active' : ''}`}
                   disabled={!snapshot.activityToggleEnabled}
                   onClick={onToggleLoafing}
                   data-testid="loafing-toggle"
                 >
                   <MaskIcon />
                   <span>
-                    {snapshot.payState === "UNPAID_BREAK"
-                      ? "휴게중"
-                      : snapshot.activityState === "LOAFING"
-                        ? "업무 복귀"
-                        : "루팡 모드"}
+                    {snapshot.payState === 'UNPAID_BREAK'
+                      ? '휴게중'
+                      : snapshot.activityState === 'LOAFING'
+                        ? '업무 복귀'
+                        : '루팡 모드'}
                   </span>
                   <ChevronIcon />
                 </button>
