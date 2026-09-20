@@ -7,7 +7,9 @@
 - Audit Baseline HEAD: `bc0b7935a5edd0339fd60a49b67610ede32b0caa`
 - Scope: P1R Detail Reporting correctness, transitional daily archive, settings usability, responsive presentation
 - P2: Full IndexedDB History remains BLOCKED
-- Initial Status: `DETAIL_REPORTING_REWORK_PLANNED`
+- Final Status: `DETAIL_REPORTING_REWORK_APPROVED`
+- Verified Implementation HEAD: `d3b04c155329038fe02ca7f6a62fec1eca9861d1`
+- Verification CI Run ID: `35481862902`
 
 ## 1. Purpose
 
@@ -114,4 +116,22 @@ P1R Transitional Archive 최소 필드:
 
 ## 6. Completion State
 
-구현과 검증이 완료되면 이 문서의 상태를 `DETAIL_REPORTING_REWORK_APPROVED`로 갱신하고 Closeout에 최종 HEAD, CI Run, Production 검증 결과를 기록한다.
+구현과 검증을 완료했다.
+
+- 날짜별 Archive와 날짜별 Loafing 보존: PASS
+- Archive 기반 과거 Daily Report 재계산: PASS
+- Live Day 포함 Planned Duration 집계: PASS
+- 휴게 없음 설정: PASS
+- Daily Timeline 우선 배치: PASS
+- Monthly 달력 날짜축 유지: PASS
+- 모바일 Touch Target과 Calendar Marker 개선: PASS
+- 큰 금액 Size Class: PASS
+- Unit Test: 62 passed
+- E2E: 18 passed
+- lint / format / build: PASS
+- Production Vercel status: success
+- Production manual smoke: settings, timer, daily/monthly detail, console error 0
+
+최종 상태:
+
+`DETAIL_REPORTING_REWORK_APPROVED`
