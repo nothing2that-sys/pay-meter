@@ -420,7 +420,6 @@ export default function App() {
     settings,
     dayControl,
     loafingIntervals,
-    nowEpochMs,
   ]);
 
   const updateSettings = (next: PrototypeSettings) => {
