@@ -451,7 +451,6 @@ test('portrait, landscape and compact layouts keep final P1R content inside the 
   await expectInsideViewport(page, '[data-testid="clock-out"]');
 });
 
-
 test('settings supports a schedule without an unpaid break', async ({ page }) => {
   await freshApp(page);
   await page.getByLabel('월급').fill('4000000');
