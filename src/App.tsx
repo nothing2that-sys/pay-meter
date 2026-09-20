@@ -297,7 +297,6 @@ function SettingsScreen({
               </button>
             </div>
           </div>
-          </div>
         ) : null}
       </section>
 
