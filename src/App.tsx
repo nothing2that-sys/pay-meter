@@ -413,14 +413,7 @@ export default function App() {
         updatedAtEpochMs: nowEpochMs,
       }),
     );
-  }, [
-    archiveMinute,
-    activeLocalDate,
-    snapshot.localDate,
-    settings,
-    dayControl,
-    loafingIntervals,
-  ]);
+  }, [archiveMinute, activeLocalDate, snapshot.localDate, settings, dayControl, loafingIntervals]);
 
   const updateSettings = (next: PrototypeSettings) => {
     setSettings(next);
