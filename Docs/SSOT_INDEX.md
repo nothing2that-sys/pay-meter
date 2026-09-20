@@ -24,6 +24,8 @@ P1R Retention Test 직전 확정된 Money Timer의 최신 Presentation 기준은
 
 상세보기 구현 및 검증 결과는 `DETAIL_REPORTING_IMPLEMENTATION_CLOSEOUT.md`를 따른다. Verified Code HEAD는 `742f3984aea841f0d4cdd5bce1a3dfee516de77a`, Verification CI Run ID는 `35479600760`이며 현재 상태는 `DETAIL_REPORTING_IMPLEMENTED`다. 이 완료 상태는 Detail Reporting의 현재 P1R 범위에 한하며 정식 P2 History Persistence 완료를 의미하지 않는다. P2는 기존 Gate에 따라 계속 BLOCKED 상태다.
 
+현재 Detail Reporting의 실사용 보정 단계는 `DETAIL_REPORTING_REWORK_PLAN.md`를 따른다. 이 문서는 최신 운영 검토에서 확인된 날짜별 기록 보존, Period 집계 정확성, 휴게 없음 설정, 모바일 가독성 및 그래프 표현 수정의 구현 정본이다. P1R 호환 Archive는 정식 P2 IndexedDB 모델을 대체하지 않으며, P2 전체 Gate는 계속 BLOCKED 상태를 유지한다.
+
 충돌하거나 해석할 수 없는 계산 Contract는 코드에서 임의 결정하지 않고 문서를 먼저 수정한다.
 
 ## 2. 제품 정의
