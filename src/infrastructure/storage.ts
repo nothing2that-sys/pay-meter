@@ -112,9 +112,7 @@ export function loadPrototypeDayArchives(): PrototypeDayArchive[] {
   }
 }
 
-export function savePrototypeDayArchive(
-  archive: PrototypeDayArchive,
-): PrototypeDayArchive[] {
+export function savePrototypeDayArchive(archive: PrototypeDayArchive): PrototypeDayArchive[] {
   const archives = loadPrototypeDayArchives().filter(
     (existing) => existing.localDate !== archive.localDate,
   );
