@@ -13,11 +13,7 @@ import {
   reportRange,
   shiftPeriodAnchor,
 } from '../../domain/reporting/reportRange';
-import type {
-  DailyReport,
-  PeriodReport,
-  ReportPeriod,
-} from '../../domain/reporting/reportTypes';
+import type { DailyReport, PeriodReport, ReportPeriod } from '../../domain/reporting/reportTypes';
 import { DailyTimeline } from './DailyTimeline';
 import { MonthlyCalendar } from './MonthlyCalendar';
 import { PeriodChart, type PeriodChartPoint } from './PeriodChart';
@@ -195,7 +191,10 @@ function DailyReportView({
         title={report.localDate === todayLocalDate ? '오늘 누적' : '일간 누적'}
         points={[
           {
-            label: report.localDate === todayLocalDate ? '현재' : String(Number(report.localDate.slice(-2))),
+            label:
+              report.localDate === todayLocalDate
+                ? '현재'
+                : String(Number(report.localDate.slice(-2))),
             value: krwNumber(report.recognizedPayMicroKrw),
             detailLabel: `${report.localDate} ${krwNumber(
               report.recognizedPayMicroKrw,
@@ -210,9 +209,8 @@ function DailyReportView({
       {synthetic ? (
         <section className="detail-integrity-notice">
           <p>
-            <strong>실제 History 아님</strong>
-            이 날짜는 Salary / Schedule 기반 배분값만 표시합니다. 실제 출퇴근, 루팡, 무료봉사
-            기록은 생성하지 않습니다.
+            <strong>실제 History 아님</strong>이 날짜는 Salary / Schedule 기반 배분값만 표시합니다.
+            실제 출퇴근, 루팡, 무료봉사 기록은 생성하지 않습니다.
           </p>
         </section>
       ) : null}
@@ -320,11 +318,7 @@ function WeeklyReportView({
         </span>
       </section>
       <IntegrityNotice report={periodReport} />
-      <PeriodChart
-        title={current ? '이번 주 누적' : '주간 비교'}
-        points={points}
-        mode="stacked"
-      />
+      <PeriodChart title={current ? '이번 주 누적' : '주간 비교'} points={points} mode="stacked" />
       <section className="detail-section detail-metrics">
         <div className="detail-section-heading">
           <h2>주간 요약</h2>
@@ -337,7 +331,10 @@ function WeeklyReportView({
           <MetricRow label="예정 유급시간" value={durationLabel(plannedDurationMs)} />
         ) : null}
         {periodReport.workingDurationMs > 0 ? (
-          <MetricRow label="기록된 근무시간" value={durationLabel(periodReport.workingDurationMs)} />
+          <MetricRow
+            label="기록된 근무시간"
+            value={durationLabel(periodReport.workingDurationMs)}
+          />
         ) : null}
         {periodReport.loafingDurationMs > 0 ? (
           <MetricRow
@@ -439,7 +436,10 @@ function MonthlyReportView({
           <MetricRow label="예정 유급시간" value={durationLabel(plannedDurationMs)} />
         ) : null}
         {periodReport.workingDurationMs > 0 ? (
-          <MetricRow label="기록된 근무시간" value={durationLabel(periodReport.workingDurationMs)} />
+          <MetricRow
+            label="기록된 근무시간"
+            value={durationLabel(periodReport.workingDurationMs)}
+          />
         ) : null}
         {periodReport.loafingDurationMs > 0 ? (
           <MetricRow
@@ -539,7 +539,10 @@ function YearlyReportView({
           <MetricRow label="급여 기준 배분일" value={`${periodReport.syntheticDayCount}일`} />
         ) : null}
         {periodReport.workingDurationMs > 0 ? (
-          <MetricRow label="기록된 근무시간" value={durationLabel(periodReport.workingDurationMs)} />
+          <MetricRow
+            label="기록된 근무시간"
+            value={durationLabel(periodReport.workingDurationMs)}
+          />
         ) : null}
         {periodReport.loafingDurationMs > 0 ? (
           <MetricRow
@@ -584,10 +587,7 @@ export function DetailReportScreen({
   const [period, setPeriod] = useState<ReportPeriod>('daily');
   const [anchorLocalDate, setAnchorLocalDate] = useState(snapshot.localDate);
   const [history, setHistory] = useState<DetailNavigationState[]>([]);
-  const range = useMemo(
-    () => reportRange(period, anchorLocalDate, 1),
-    [period, anchorLocalDate],
-  );
+  const range = useMemo(() => reportRange(period, anchorLocalDate, 1), [period, anchorLocalDate]);
   const reports = useMemo(
     () =>
       range.dates.map((localDate) =>

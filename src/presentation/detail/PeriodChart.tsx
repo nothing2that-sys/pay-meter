@@ -24,7 +24,10 @@ function safeValue(value: number | undefined): number {
 function accessibleValue(point: PeriodChartPoint, privacy: boolean, moneyMetric: boolean): string {
   if (point.disabled) return `${point.label} 미래 기간`;
   if (privacy && moneyMetric) return `${point.label} 금액 숨김`;
-  return point.detailLabel ?? `${point.label} ${Math.round(safeValue(point.value)).toLocaleString('ko-KR')}`;
+  return (
+    point.detailLabel ??
+    `${point.label} ${Math.round(safeValue(point.value)).toLocaleString('ko-KR')}`
+  );
 }
 
 function LineChart({ points }: { points: PeriodChartPoint[] }) {
@@ -60,9 +63,7 @@ function LineChart({ points }: { points: PeriodChartPoint[] }) {
         y2={top + usableHeight}
       />
       {area ? <polygon className="detail-chart-area" points={area} /> : null}
-      {coordinates.length > 1 ? (
-        <polyline className="detail-chart-line" points={polyline} />
-      ) : null}
+      {coordinates.length > 1 ? <polyline className="detail-chart-line" points={polyline} /> : null}
       {coordinates.map(({ point, x, y }, index) => (
         <circle
           key={`${point.label}:${index}`}
@@ -157,11 +158,7 @@ function ColumnChart({
             {content}
           </button>
         ) : (
-          <span
-            key={`${point.label}:${index}`}
-            className="detail-column"
-            aria-label={ariaLabel}
-          >
+          <span key={`${point.label}:${index}`} className="detail-column" aria-label={ariaLabel}>
             {content}
           </span>
         );
@@ -170,13 +167,7 @@ function ColumnChart({
   );
 }
 
-export function PeriodChart({
-  title,
-  points,
-  mode,
-  privacy = false,
-  moneyMetric = false,
-}: Props) {
+export function PeriodChart({ title, points, mode, privacy = false, moneyMetric = false }: Props) {
   return (
     <section className="detail-section detail-period-chart" data-testid="cumulative-chart">
       <div className="detail-section-heading">
@@ -189,9 +180,7 @@ export function PeriodChart({
         <>
           <LineChart points={points} />
           <span className="sr-only">
-            {points
-              .map((point) => accessibleValue(point, privacy, moneyMetric))
-              .join(', ')}
+            {points.map((point) => accessibleValue(point, privacy, moneyMetric)).join(', ')}
           </span>
         </>
       ) : (

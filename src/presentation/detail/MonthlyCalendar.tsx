@@ -25,12 +25,7 @@ function statusLabels(report: DailyReport): string[] {
   return labels;
 }
 
-export function MonthlyCalendar({
-  reports,
-  anchorLocalDate,
-  todayLocalDate,
-  onSelect,
-}: Props) {
+export function MonthlyCalendar({ reports, anchorLocalDate, todayLocalDate, onSelect }: Props) {
   const anchor = dateFromLocalDate(anchorLocalDate);
   const firstWeekday = new Date(anchor.getFullYear(), anchor.getMonth(), 1, 12).getDay();
   const cells: Array<DailyReport | null> = [

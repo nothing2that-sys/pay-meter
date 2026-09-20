@@ -10,11 +10,7 @@ import {
   buildDailyReportFromSnapshot,
   buildSyntheticAllocationReport,
 } from '../domain/reporting/buildDailyReport';
-import {
-  monthlyRange,
-  weeklyRange,
-  yearlyRange,
-} from '../domain/reporting/reportRange';
+import { monthlyRange, weeklyRange, yearlyRange } from '../domain/reporting/reportRange';
 
 const settings: PrototypeSettings = {
   salaryKrw: 4_000_000,
@@ -28,13 +24,7 @@ const settings: PrototypeSettings = {
   consumerItems: [],
 };
 
-function at(
-  year: number,
-  monthIndex: number,
-  day: number,
-  hour: number,
-  minute = 0,
-): number {
+function at(year: number, monthIndex: number, day: number, hour: number, minute = 0): number {
   return new Date(year, monthIndex, day, hour, minute, 0, 0).getTime();
 }
 
@@ -47,12 +37,7 @@ describe('detail reporting daily mapping', () => {
         endAtEpochMs: at(2026, 8, 21, 9, 45),
       },
     ];
-    const snapshot = buildPaySnapshot(
-      settings,
-      at(2026, 8, 21, 10),
-      'Asia/Seoul',
-      intervals,
-    );
+    const snapshot = buildPaySnapshot(settings, at(2026, 8, 21, 10), 'Asia/Seoul', intervals);
     const report = buildDailyReportFromSnapshot(snapshot, intervals);
 
     expect(report.recognizedPayMicroKrw).toBe(snapshot.todayEarnedMicroKrw);
@@ -72,12 +57,7 @@ describe('detail reporting daily mapping', () => {
         endAtEpochMs: at(2026, 8, 21, 10),
       },
     ];
-    const snapshot = buildPaySnapshot(
-      settings,
-      at(2026, 8, 21, 11),
-      'Asia/Seoul',
-      intervals,
-    );
+    const snapshot = buildPaySnapshot(settings, at(2026, 8, 21, 11), 'Asia/Seoul', intervals);
     const report = buildDailyReportFromSnapshot(snapshot, intervals);
 
     expect(report.loafingEarnedValueMicroKrw).toBeGreaterThan(0n);
@@ -88,12 +68,7 @@ describe('detail reporting daily mapping', () => {
   });
 
   it('does not add free work reference value to recognized pay', () => {
-    const snapshot = buildPaySnapshot(
-      settings,
-      at(2026, 8, 21, 18, 30),
-      'Asia/Seoul',
-      [],
-    );
+    const snapshot = buildPaySnapshot(settings, at(2026, 8, 21, 18, 30), 'Asia/Seoul', []);
     const report = buildDailyReportFromSnapshot(snapshot, []);
 
     expect(report.freeWorkReferenceValueMicroKrw).toBeGreaterThan(0n);
@@ -111,12 +86,7 @@ describe('detail reporting daily mapping', () => {
         endAtEpochMs: at(2026, 8, 21, 10, 30),
       },
     ];
-    const snapshot = buildPaySnapshot(
-      settings,
-      at(2026, 8, 21, 18, 30),
-      'Asia/Seoul',
-      intervals,
-    );
+    const snapshot = buildPaySnapshot(settings, at(2026, 8, 21, 18, 30), 'Asia/Seoul', intervals);
     const report = buildDailyReportFromSnapshot(snapshot, intervals);
 
     expect(report.timelineSegments.map((segment) => segment.type)).toContain('WORKING');
@@ -140,12 +110,7 @@ describe('detail reporting daily mapping', () => {
   });
 
   it('excludes future dates instead of synthesizing pay', () => {
-    const snapshot = buildPaySnapshot(
-      settings,
-      at(2026, 8, 21, 10),
-      'Asia/Seoul',
-      [],
-    );
+    const snapshot = buildPaySnapshot(settings, at(2026, 8, 21, 10), 'Asia/Seoul', []);
     const report = buildAvailableDailyReport({
       localDate: '2026-09-22',
       snapshot,
@@ -195,9 +160,7 @@ describe('detail reporting period aggregation', () => {
     expect(total.recognizedPayMicroKrw).toBe(
       first.recognizedPayMicroKrw + second.recognizedPayMicroKrw,
     );
-    expect(total.regularPayMicroKrw).toBe(
-      first.regularPayMicroKrw + second.regularPayMicroKrw,
-    );
+    expect(total.regularPayMicroKrw).toBe(first.regularPayMicroKrw + second.regularPayMicroKrw);
     expect(total.hasProvisionalData).toBe(true);
     expect(total.syntheticDayCount).toBe(2);
   });
@@ -210,29 +173,17 @@ describe('detail reporting period aggregation', () => {
         endAtEpochMs: at(2026, 8, 21, 17, 30),
       },
     ];
-    const snapshot = buildPaySnapshot(
-      settings,
-      at(2026, 8, 21, 18, 30),
-      'Asia/Seoul',
-      intervals,
-    );
+    const snapshot = buildPaySnapshot(settings, at(2026, 8, 21, 18, 30), 'Asia/Seoul', intervals);
     const daily = buildDailyReportFromSnapshot(snapshot, intervals);
     const total = aggregatePeriod([daily]);
 
     expect(total.recognizedPayMicroKrw).toBe(daily.regularPayMicroKrw);
     expect(total.loafingEarnedValueMicroKrw).toBe(daily.loafingEarnedValueMicroKrw);
-    expect(total.freeWorkReferenceValueMicroKrw).toBe(
-      daily.freeWorkReferenceValueMicroKrw,
-    );
+    expect(total.freeWorkReferenceValueMicroKrw).toBe(daily.freeWorkReferenceValueMicroKrw);
   });
 
   it('does not include future dates in a partial month', () => {
-    const snapshot = buildPaySnapshot(
-      settings,
-      at(2026, 8, 21, 10),
-      'Asia/Seoul',
-      [],
-    );
+    const snapshot = buildPaySnapshot(settings, at(2026, 8, 21, 10), 'Asia/Seoul', []);
     const reports = monthlyRange('2026-09-21').dates.map((localDate) =>
       buildAvailableDailyReport({
         localDate,

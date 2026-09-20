@@ -184,6 +184,7 @@ export function buildAvailableDailyReport({
   loafingIntervals,
 }: AvailableDailyReportInput): DailyReport {
   if (compareLocalDates(localDate, snapshot.localDate) > 0) return emptyDailyReport(localDate);
-  if (localDate === snapshot.localDate) return buildDailyReportFromSnapshot(snapshot, loafingIntervals);
+  if (localDate === snapshot.localDate)
+    return buildDailyReportFromSnapshot(snapshot, loafingIntervals);
   return buildSyntheticAllocationReport(settings, localDate, snapshot.context.timeZone);
 }
