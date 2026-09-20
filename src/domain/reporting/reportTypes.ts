@@ -1,19 +1,10 @@
 export type ReportPeriod = 'daily' | 'weekly' | 'monthly' | 'yearly';
 
-export type ReportSource =
-  | 'LIVE_SNAPSHOT'
-  | 'ARCHIVED_SNAPSHOT'
-  | 'SYNTHETIC_ALLOCATION'
-  | 'EMPTY';
+export type ReportSource = 'LIVE_SNAPSHOT' | 'ARCHIVED_SNAPSHOT' | 'SYNTHETIC_ALLOCATION' | 'EMPTY';
 
 export type ReportIntegrityStatus = 'OK' | 'PROVISIONAL' | 'NEEDS_REVIEW' | 'EXCLUDED';
 
-export type DailyTimelineSegmentType =
-  | 'WORKING'
-  | 'LOAFING'
-  | 'BREAK'
-  | 'OVERTIME'
-  | 'FREE_WORK';
+export type DailyTimelineSegmentType = 'WORKING' | 'LOAFING' | 'BREAK' | 'OVERTIME' | 'FREE_WORK';
 
 export interface DailyTimelineSegment {
   type: DailyTimelineSegmentType;
