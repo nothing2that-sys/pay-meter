@@ -7,7 +7,12 @@
   overflow-y: auto;
   overscroll-behavior: contain;
   background:
-    radial-gradient(circle at 50% 0%, rgba(53, 183, 170, 0.06), transparent 28rem), #0d1117;
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(53, 183, 170, 0.06),
+      transparent 28rem
+    ),
+    #0d1117;
   scrollbar-gutter: stable;
 }
 
@@ -76,7 +81,7 @@
   font-weight: 780;
 }
 
-.detail-icon-action[aria-pressed='true'] {
+.detail-icon-action[aria-pressed="true"] {
   border-color: #5f6973;
   color: #f2f5f7;
 }
@@ -783,10 +788,13 @@ button.detail-column:focus-visible .detail-column-plot {
   }
 }
 
-
 .detail-screen.theme-mono {
   background:
-    radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.025), transparent 24rem),
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(255, 255, 255, 0.025),
+      transparent 24rem
+    ),
     #0f1113;
 }
 
