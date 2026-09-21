@@ -34,6 +34,7 @@
 - 메인 화면은 현재 총액이 가장 큰 정보
 - 퍼센트와 퇴근까지 남은 시간은 기본 화면에 다시 추가하지 않음
 - 상세보기는 일간, 주간, 월간, 연간 구조 유지
+- Perimeter는 콘텐츠를 침범하지 않으며, 모든 viewport에서 painted edge와 콘텐츠 사이 최소 10px 간격 유지
 
 ## 3. Phase 1 Themes
 
@@ -93,6 +94,15 @@ Pocket과 Ledger는 Theme만 확장하며 Layout과 Domain 계약을 추가하�
 기존 데이터에 Base 값이 없거나 알 수 없는 값이면 `dark`로 normalize한다.
 
 ## 6. Layout Presets
+
+### Perimeter Safe Inset
+
+Perimeter는 viewport 내부 `0.7%` 경로에 그려지므로 고정 padding만 사용하지 않는다.
+
+- 콘텐츠 시작점은 `Perimeter path center + 최대 stroke 절반 + 10px` 바깥으로 배치
+- 상하단은 `0.7dvh`, 좌우는 `0.7dvw`를 반영해 viewport가 커질수록 safe inset도 증가
+- OS safe-area가 더 크면 `safe-area-inset + 10px`를 우선
+- Desktop, Portrait, compact landscape, PiP에 같은 최소 간격 계약 적용
 
 ### Auto
 
@@ -176,6 +186,7 @@ Source:
 - Current Rate가 상태별 계약과 일치
 - Privacy에서 Rate도 마스킹
 - Portrait, Landscape, PiP에서 overflow 없음
+- Desktop, Portrait, compact landscape, PiP에서 Perimeter와 콘텐츠 간격 10px 이상
 - 실제 Chrome Document PiP의 stylesheet 복제와 portal rendering은 release smoke로 확인
 - 기존 Perimeter, Loafing, Free Work 계약과 테스트 유지
 - Unit, E2E, lint, format, build 통과

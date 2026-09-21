@@ -70,11 +70,29 @@ input:focus-visible {
   --active-state: #7f8a96;
   --active-soft: #313942;
   --perimeter-color: #48b8ad;
+  --perimeter-content-gap: 10px;
+  --perimeter-max-half-stroke: 6.5px;
+  --perimeter-safe-inline: max(
+    28px,
+    calc(0.7dvw + var(--perimeter-max-half-stroke) + var(--perimeter-content-gap))
+  );
+  --perimeter-safe-block: max(
+    18px,
+    calc(0.7dvh + var(--perimeter-max-half-stroke) + var(--perimeter-content-gap))
+  );
   position: relative;
   width: 100dvw;
   height: 100dvh;
   margin: 0 auto;
-  padding: max(18px, env(safe-area-inset-top)) 28px max(18px, env(safe-area-inset-bottom));
+  padding: max(
+      var(--perimeter-safe-block),
+      calc(env(safe-area-inset-top) + var(--perimeter-content-gap))
+    )
+    var(--perimeter-safe-inline)
+    max(
+      var(--perimeter-safe-block),
+      calc(env(safe-area-inset-bottom) + var(--perimeter-content-gap))
+    );
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -499,9 +517,16 @@ input:focus-visible {
 
 @media (max-width: 480px) {
   .money-timer-frame {
+    --perimeter-safe-inline: max(
+      20px,
+      calc(0.7dvw + var(--perimeter-max-half-stroke) + var(--perimeter-content-gap))
+    );
+    --perimeter-safe-block: max(
+      14px,
+      calc(0.7dvh + var(--perimeter-max-half-stroke) + var(--perimeter-content-gap))
+    );
     width: 100dvw;
     height: 100dvh;
-    padding: max(14px, env(safe-area-inset-top)) 20px max(14px, env(safe-area-inset-bottom));
   }
   .perimeter-base {
     stroke-width: 4px;
@@ -555,9 +580,16 @@ input:focus-visible {
 
 @media (orientation: landscape) and (min-width: 520px) {
   .money-timer-frame {
+    --perimeter-safe-inline: max(
+      30px,
+      calc(0.7dvw + var(--perimeter-max-half-stroke) + var(--perimeter-content-gap))
+    );
+    --perimeter-safe-block: max(
+      12px,
+      calc(0.7dvh + var(--perimeter-max-half-stroke) + var(--perimeter-content-gap))
+    );
     width: 100dvw;
     height: 100dvh;
-    padding: max(12px, env(safe-area-inset-top)) 30px max(12px, env(safe-area-inset-bottom));
   }
   .app-header {
     min-height: 72px;
@@ -629,9 +661,16 @@ input:focus-visible {
   background: #0d1117;
 }
 .pip-body .money-timer-frame {
+  --perimeter-safe-inline: max(
+    16px,
+    calc(0.7dvw + var(--perimeter-max-half-stroke) + var(--perimeter-content-gap))
+  );
+  --perimeter-safe-block: max(
+    12px,
+    calc(0.7dvh + var(--perimeter-max-half-stroke) + var(--perimeter-content-gap))
+  );
   width: 100dvw;
   height: 100dvh;
-  padding: 12px 16px;
 }
 .pip-body .app-header {
   min-height: 66px;

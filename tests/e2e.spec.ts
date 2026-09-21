@@ -66,6 +66,38 @@ async function expectInsideViewport(page: Page, selector: string) {
   expect(result.bottom).toBeLessThanOrEqual(result.height + 1);
 }
 
+async function expectPerimeterClearance(page: Page, minimumGapPx = 10) {
+  const gaps = await page.evaluate(() => {
+    const frame = document.querySelector<HTMLElement>('.money-timer-frame')!;
+    const header = document.querySelector<HTMLElement>('.app-header')!;
+    const timerLayout = document.querySelector<HTMLElement>('.timer-layout')!;
+    const frameRect = frame.getBoundingClientRect();
+    const headerRect = header.getBoundingClientRect();
+    const timerRect = timerLayout.getBoundingClientRect();
+    const maxStrokeWidth = Math.max(
+      ...[...document.querySelectorAll<SVGPathElement>('.perimeter path')].map(
+        (path) => Number.parseFloat(getComputedStyle(path).strokeWidth) || 0,
+      ),
+    );
+    const paintedHalfStroke = maxStrokeWidth / 2;
+    const leftPaintedEdge = frameRect.left + frameRect.width * 0.007 + paintedHalfStroke;
+    const rightPaintedEdge = frameRect.left + frameRect.width * 0.993 - paintedHalfStroke;
+    const topPaintedEdge = frameRect.top + frameRect.height * 0.007 + paintedHalfStroke;
+    const bottomPaintedEdge = frameRect.top + frameRect.height * 0.993 - paintedHalfStroke;
+    const contentLeft = Math.min(headerRect.left, timerRect.left);
+    const contentRight = Math.max(headerRect.right, timerRect.right);
+
+    return {
+      top: headerRect.top - topPaintedEdge,
+      right: rightPaintedEdge - contentRight,
+      bottom: bottomPaintedEdge - timerRect.bottom,
+      left: contentLeft - leftPaintedEdge,
+    };
+  });
+
+  for (const gap of Object.values(gaps)) expect(gap).toBeGreaterThanOrEqual(minimumGapPx);
+}
+
 test('P1R final timer hides percentage and remaining time while keeping main and loafing money', async ({
   page,
 }) => {
@@ -471,6 +503,33 @@ test('settings supports a schedule without an unpaid break', async ({ page }) =>
   await page.getByRole('button', { name: '설정' }).click();
   await expect(page.getByRole('checkbox')).not.toBeChecked();
   await expect(page.getByText('없음')).toBeVisible();
+});
+
+test('perimeter maintains a safe content inset across desktop, mobile and PiP sizes', async ({
+  page,
+}) => {
+  await freshApp(page);
+  await setupSalary(page);
+
+  for (const viewport of [
+    { width: 1920, height: 1080 },
+    { width: 1366, height: 768 },
+    { width: 720, height: 420 },
+    { width: 390, height: 844 },
+  ]) {
+    await page.setViewportSize(viewport);
+    await expectPerimeterClearance(page);
+    await expectNoHorizontalOverflow(page);
+  }
+
+  await page.getByRole('button', { name: '설정' }).click();
+  await page.getByRole('button', { name: /라이트/ }).click();
+  await page.getByRole('button', { name: /Pocket/ }).click();
+  await page.getByTestId('save-settings').click();
+  await page.setViewportSize({ width: 360, height: 440 });
+  await page.evaluate(() => document.body.classList.add('pip-body'));
+  await expectPerimeterClearance(page);
+  await expectTimerLockedToViewport(page);
 });
 
 test('all themes, layout and current rate preferences persist without changing pay semantics', async ({
