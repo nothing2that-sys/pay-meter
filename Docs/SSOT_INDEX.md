@@ -26,7 +26,7 @@ P1R Retention Test 직전 확정된 Money Timer의 최신 Presentation 기준은
 
 현재 Detail Reporting의 실사용 보정 단계는 `DETAIL_REPORTING_REWORK_PLAN.md`를 따른다. 최신 운영 검토에서 확인된 날짜별 기록 보존, Period 집계 정확성, 휴게 없음 설정, 모바일 가독성 및 그래프 표현 수정은 Verified Implementation HEAD `d3b04c155329038fe02ca7f6a62fec1eca9861d1`, CI Run `35481862902`에서 검증되었으며 상태는 `DETAIL_REPORTING_REWORK_APPROVED`다. P1R 호환 Archive는 정식 P2 IndexedDB 모델을 대체하지 않으며, P2 전체 Gate는 계속 BLOCKED 상태를 유지한다. 상세 결과는 `DETAIL_REPORTING_REWORK_CLOSEOUT.md`를 따른다.
 
-Theme과 Layout 사용자 설정 및 Current Rate 표시의 최신 Presentation 기준은 `THEME_LAYOUT_CUSTOMIZATION_DESIGN.md`를 따른다. Phase 1은 Meter Dark와 Mono, Auto/Focus/Split Layout을 제공하며 Domain 계산 Contract와 P2 Gate를 변경하지 않는다.
+Theme과 Layout 사용자 설정 및 Current Rate 표시의 최신 Presentation 기준은 `THEME_LAYOUT_CUSTOMIZATION_DESIGN.md`를 따른다. Dark/Light Base와 Meter/Mono/Pocket/Ledger Theme를 독립 조합하며, Theme Phase 1은 Meter와 Mono를, Theme Phase 2는 Pocket과 Ledger를 제공한다. Auto/Focus/Split Layout과 Domain 계산 Contract 및 Product P2 Gate는 변경하지 않는다.
 
 충돌하거나 해석할 수 없는 계산 Contract는 코드에서 임의 결정하지 않고 문서를 먼저 수정한다.
 

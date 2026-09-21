@@ -118,6 +118,7 @@ export function MoneyTimer({
     '--freework-fill': `${Math.min(100, Math.max(0, freeWorkFillBasisPoints / 100))}%`,
   } as CSSProperties;
   const visualTheme = settings.display.theme ?? 'meter-dark';
+  const colorMode = settings.display.colorMode ?? 'dark';
   const layoutPreference = settings.display.layout ?? 'auto';
   const currentRate = settings.display.privacy
     ? '₩••••/초'
@@ -127,7 +128,7 @@ export function MoneyTimer({
 
   return (
     <main
-      className={`money-timer-frame theme-${visualTheme} layout-${layoutPreference} state-${vm.stateTheme} ${
+      className={`money-timer-frame mode-${colorMode} theme-${visualTheme} layout-${layoutPreference} state-${vm.stateTheme} ${
         isPiP ? 'pip-timer' : ''
       }`}
       style={frameStyle}

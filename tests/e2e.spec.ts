@@ -264,6 +264,8 @@ test('settings provide work and break presets without duplicate privacy or miles
   await expect(page.getByRole('heading', { name: '화면 스타일' })).toBeVisible();
   await expect(page.getByRole('button', { name: /Meter Dark/ })).toBeVisible();
   await expect(page.getByRole('button', { name: /Mono/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Pocket/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Ledger/ })).toBeVisible();
   await expect(page.getByRole('button', { name: '자동' })).toBeVisible();
   await expect(page.getByRole('button', { name: '집중형' })).toBeVisible();
   await expect(page.getByRole('button', { name: '분할형' })).toBeVisible();
@@ -471,7 +473,7 @@ test('settings supports a schedule without an unpaid break', async ({ page }) =>
   await expect(page.getByText('없음')).toBeVisible();
 });
 
-test('theme, layout and current rate preferences persist without changing pay semantics', async ({
+test('all themes, layout and current rate preferences persist without changing pay semantics', async ({
   page,
 }) => {
   await freshApp(page);
@@ -479,6 +481,7 @@ test('theme, layout and current rate preferences persist without changing pay se
 
   const amountBefore = (await page.getByTestId('current-money').innerText()).replace(/\s+/g, '');
   await expect(page.locator('.money-timer-frame')).toHaveClass(/theme-meter-dark/);
+  await expect(page.locator('.money-timer-frame')).toHaveClass(/mode-dark/);
   await expect(page.locator('.money-timer-frame')).toHaveClass(/layout-auto/);
 
   await page.getByRole('button', { name: '설정' }).click();
@@ -490,11 +493,142 @@ test('theme, layout and current rate preferences persist without changing pay se
   await expect(page.locator('.money-timer-frame')).toHaveClass(/layout-focus/);
   await expect(page.getByTestId('current-money')).toHaveText(amountBefore);
   await expect(page.getByTestId('current-rate')).toContainText(/\+₩\d+\.\d{3}\/초/);
-
   await page.reload();
   await expect(page.locator('.money-timer-frame')).toHaveClass(/theme-mono/);
+
+  await page.getByRole('button', { name: '설정' }).click();
+  await page.getByRole('button', { name: /Pocket/ }).click();
+  await page.getByTestId('save-settings').click();
+  await expect(page.locator('.money-timer-frame')).toHaveClass(/theme-pocket/);
+  await expect(page.getByTestId('current-money')).toHaveText(amountBefore);
+  await page.reload();
+  await expect(page.locator('.money-timer-frame')).toHaveClass(/theme-pocket/);
+
+  await page.getByRole('button', { name: '설정' }).click();
+  await page.getByRole('button', { name: /Ledger/ }).click();
+  await page.getByTestId('save-settings').click();
+  await expect(page.locator('.money-timer-frame')).toHaveClass(/theme-ledger/);
+  await expect(page.getByTestId('current-money')).toHaveText(amountBefore);
+
+  await page.reload();
+  await expect(page.locator('.money-timer-frame')).toHaveClass(/theme-ledger/);
   await expect(page.locator('.money-timer-frame')).toHaveClass(/layout-focus/);
 
   await page.getByRole('button', { name: '금액 숨김 전환' }).click();
   await expect(page.getByTestId('current-rate')).toContainText('₩••••/초');
+});
+
+test('light base combines with every theme and persists across main and detail views', async ({
+  page,
+}) => {
+  await freshApp(page);
+  await setupSalary(page);
+  const amountBefore = (await page.getByTestId('current-money').innerText()).replace(/\s+/g, '');
+
+  const themes = [
+    ['Meter Light', 'theme-meter-dark', '#0f766e'],
+    ['Mono', 'theme-mono', '#242a2e'],
+    ['Pocket', 'theme-pocket', '#24785b'],
+    ['Ledger', 'theme-ledger', '#356f6a'],
+  ] as const;
+
+  for (const [label, themeClass, workingColor] of themes) {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.getByRole('button', { name: '설정' }).click();
+    await page.getByRole('button', { name: /라이트/ }).click();
+    await expect(page.locator('.base-option-row button[aria-pressed="true"]')).toHaveCount(1);
+    await page.getByRole('button', { name: new RegExp(label) }).click();
+    await page.getByTestId('save-settings').click();
+
+    const frame = page.locator('.money-timer-frame');
+    await expect(frame).toHaveClass(/mode-light/);
+    await expect(frame).toHaveClass(new RegExp(themeClass));
+    await expect(page.getByTestId('current-money')).toHaveText(amountBefore);
+    await expectNoHorizontalOverflow(page);
+    expect(
+      await frame.evaluate((element) =>
+        getComputedStyle(element).getPropertyValue('--theme-working').trim(),
+      ),
+    ).toBe(workingColor);
+    await expect(page.getByTestId('loafing-toggle')).toHaveCSS('color', 'rgb(23, 33, 39)');
+
+    await page.getByRole('button', { name: '상세 보기' }).click();
+    await expect(page.locator('.detail-screen')).toHaveClass(/mode-light/);
+    await expect(page.locator('.detail-screen')).toHaveClass(new RegExp(themeClass));
+    await expectNoHorizontalOverflow(page);
+    await page.getByRole('button', { name: '뒤로', exact: true }).click();
+
+    await page.setViewportSize({ width: 360, height: 440 });
+    await page.evaluate(() => document.body.classList.add('pip-body'));
+    await expect(page.locator('.money-timer-frame')).toHaveClass(/mode-light/);
+    await expect(page.locator('.money-timer-frame')).toHaveClass(new RegExp(themeClass));
+    await expectNoHorizontalOverflow(page);
+    await expectTimerLockedToViewport(page);
+    await expectInsideViewport(page, '[data-testid="current-money"]');
+    await expectInsideViewport(page, '[data-testid="loafing-toggle"]');
+    await page.evaluate(() => document.body.classList.remove('pip-body'));
+  }
+
+  await page.reload();
+  await expect(page.locator('.money-timer-frame')).toHaveClass(/mode-light/);
+  await expect(page.locator('.money-timer-frame')).toHaveClass(/theme-ledger/);
+  await expect(page.getByTestId('current-money')).toHaveText(amountBefore);
+
+  await setNow(page, new Date(2026, 8, 21, 18, 30).getTime());
+  await expect(page.getByTestId('freework-wallet')).toBeVisible();
+  await expect(page.getByTestId('freework-money')).toHaveCSS('color', 'rgb(180, 35, 60)');
+  await expect(page.getByTestId('current-rate')).toContainText('₩0.000/초');
+});
+
+test('Pocket and Ledger apply to detail and compact pip-body simulation without overflow', async ({
+  page,
+}) => {
+  await freshApp(page);
+  await setupSalary(page);
+
+  for (const [label, className] of [
+    ['Pocket', 'theme-pocket'],
+    ['Ledger', 'theme-ledger'],
+  ] as const) {
+    await page.setViewportSize({ width: 720, height: 640 });
+    await page.getByRole('button', { name: '설정' }).click();
+    await page.getByRole('button', { name: new RegExp(label) }).click();
+    await expect(page.locator('.theme-option-grid button[aria-pressed="true"]')).toHaveCount(1);
+    await page.getByTestId('save-settings').click();
+    await page.reload();
+    await expect(page.locator('.money-timer-frame')).toHaveClass(new RegExp(className));
+
+    const visualContract = await page.evaluate(() => {
+      const frame = document.querySelector<HTMLElement>('.money-timer-frame')!;
+      const amount = document.querySelector<HTMLElement>('.main-money strong')!;
+      const loafingCard = document.querySelector<HTMLElement>('.loafing-inline-card')!;
+      return {
+        working: getComputedStyle(frame).getPropertyValue('--theme-working').trim(),
+        amountFont: getComputedStyle(amount).fontFamily,
+        cardRadius: getComputedStyle(loafingCard).borderRadius,
+      };
+    });
+    if (label === 'Pocket') {
+      expect(visualContract.working).toBe('#6fc9a6');
+      expect(visualContract.cardRadius).toBe('14px');
+    } else {
+      expect(visualContract.working).toBe('#78aaa3');
+      expect(visualContract.amountFont).toMatch(/Cascadia Mono|Consolas|monospace/);
+      expect(visualContract.cardRadius).toBe('0px');
+    }
+
+    await page.getByRole('button', { name: '상세 보기' }).click();
+    await expect(page.locator('.detail-screen')).toHaveClass(new RegExp(className));
+    await expectNoHorizontalOverflow(page);
+    await page.getByRole('button', { name: '뒤로', exact: true }).click();
+
+    await page.setViewportSize({ width: 360, height: 440 });
+    await page.evaluate(() => document.body.classList.add('pip-body'));
+    await expectNoHorizontalOverflow(page);
+    await expectTimerLockedToViewport(page);
+    await expectInsideViewport(page, '.money-timer-frame');
+    await expectInsideViewport(page, '[data-testid="current-money"]');
+    await expectInsideViewport(page, '[data-testid="loafing-toggle"]');
+    await page.evaluate(() => document.body.classList.remove('pip-body'));
+  }
 });

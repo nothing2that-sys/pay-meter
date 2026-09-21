@@ -10,8 +10,19 @@ export type PayState =
   | 'CLOCKED_OUT';
 export type ActivityState = 'WORKING' | 'LOAFING';
 export type PerimeterSegmentType = 'WORKING' | 'LOAFING';
-export type VisualTheme = 'meter-dark' | 'mono';
+export const VISUAL_THEMES = ['meter-dark', 'mono', 'pocket', 'ledger'] as const;
+export type VisualTheme = (typeof VISUAL_THEMES)[number];
+export const COLOR_MODES = ['dark', 'light'] as const;
+export type ColorMode = (typeof COLOR_MODES)[number];
 export type TimerLayoutPreference = 'auto' | 'focus' | 'split';
+
+export function isVisualTheme(value: unknown): value is VisualTheme {
+  return typeof value === 'string' && (VISUAL_THEMES as readonly string[]).includes(value);
+}
+
+export function isColorMode(value: unknown): value is ColorMode {
+  return typeof value === 'string' && (COLOR_MODES as readonly string[]).includes(value);
+}
 
 export interface TimeRangeSetting {
   start: string;
@@ -32,6 +43,7 @@ export interface DisplaySettings {
   showDecimals: boolean;
   milestoneEnabled: boolean;
   privacy: boolean;
+  colorMode?: ColorMode;
   theme?: VisualTheme;
   layout?: TimerLayoutPreference;
 }
@@ -123,6 +135,7 @@ export const DEFAULT_SETTINGS: PrototypeSettings = {
     showDecimals: false,
     milestoneEnabled: false,
     privacy: false,
+    colorMode: 'dark',
     theme: 'meter-dark',
     layout: 'auto',
   },

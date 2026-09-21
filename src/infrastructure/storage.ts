@@ -1,9 +1,13 @@
 import {
   DEFAULT_SETTINGS,
+  type ColorMode,
   type LoafingInterval,
   type PrototypeDayArchive,
   type PrototypeDayControl,
   type PrototypeSettings,
+  type VisualTheme,
+  isColorMode,
+  isVisualTheme,
   localDateFromEpoch,
 } from '../domain/prototype';
 
@@ -17,8 +21,12 @@ function cloneDefaults(): PrototypeSettings {
   return structuredClone(DEFAULT_SETTINGS);
 }
 
-function normalizeTheme(value: unknown): 'meter-dark' | 'mono' {
-  return value === 'mono' ? 'mono' : 'meter-dark';
+function normalizeTheme(value: unknown): VisualTheme {
+  return isVisualTheme(value) ? value : 'meter-dark';
+}
+
+function normalizeColorMode(value: unknown): ColorMode {
+  return isColorMode(value) ? value : 'dark';
 }
 
 function normalizeLayout(value: unknown): 'auto' | 'focus' | 'split' {
@@ -39,6 +47,7 @@ export function loadSettings(): PrototypeSettings {
         ...parsed.display,
         showDecimals: false,
         milestoneEnabled: false,
+        colorMode: normalizeColorMode(parsed.display?.colorMode),
         theme: normalizeTheme(parsed.display?.theme),
         layout: normalizeLayout(parsed.display?.layout),
       },
@@ -58,6 +67,7 @@ export function saveSettings(settings: PrototypeSettings): void {
         ...settings.display,
         showDecimals: false,
         milestoneEnabled: false,
+        colorMode: normalizeColorMode(settings.display.colorMode),
         theme: normalizeTheme(settings.display.theme),
         layout: normalizeLayout(settings.display.layout),
       },

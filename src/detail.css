@@ -829,3 +829,449 @@ button.detail-column:focus-visible .detail-column-plot {
   fill: #0f1113;
   stroke: #d0d5d9;
 }
+
+.detail-screen.theme-pocket {
+  background:
+    radial-gradient(circle at 50% 0%, rgba(111, 201, 166, 0.07), transparent 24rem), #0f1713;
+}
+
+.detail-screen.theme-pocket .detail-topbar {
+  border-color: #304138;
+  background: rgba(15, 23, 19, 0.95);
+}
+
+.detail-screen.theme-pocket .detail-sticky-controls {
+  background: linear-gradient(180deg, #0f1713 82%, rgba(15, 23, 19, 0));
+}
+
+.detail-screen.theme-pocket .detail-period-tabs,
+.detail-screen.theme-pocket .daily-timeline-track,
+.detail-screen.theme-pocket .calendar-cell,
+.detail-screen.theme-pocket .detail-column-plot {
+  border-color: #304239;
+  background: #17231d;
+}
+
+.detail-screen.theme-pocket .detail-period-tabs button.active {
+  background: #243a30;
+  color: #e7f6ee;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--theme-structure) 42%, transparent);
+}
+
+.detail-screen.theme-pocket .detail-source-pill {
+  border-color: rgba(111, 201, 166, 0.36);
+  background: rgba(111, 201, 166, 0.08);
+  color: #9cddc1;
+}
+
+.detail-screen.theme-pocket .daily-timeline-segment.segment-working,
+.detail-screen.theme-pocket .detail-column-primary {
+  background: var(--theme-working);
+}
+
+.detail-screen.theme-pocket .daily-timeline-segment.segment-loafing,
+.detail-screen.theme-pocket .detail-column-secondary,
+.detail-screen.theme-pocket .daily-timeline-legend .legend-loafing i {
+  background: var(--theme-loafing);
+}
+
+.detail-screen.theme-pocket .detail-metric-row.tone-loafing strong {
+  color: var(--theme-loafing);
+}
+
+.detail-screen.theme-pocket .daily-timeline-legend .legend-working i {
+  background: var(--theme-working);
+}
+
+.detail-screen.theme-pocket .detail-chart-line {
+  stroke: var(--theme-working);
+}
+
+.detail-screen.theme-pocket .detail-chart-area {
+  fill: rgba(111, 201, 166, 0.08);
+}
+
+.detail-screen.theme-pocket .detail-chart-point {
+  fill: #0f1713;
+  stroke: #8bd7b8;
+}
+
+.detail-screen.theme-ledger {
+  background-color: #0d1218;
+  background-image:
+    linear-gradient(rgba(131, 168, 207, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(131, 168, 207, 0.018) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+.detail-screen.theme-ledger .detail-topbar {
+  border-color: #344353;
+  background: rgba(13, 18, 24, 0.96);
+}
+
+.detail-screen.theme-ledger .detail-sticky-controls {
+  background: linear-gradient(180deg, #0d1218 82%, rgba(13, 18, 24, 0));
+}
+
+.detail-screen.theme-ledger .detail-hero-money,
+.detail-screen.theme-ledger .detail-metric-row strong,
+.detail-screen.theme-ledger .detail-chart-current,
+.detail-screen.theme-ledger .calendar-cell {
+  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+}
+
+.detail-screen.theme-ledger .detail-icon-action,
+.detail-screen.theme-ledger .detail-period-tabs,
+.detail-screen.theme-ledger .detail-period-tabs button,
+.detail-screen.theme-ledger .daily-timeline-track,
+.detail-screen.theme-ledger .calendar-cell,
+.detail-screen.theme-ledger .detail-column-plot {
+  border-radius: 4px;
+}
+
+.detail-screen.theme-ledger .detail-period-tabs,
+.detail-screen.theme-ledger .daily-timeline-track,
+.detail-screen.theme-ledger .calendar-cell,
+.detail-screen.theme-ledger .detail-column-plot {
+  border-color: #344352;
+  background: #131b23;
+}
+
+.detail-screen.theme-ledger .detail-period-tabs button.active {
+  background: #202d3a;
+  color: #edf4fa;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--theme-structure) 50%, transparent);
+}
+
+.detail-screen.theme-ledger .detail-source-pill {
+  border-color: rgba(131, 168, 207, 0.45);
+  border-radius: 3px;
+  background: rgba(131, 168, 207, 0.08);
+  color: #b7cee4;
+}
+
+.detail-screen.theme-ledger .daily-timeline-segment.segment-working,
+.detail-screen.theme-ledger .detail-column-primary {
+  background: var(--theme-working);
+}
+
+.detail-screen.theme-ledger .daily-timeline-segment.segment-loafing,
+.detail-screen.theme-ledger .detail-column-secondary,
+.detail-screen.theme-ledger .daily-timeline-legend .legend-loafing i {
+  background: var(--theme-loafing);
+}
+
+.detail-screen.theme-ledger .detail-metric-row.tone-loafing strong {
+  color: var(--theme-loafing);
+}
+
+.detail-screen.theme-ledger .daily-timeline-legend .legend-working i {
+  border-radius: 1px;
+  background: var(--theme-working);
+}
+
+.detail-screen.theme-ledger .detail-chart-line {
+  stroke: var(--theme-working);
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+}
+
+.detail-screen.theme-ledger .detail-chart-area {
+  fill: rgba(131, 168, 207, 0.075);
+}
+
+.detail-screen.theme-ledger .detail-chart-point {
+  fill: #0d1218;
+  stroke: #a3bed9;
+}
+
+/* Light base detail report surfaces. */
+.detail-screen.mode-light {
+  color: #172127;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(22, 143, 134, 0.07), transparent 28rem), #f5f7f8;
+}
+
+.detail-screen.mode-light .detail-topbar {
+  border-color: rgba(170, 183, 189, 0.72);
+  background: rgba(248, 250, 250, 0.94);
+}
+
+.detail-screen.mode-light .detail-topbar h1,
+.detail-screen.mode-light .detail-hero-money,
+.detail-screen.mode-light .detail-section-heading h2,
+.detail-screen.mode-light .detail-metric-row strong,
+.detail-screen.mode-light .detail-empty-state strong {
+  color: #172127;
+}
+
+.detail-screen.mode-light .detail-metric-row.tone-loafing strong {
+  color: var(--theme-loafing, #9a5a00);
+}
+
+.detail-screen.mode-light .detail-metric-row.tone-freework strong {
+  color: #b4233c;
+}
+
+.detail-screen.mode-light .detail-metric-row.tone-overtime strong {
+  color: #6750a4;
+}
+
+.detail-screen.mode-light .detail-back-button,
+.detail-screen.mode-light .detail-icon-action,
+.detail-screen.mode-light .detail-period-navigation button,
+.detail-screen.mode-light .detail-period-tabs button {
+  color: #526069;
+}
+
+.detail-screen.mode-light .detail-icon-action {
+  border-color: #c5cfd3;
+  background: rgba(255, 255, 255, 0.88);
+}
+
+.detail-screen.mode-light .detail-icon-action[aria-pressed='true'] {
+  border-color: #7f8d94;
+  color: #172127;
+}
+
+.detail-screen.mode-light .detail-sticky-controls {
+  background: linear-gradient(180deg, #f5f7f8 82%, rgba(245, 247, 248, 0));
+}
+
+.detail-screen.mode-light .detail-period-tabs,
+.detail-screen.mode-light .daily-timeline-track,
+.detail-screen.mode-light .calendar-cell,
+.detail-screen.mode-light .detail-column-plot {
+  border-color: #cbd5d9;
+  background: #ffffff;
+}
+
+.detail-screen.mode-light .detail-period-tabs button.active {
+  background: color-mix(in srgb, var(--theme-structure, #168f86) 11%, #ffffff);
+  color: #172127;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--theme-structure, #168f86) 42%, transparent);
+}
+
+.detail-screen.mode-light .detail-period-navigation strong,
+.detail-screen.mode-light .detail-chart-current {
+  color: #46545c;
+}
+
+.detail-screen.mode-light .detail-source-pill {
+  border-color: color-mix(in srgb, var(--theme-working, #168f86) 38%, transparent);
+  background: color-mix(in srgb, var(--theme-working, #168f86) 9%, transparent);
+  color: var(--theme-working, #168f86);
+}
+
+.detail-screen.mode-light .detail-source-pill.provisional {
+  border-color: #bdc7cb;
+  background: rgba(118, 132, 140, 0.08);
+  color: #68757d;
+}
+
+.detail-screen.mode-light .detail-hero-caption,
+.detail-screen.mode-light .detail-section-heading span,
+.detail-screen.mode-light .detail-metric-row span,
+.detail-screen.mode-light .detail-empty-state span,
+.detail-screen.mode-light .detail-empty-copy,
+.detail-screen.mode-light .daily-timeline-time-row,
+.detail-screen.mode-light .daily-timeline-legend span,
+.detail-screen.mode-light .detail-column-label,
+.detail-screen.mode-light .calendar-weekdays span {
+  color: #69767e;
+}
+
+.detail-screen.mode-light .detail-section,
+.detail-screen.mode-light .detail-metric-row {
+  border-color: #d3dcdf;
+}
+
+.detail-screen.mode-light .detail-integrity-notice {
+  border-color: #87949b;
+  background: rgba(108, 119, 130, 0.07);
+}
+
+.detail-screen.mode-light .detail-integrity-notice p {
+  color: #647178;
+}
+
+.detail-screen.mode-light .detail-integrity-notice strong {
+  color: #344149;
+}
+
+.detail-screen.mode-light .detail-chart-baseline {
+  stroke: #cbd5d9;
+}
+
+.detail-screen.mode-light .detail-chart-line {
+  stroke: var(--theme-working, #168f86);
+}
+
+.detail-screen.mode-light .detail-chart-area {
+  fill: color-mix(in srgb, var(--theme-working, #168f86) 10%, transparent);
+}
+
+.detail-screen.mode-light .detail-chart-point {
+  fill: #ffffff;
+  stroke: var(--theme-working, #168f86);
+}
+
+.detail-screen.mode-light .detail-chart-label {
+  fill: #69767e;
+}
+
+.detail-screen.mode-light .detail-column-reference {
+  border-color: #98a4aa;
+  background: rgba(112, 123, 134, 0.1);
+}
+
+.detail-screen.mode-light .detail-column-future {
+  color: #8a969c;
+}
+
+.detail-screen.mode-light .calendar-cell {
+  color: #28343b;
+}
+
+.detail-screen.mode-light .calendar-cell.source-synthetic_allocation {
+  border-color: #aeb9be;
+  background: rgba(108, 121, 129, 0.055);
+}
+
+.detail-screen.mode-light .calendar-marker {
+  background: #e8edef;
+  color: #65727a;
+}
+
+.detail-screen.mode-light .calendar-marker.marker-루팡 {
+  background: rgba(154, 90, 0, 0.11);
+  color: #8a5100;
+}
+
+.detail-screen.mode-light .calendar-marker.marker-봉사 {
+  background: rgba(180, 35, 60, 0.1);
+  color: #a21f36;
+}
+
+.detail-screen.mode-light .calendar-marker.marker-추가 {
+  background: rgba(103, 80, 164, 0.1);
+  color: #5d4894;
+}
+
+.detail-screen.mode-light .calendar-marker.marker-예상 {
+  background: rgba(105, 118, 126, 0.1);
+  color: #5f6c73;
+}
+
+.detail-screen.mode-light .calendar-marker.marker-확인 {
+  background: rgba(154, 90, 0, 0.1);
+  color: #815000;
+}
+
+.detail-screen.mode-light.theme-mono {
+  background: #f4f4f4;
+}
+
+.detail-screen.mode-light.theme-mono .detail-topbar {
+  border-color: #c8cccf;
+  background: rgba(246, 246, 246, 0.95);
+}
+
+.detail-screen.mode-light.theme-mono .detail-sticky-controls {
+  background: linear-gradient(180deg, #f4f4f4 82%, rgba(244, 244, 244, 0));
+}
+
+.detail-screen.mode-light.theme-mono .detail-period-tabs,
+.detail-screen.mode-light.theme-mono .daily-timeline-track,
+.detail-screen.mode-light.theme-mono .calendar-cell,
+.detail-screen.mode-light.theme-mono .detail-column-plot {
+  border-color: #c8cccf;
+  background: #ffffff;
+}
+
+.detail-screen.mode-light.theme-mono .detail-period-tabs button.active {
+  background: #e5e7e8;
+  color: #181b1d;
+  box-shadow: inset 0 0 0 1px #989ea2;
+}
+
+.detail-screen.mode-light.theme-mono .detail-source-pill {
+  border-color: #999fa3;
+  background: rgba(45, 50, 54, 0.05);
+  color: #454b4f;
+}
+
+.detail-screen.mode-light.theme-mono .detail-chart-line {
+  stroke: #34393d;
+}
+
+.detail-screen.mode-light.theme-mono .detail-chart-area {
+  fill: rgba(30, 34, 37, 0.06);
+}
+
+.detail-screen.mode-light.theme-mono .detail-chart-point {
+  fill: #ffffff;
+  stroke: #34393d;
+}
+
+.detail-screen.mode-light.theme-pocket {
+  background:
+    radial-gradient(circle at 50% 0%, rgba(39, 134, 101, 0.08), transparent 24rem), #f4f8f4;
+}
+
+.detail-screen.mode-light.theme-pocket .detail-topbar {
+  border-color: #c3d3ca;
+  background: rgba(247, 250, 247, 0.95);
+}
+
+.detail-screen.mode-light.theme-pocket .detail-sticky-controls {
+  background: linear-gradient(180deg, #f4f8f4 82%, rgba(244, 248, 244, 0));
+}
+
+.detail-screen.mode-light.theme-pocket .detail-period-tabs,
+.detail-screen.mode-light.theme-pocket .daily-timeline-track,
+.detail-screen.mode-light.theme-pocket .calendar-cell,
+.detail-screen.mode-light.theme-pocket .detail-column-plot {
+  border-color: #c6d7cd;
+  background: #fffefa;
+}
+
+.detail-screen.mode-light.theme-pocket .detail-chart-point {
+  fill: #fffefa;
+  stroke: var(--theme-working);
+}
+
+.detail-screen.mode-light.theme-ledger {
+  background-color: #f5f7f8;
+  background-image:
+    linear-gradient(rgba(86, 127, 167, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(86, 127, 167, 0.05) 1px, transparent 1px);
+}
+
+.detail-screen.mode-light.theme-ledger .detail-topbar {
+  border-color: #b8c7d3;
+  background: rgba(247, 249, 250, 0.96);
+}
+
+.detail-screen.mode-light.theme-ledger .detail-sticky-controls {
+  background: linear-gradient(180deg, #f5f7f8 82%, rgba(245, 247, 248, 0));
+}
+
+.detail-screen.mode-light.theme-ledger .detail-period-tabs,
+.detail-screen.mode-light.theme-ledger .daily-timeline-track,
+.detail-screen.mode-light.theme-ledger .calendar-cell,
+.detail-screen.mode-light.theme-ledger .detail-column-plot {
+  border-color: #bfccd6;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.detail-screen.mode-light.theme-ledger .detail-source-pill {
+  border-color: rgba(86, 127, 167, 0.48);
+  background: rgba(86, 127, 167, 0.08);
+  color: #416d96;
+}
+
+.detail-screen.mode-light.theme-ledger .detail-chart-point {
+  fill: #ffffff;
+  stroke: var(--theme-structure);
+}

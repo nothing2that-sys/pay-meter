@@ -5,9 +5,11 @@ import {
   buildPaySnapshot,
   localDateFromEpoch,
   parseTimeToMinutes,
+  type ColorMode,
   type PrototypeDayArchive,
   type PrototypeDayControl,
   type PrototypeSettings,
+  type VisualTheme,
 } from './domain/prototype';
 import { DeviceClock } from './infrastructure/clock';
 import { openDocumentPiP, supportsDocumentPiP } from './infrastructure/pip';
@@ -30,6 +32,47 @@ import { DetailReportScreen } from './presentation/detail/DetailReportScreen';
 
 const clock = new DeviceClock();
 type Screen = 'timer' | 'dashboard' | 'settings';
+
+const COLOR_MODE_OPTIONS: ReadonlyArray<{ value: ColorMode; label: string; description: string }> =
+  [
+    { value: 'dark', label: '다크', description: '어두운 배경' },
+    { value: 'light', label: '라이트', description: '밝은 배경' },
+  ];
+
+const THEME_OPTIONS: Record<
+  VisualTheme,
+  {
+    value: VisualTheme;
+    label: string;
+    description: string;
+    previewClass: string;
+  }
+> = {
+  'meter-dark': {
+    value: 'meter-dark',
+    label: 'Meter Dark',
+    description: '정돈된 기본 테마',
+    previewClass: 'preview-meter',
+  },
+  mono: {
+    value: 'mono',
+    label: 'Mono',
+    description: '장식 없는 저자극 테마',
+    previewClass: 'preview-mono',
+  },
+  pocket: {
+    value: 'pocket',
+    label: 'Pocket',
+    description: '부드러운 지갑형 테마',
+    previewClass: 'preview-pocket',
+  },
+  ledger: {
+    value: 'ledger',
+    label: 'Ledger',
+    description: '정밀한 장부형 테마',
+    previewClass: 'preview-ledger',
+  },
+};
 
 function minutesToLocalTime(totalMinutes: number): string | null {
   if (!Number.isFinite(totalMinutes) || totalMinutes < 0 || totalMinutes >= 24 * 60) return null;
@@ -142,7 +185,9 @@ function SettingsScreen({
   };
 
   return (
-    <main className={`panel-screen settings theme-${draft.display.theme ?? 'meter-dark'}`}>
+    <main
+      className={`panel-screen settings mode-${draft.display.colorMode ?? 'dark'} theme-${draft.display.theme ?? 'meter-dark'}`}
+    >
       <header>
         {onCancel ? (
           <button className="text-button" onClick={onCancel}>
@@ -303,44 +348,62 @@ function SettingsScreen({
       <section>
         <h2>화면 스타일</h2>
         <div className="style-setting-group">
+          <span className="style-setting-label">베이스</span>
+          <div className="base-option-row" aria-label="화면 베이스 선택">
+            {COLOR_MODE_OPTIONS.map(({ value, label, description }) => (
+              <button
+                key={value}
+                type="button"
+                className={(draft.display.colorMode ?? 'dark') === value ? 'selected' : ''}
+                aria-pressed={(draft.display.colorMode ?? 'dark') === value}
+                onClick={() =>
+                  setDraft({
+                    ...draft,
+                    display: { ...draft.display, colorMode: value },
+                  })
+                }
+              >
+                <strong>{label}</strong>
+                <small>{description}</small>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="style-setting-group">
           <span className="style-setting-label">테마</span>
           <div className="theme-option-grid">
-            <button
-              type="button"
-              className={draft.display.theme !== 'mono' ? 'style-option selected' : 'style-option'}
-              aria-pressed={draft.display.theme !== 'mono'}
-              onClick={() =>
-                setDraft({
-                  ...draft,
-                  display: { ...draft.display, theme: 'meter-dark' },
-                })
-              }
-            >
-              <span className="theme-preview preview-meter">
-                <i />
-                <b />
-              </span>
-              <strong>Meter Dark</strong>
-              <small>정돈된 기본 테마</small>
-            </button>
-            <button
-              type="button"
-              className={draft.display.theme === 'mono' ? 'style-option selected' : 'style-option'}
-              aria-pressed={draft.display.theme === 'mono'}
-              onClick={() =>
-                setDraft({
-                  ...draft,
-                  display: { ...draft.display, theme: 'mono' },
-                })
-              }
-            >
-              <span className="theme-preview preview-mono">
-                <i />
-                <b />
-              </span>
-              <strong>Mono</strong>
-              <small>장식 없는 저자극 테마</small>
-            </button>
+            {Object.values(THEME_OPTIONS).map(({ value, label, description, previewClass }) => (
+              <button
+                key={value}
+                type="button"
+                className={
+                  (draft.display.theme ?? 'meter-dark') === value
+                    ? 'style-option selected'
+                    : 'style-option'
+                }
+                aria-pressed={(draft.display.theme ?? 'meter-dark') === value}
+                onClick={() =>
+                  setDraft({
+                    ...draft,
+                    display: { ...draft.display, theme: value },
+                  })
+                }
+              >
+                <span className={`theme-preview ${previewClass}`}>
+                  <i />
+                  <b />
+                </span>
+                <strong>
+                  {value === 'meter-dark'
+                    ? (draft.display.colorMode ?? 'dark') === 'light'
+                      ? 'Meter Light'
+                      : 'Meter Dark'
+                    : label}
+                </strong>
+                <small>{description}</small>
+              </button>
+            ))}
           </div>
         </div>
 

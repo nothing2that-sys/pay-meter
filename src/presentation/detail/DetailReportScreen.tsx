@@ -618,7 +618,7 @@ export function DetailReportScreen({
 
   return (
     <main
-      className={`detail-screen theme-${settings.display.theme ?? 'meter-dark'}`}
+      className={`detail-screen mode-${settings.display.colorMode ?? 'dark'} theme-${settings.display.theme ?? 'meter-dark'}`}
       data-testid="detail-report-screen"
     >
       <div className="detail-topbar">

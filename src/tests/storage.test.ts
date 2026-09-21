@@ -64,7 +64,35 @@ describe('P1R prototype storage', () => {
     expect(loaded.salaryKrw).toBe(4_000_000);
     expect(loaded.display.showDecimals).toBe(false);
     expect(loaded.display.milestoneEnabled).toBe(false);
+    expect(loaded.display.colorMode).toBe('dark');
     expect(loaded.consumerItems).toEqual([]);
+  });
+
+  it('preserves the light color mode and falls back to dark for unknown values', () => {
+    localStorage.setItem(
+      'paymeter:p1:settings',
+      JSON.stringify({ display: { colorMode: 'light' } }),
+    );
+    expect(loadSettings().display.colorMode).toBe('light');
+
+    localStorage.setItem(
+      'paymeter:p1:settings',
+      JSON.stringify({ display: { colorMode: 'unknown-mode' } }),
+    );
+    expect(loadSettings().display.colorMode).toBe('dark');
+  });
+
+  it('preserves supported Phase 2 themes and falls back for unknown values', () => {
+    for (const theme of ['pocket', 'ledger'] as const) {
+      localStorage.setItem('paymeter:p1:settings', JSON.stringify({ display: { theme } }));
+      expect(loadSettings().display.theme).toBe(theme);
+    }
+
+    localStorage.setItem(
+      'paymeter:p1:settings',
+      JSON.stringify({ display: { theme: 'unknown-theme' } }),
+    );
+    expect(loadSettings().display.theme).toBe('meter-dark');
   });
 
   it('keeps the first clock-out timestamp on duplicate execution', () => {

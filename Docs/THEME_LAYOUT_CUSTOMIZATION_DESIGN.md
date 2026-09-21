@@ -4,11 +4,12 @@
 
 - Repository: `nothing2that-sys/pay-meter`
 - Branch: `main`
-- Design baseline HEAD: `57226cae57954aa515301ea72ed8730e13b2969b`
+- Design baseline HEAD: `621b9f813714eaad10d20d724e8d1d9ee3927013`
 - Scope: P1R Presentation and display preferences
 - Domain contract: unchanged
-- P2: blocked
-- Result: `THEME_LAYOUT_PHASE_1_READY`
+- Product P2: blocked
+- Theme Phase 2: implemented
+- Result: `THEME_LAYOUT_LIGHT_BASE_READY`
 
 ## 1. Purpose
 
@@ -16,6 +17,7 @@
 
 테마와 레이아웃을 분리한다.
 
+- Base: 전체 표면의 명도 체계(Dark, Light)
 - Theme: 색상, 표면, 모서리, 그림자, 시각 밀도
 - Layout: 메인 금액과 액션 영역의 배치
 - Domain: 급여, 상태, Perimeter, 루팡 및 무료봉사 계산 의미
@@ -56,9 +58,41 @@
 - 의미 전달에 필요한 최소한의 Loafing 및 Free Work Accent만 유지
 - 상세 화면에도 동일한 표면과 텍스트 토큰 적용
 
-후속 Phase에서 Pocket과 Ledger를 추가할 수 있으나 Phase 1 완료 전 혼합하지 않는다.
+## 4. Theme Phase 2 Themes
 
-## 4. Layout Presets
+### 4.1 Pocket
+
+개인 지갑처럼 부드럽고 친근한 표면을 사용한다.
+
+- 깊은 forest 배경과 절제된 mint Working Accent
+- 카드와 버튼은 중간 정도의 모서리 반경과 얕은 표면 대비 사용
+- Loafing과 Free Work의 기존 의미 색은 유지
+- 금액 위계를 흐리는 장식과 강한 glow는 추가하지 않음
+
+### 4.2 Ledger
+
+수치 확인과 기록 열람에 초점을 둔 장부형 테마다.
+
+- 차가운 ink 배경, blue-gray 구조선, 저채도 teal Working Accent
+- 얇은 grid, 각진 모서리, 선형 구분 사용
+- 주요 금액과 Rate에는 tabular monospace 계열 적용
+- 차트와 달력도 동일한 장부 표면을 사용하되 상태 의미 색은 유지
+
+Pocket과 Ledger는 Theme만 확장하며 Layout과 Domain 계약을 추가하지 않는다.
+
+## 5. Color Base
+
+모든 Theme는 Dark와 Light 두 Base에서 동작한다. Theme를 8개로 복제하지 않고 Base와 Theme를 독립 저장하여 `2 × 4` 조합을 만든다.
+
+- Dark: 기존 구현과 기존 저장 데이터의 기본값
+- Light: 밝은 배경, 어두운 본문, 낮은 채도의 구조선 사용
+- Meter는 선택한 Base에 따라 UI에 `Meter Dark` 또는 `Meter Light`로 표시
+- Mono는 무채색, Pocket은 warm white와 mint, Ledger는 밝은 paper와 blue-gray grid 성격 유지
+- Working, Loafing, Free Work의 의미 색과 정보 위계는 Base 변경으로 바꾸지 않음
+
+기존 데이터에 Base 값이 없거나 알 수 없는 값이면 `dark`로 normalize한다.
+
+## 6. Layout Presets
 
 ### Auto
 
@@ -84,7 +118,7 @@
 - 좁은 Portrait에서는 안전하게 세로 배치로 fallback
 - 사용자 임의 drag, resize는 허용하지 않음
 
-## 5. Current Rate
+## 7. Current Rate
 
 표시 형식:
 
@@ -109,34 +143,39 @@ Source:
 
 위치는 Header의 좌측 모서리 정보군이며 Brand, State 다음 위계다. 메인 금액과 경쟁하지 않는 작은 계측값으로 표시한다.
 
-## 6. Settings
+## 8. Settings
 
 설정 화면에 `화면 스타일` Section을 추가한다.
 
-- Theme: Meter Dark, Mono
+- Base: 다크, 라이트
+- Theme: Meter, Mono, Pocket, Ledger
 - Layout: 자동, 집중형, 분할형
 - 현재 선택 상태를 aria-pressed와 시각적 preview로 표시
 - 저장 전 Draft에서 즉시 선택 가능
 - 저장 후 main, detail, PiP에 동일 Theme 적용
 - 알 수 없는 legacy 값은 Meter Dark와 Auto로 normalize
 
-## 7. Storage
+## 9. Storage
 
 기존 settings key를 유지한다.
 
 `display`에 다음을 추가한다.
 
-- `theme: 'meter-dark' | 'mono'`
+- `colorMode: 'dark' | 'light'`
+- `theme: 'meter-dark' | 'mono' | 'pocket' | 'ledger'`
 - `layout: 'auto' | 'focus' | 'split'`
 
 새 DB나 별도 migration은 만들지 않는다. 기존 데이터는 load normalization으로 안전하게 보강한다.
 
-## 8. Acceptance
+## 10. Acceptance
 
-- Meter Dark가 기본값
+- Dark + Meter가 기본값
+- Light Base에서 Meter, Mono, Pocket, Ledger가 각각 고유한 표면을 유지
+- Pocket과 Ledger가 main, detail, PiP에 동일하게 적용
 - Theme 및 Layout 선택이 reload 후 유지
 - Current Rate가 상태별 계약과 일치
 - Privacy에서 Rate도 마스킹
 - Portrait, Landscape, PiP에서 overflow 없음
+- 실제 Chrome Document PiP의 stylesheet 복제와 portal rendering은 release smoke로 확인
 - 기존 Perimeter, Loafing, Free Work 계약과 테스트 유지
 - Unit, E2E, lint, format, build 통과
