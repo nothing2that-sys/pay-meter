@@ -10,6 +10,23 @@
 
 _월급 400만 원, 평일 09:00–18:00 근무를 가정한 데모 화면입니다._
 
+## PayMeter의 핵심
+
+<table>
+  <tr>
+    <td width="50%" align="center"><strong>루팡중</strong></td>
+    <td width="50%" align="center"><strong>무료봉사</strong></td>
+  </tr>
+  <tr>
+    <td><img src="Docs/assets/paymeter-social-loafing.png" alt="PayMeter 루팡중 화면"></td>
+    <td><img src="Docs/assets/paymeter-social-free-work.png" alt="PayMeter 무료봉사 화면"></td>
+  </tr>
+  <tr>
+    <td valign="top">업무 중 잠깐 딴짓한 시간과 그동안 쌓인 금액을 별도로 기록합니다.</td>
+    <td valign="top">정규 근무가 끝난 뒤에도 일하면 실제 지급액과 분리된 무상 노동 환산액을 보여줍니다.</td>
+  </tr>
+</table>
+
 ## 어떻게 사용하나요?
 
 1. **월급과 근무시간을 설정합니다.**
