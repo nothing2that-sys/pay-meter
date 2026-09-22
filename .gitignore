@@ -1,0 +1,10 @@
+node_modules
+dist
+playwright-report
+test-results
+.DS_Store
+*.local
+.env
+.env.*
+.vercel
+paymeter-p1r-*.json
