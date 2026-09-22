@@ -1,0 +1,35 @@
+{
+  "name": "paymeter",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -p tsconfig.json && vite build",
+    "lint": "eslint . --max-warnings=0",
+    "format": "prettier --write src tests public index.html package.json tsconfig.json vite.config.ts playwright.config.ts eslint.config.js .github/workflows/*.yml",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "e2e": "playwright test",
+    "e2e:install": "playwright install chromium --with-deps",
+    "format:check": "prettier --check src tests public index.html package.json tsconfig.json vite.config.ts playwright.config.ts eslint.config.js .github/workflows/*.yml"
+  },
+  "dependencies": {
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@playwright/test": "1.63.0",
+    "@types/node": "24.5.2",
+    "@types/react": "19.1.13",
+    "@types/react-dom": "19.1.9",
+    "@vitejs/plugin-react": "6.1.1",
+    "eslint": "10.10.0",
+    "prettier": "3.9.8",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.70.0",
+    "vite": "8.2.2",
+    "vitest": "5.0.1"
+  }
+}
